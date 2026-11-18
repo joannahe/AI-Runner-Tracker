@@ -133,6 +133,23 @@ This optional technical tour follows **warehouse tables → DOSI datasets and me
 3. Read [the rule catalog](coaching_knowledge.yaml) and [coach contract](TRAINING_COACH_AGENT.md). They define how an Agent should interpret metrics and check evidence; DOSI does **not** automatically execute these coaching rules or edit approved plans.
 4. Open [the fictional dashboard](dashboard/index.html) or [the owner's local preview](dashboard/personal-preview.html). Use **Alerts / 关注点** to expand concept-level observations and inspect the metric evidence. The personal half-marathon goal and draft training week are a demo of a history-based Agent workflow, not a saved approved plan or a live DOSI query.
 
+### Questions to try with an Agent
+
+These everyday questions are designed to test whether an Agent can use the ontology to find relevant concepts, then check the linked metrics and review rules. Give the Agent [agent.md](agent.md) and the [full bilingual question catalog](QUESTION_CATALOG_AND_ONBOARDING.md). Select an athlete you are authorized to inspect. Ask in your own words; you do not need to name a metric or threshold.
+
+| Ask | What a grounded answer should inspect |
+| --- | --- |
+| “How has my recovery been lately?” | `Athlete → RecoveryState`, with dated load, sleep, resting-heart-rate and HRV evidence; explain coverage and missing days. |
+| “Am I training too hard?” | COROS daily load ratio against the effective configurable threshold (default `>1.5`), then other recovery context; call it a review flag. |
+| “Which days might I need an easier workout?” | Dated recovery signals and, if present, a structured `ActionPlan → PlannedAction`; propose a draft only for athlete approval. |
+| “Has my running volume risen too quickly?” | Two complete, comparable weeks of measured running distance and the configurable `>10%` review heuristic. |
+| “Am I doing too many hard sessions?” | Deduplicated completed runs and COROS primary `training_focus` labels; count high-label sessions and report unknown labels, not time in heart-rate zones. |
+| “Is my sleep or resting heart rate unusual for me?” | Personal sleep baselines, resting-heart-rate baseline, observation dates and the applicable rule; avoid population-wide judgments. |
+| “Am I getting closer to my goal?” | The selected versioned `Goal → GoalCriterion`, matching evidence and assessment; say when a personal goal or comparable result is absent. |
+| “Can I train hard after my race, and is my plan spaced well?” | Verified race distance, athlete-specific recovery policy and dated planned intensity; identify missing plan fields before claiming a conflict or a pass. |
+
+The bundled personal snapshot has observations, but no saved personal goal, dated personal plan or computed personal `RecoveryState`. The fictional fixture has example goals and plans. DOSI maps concepts and queries semantic metrics; the Agent must apply the documented review rules to evidence. It cannot claim that DOSI automatically evaluates coaching rules, changes a plan or sends reminders.
+
 ### Use the owner's real-data snapshot locally
 
 The owner's included HTML dashboard is ready to inspect as described in [Quickstart](#quickstart). For model-backed queries against the owner's snapshot, install DOSI and the Python dependencies, then build the compatible overlay:

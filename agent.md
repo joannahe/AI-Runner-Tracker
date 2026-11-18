@@ -58,6 +58,18 @@ Show both the generated SQL and executed result. Explain that metrics are define
 
 The dashboard builder runs its **own direct SQL** against DuckDB; it does not call DOSI. StarRocks can replace the warehouse for DOSI queries using the matching model, but the current watch importer still writes to DuckDB and the dashboard needs a DuckDB snapshot of StarRocks data. The ontology maps concepts, but DOSI does not automatically execute `coaching_knowledge.yaml` as coaching rules. Distinguish a model-backed query, dashboard calculation, and Agent interpretation. Do not describe a proposed review workflow or reminder as an already running background coach.
 
+### Help the user test the ontology
+
+Offer a few plain-language questions from [the README](README.md#questions-to-try-with-an-agent) or [the full bilingual catalog](QUESTION_CATALOG_AND_ONBOARDING.md#reusable-question-catalog). The user need not know a metric name. For each question:
+
+1. Resolve the authorized athlete, local date range and, when relevant, the saved goal and plan version. State any default interpretation of “recently” or “this week.”
+2. Trace the question through `fitness_ontology.yaml` and `ontology_bindings.yaml`. Name the concepts used and distinguish a real DOSI mapping from a conceptual arrow or workflow description.
+3. Read the linked metric definition in `fitness_analysis.yaml`; query the matching source records or use the DOSI query when supported. Show the generated SQL and executed result if claiming a DOSI-backed answer. The dashboard is not a DOSI query.
+4. Apply the applicable review condition from `coaching_knowledge.yaml` as an **Agent interpretation**, citing dates, values, baselines, threshold, source, rule version and missing evidence. Do not invent a stored assessment or run an unavailable evaluator.
+5. Return an answer with the evidence and a human-reviewed next step. If a goal, verified race distance, structured plan intensity or sufficient history is absent, say exactly what cannot be checked.
+
+Good prompts to offer include “Am I recovering okay lately?”, “Is my mileage increasing too fast?”, “Am I doing too many hard runs?”, “Which day should I take it easy?”, “Am I closer to my goal?”, and “Can I train hard after my race?”. Map them respectively to `RecoveryState` and evidence, `RunningObservation` and `WeeklyMileageIncreaseReview`, `TrainingSession` and `PolarizedHighIntensityReview`, `RecoveryState → Recommendation → PlannedAction`, `Goal → GoalCriterion → GoalProgressAssessment`, and `RaceEvent → PostRaceRecoveryReview`. For a plan-spacing question, inspect `ActionPlan → PlannedAction → HardEasySequenceReview`. Do not promise a personal goal or planned-action answer from the bundled personal snapshot: those records are not included. Use the fictional fixture to demonstrate versioned goals and plans, and label it fictional.
+
 ## If asked for training advice or alerts
 
 Read [coaching_knowledge.yaml](coaching_knowledge.yaml), [RECOVERY_RULES.md](RECOVERY_RULES.md), [QUESTION_CATALOG_AND_ONBOARDING.md](QUESTION_CATALOG_AND_ONBOARDING.md), and [TRAINING_COACH_AGENT.md](TRAINING_COACH_AGENT.md). For each observation, show athlete, date range, source, metric value, personal baseline or provider range, threshold and rule version, missing inputs, and the suggested human-reviewed action. Separate facts from interpretations. Missing data is unknown, not zero; an empty calendar date does not prove rest. COROS `training_focus` is a completed session's label, not measured time in a heart-rate zone. Keep official race time distinct from watch time and measured distance distinct from rule-reference distance. Do not diagnose illness or silently alter an approved plan.
