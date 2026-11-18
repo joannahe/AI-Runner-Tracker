@@ -1,0 +1,464 @@
+-- Completely fictional athletes and workouts; safe for public demos.
+
+CREATE DATABASE IF NOT EXISTS fitness_demo;
+
+USE fitness_demo;
+
+CREATE TABLE IF NOT EXISTS athlete (
+  athlete_id VARCHAR(255),
+  gender_code VARCHAR(255),
+  timezone_name VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS workout_event (
+  athlete_id VARCHAR(255),
+  workout_event_id VARCHAR(255),
+  event_date DATE,
+  started_at_local DATETIME,
+  sport_code VARCHAR(255),
+  session_intent VARCHAR(255),
+  is_official_race BOOLEAN,
+  event_name VARCHAR(255),
+  race_format_code VARCHAR(255),
+  division_code VARCHAR(255),
+  participation_mode VARCHAR(255),
+  partner_ref VARCHAR(255),
+  watch_elapsed_s BIGINT,
+  official_finish_s BIGINT,
+  official_penalty_s BIGINT
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS activity (
+  athlete_id VARCHAR(255),
+  activity_id VARCHAR(255),
+  activity_date DATE,
+  sport_code VARCHAR(255),
+  workout_event_id VARCHAR(255),
+  source VARCHAR(255),
+  source_activity_id VARCHAR(255),
+  workout_duration_s BIGINT,
+  elapsed_duration_s BIGINT,
+  distance_m BIGINT,
+  avg_hr_bpm BIGINT,
+  avg_cadence_spm BIGINT,
+  avg_power_w BIGINT,
+  training_load BIGINT,
+  training_focus VARCHAR(255),
+  calories_kcal BIGINT,
+  dedup_status VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS running_observation_fact (
+  athlete_id VARCHAR(255),
+  workout_event_id VARCHAR(255),
+  analysis_revision BIGINT,
+  segment_ordinal BIGINT,
+  run_index BIGINT,
+  station_index BIGINT,
+  segment_kind VARCHAR(255),
+  exercise_code VARCHAR(255),
+  run_context VARCHAR(255),
+  phase_kind VARCHAR(255),
+  run_environment VARCHAR(255),
+  event_date DATE,
+  observation_date DATE,
+  duration_basis VARCHAR(255),
+  distance_status VARCHAR(255),
+  pace_basis VARCHAR(255),
+  duration_s BIGINT,
+  measured_distance_m BIGINT,
+  planned_distance_m BIGINT,
+  reported_pace_s_per_km BIGINT,
+  measured_pace_s_per_km BIGINT,
+  pace_time_s BIGINT,
+  pace_distance_m BIGINT,
+  avg_hr_bpm BIGINT,
+  hr_weighted_sum_bpm_s BIGINT,
+  hr_weight_s BIGINT,
+  hr_sample_coverage_s BIGINT,
+  avg_cadence_spm BIGINT,
+  cadence_weighted_sum_spm_s BIGINT,
+  cadence_weight_s BIGINT,
+  cadence_sample_coverage_s BIGINT,
+  sport_code VARCHAR(255),
+  session_intent VARCHAR(255),
+  is_official_race BOOLEAN,
+  event_name VARCHAR(255),
+  race_format_code VARCHAR(255),
+  division_code VARCHAR(255),
+  participation_mode VARCHAR(255),
+  partner_ref VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE VIEW v_running_observation AS SELECT * FROM running_observation_fact;
+
+CREATE TABLE IF NOT EXISTS hyrox_station_fact (
+  athlete_id VARCHAR(255),
+  workout_event_id VARCHAR(255),
+  analysis_revision BIGINT,
+  segment_ordinal BIGINT,
+  run_index BIGINT,
+  station_index BIGINT,
+  segment_kind VARCHAR(255),
+  exercise_code VARCHAR(255),
+  exercise_name_zh VARCHAR(255),
+  event_date DATE,
+  duration_s BIGINT,
+  watch_station_time_s BIGINT,
+  official_station_finish_s BIGINT,
+  official_penalty_s BIGINT,
+  comparison_conditions_verified BOOLEAN,
+  comparison_group_key VARCHAR(255),
+  repetitions BIGINT,
+  prescribed_repetitions BIGINT,
+  load_total_kg DECIMAL(18,3),
+  load_per_hand_kg DECIMAL(18,3),
+  sport_code VARCHAR(255),
+  session_intent VARCHAR(255),
+  is_official_race BOOLEAN,
+  event_name VARCHAR(255),
+  race_format_code VARCHAR(255),
+  division_code VARCHAR(255),
+  participation_mode VARCHAR(255),
+  partner_ref VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE VIEW v_hyrox_race_station AS SELECT * FROM hyrox_station_fact;
+
+CREATE TABLE IF NOT EXISTS running_rule_reference_fact (
+  athlete_id VARCHAR(255),
+  workout_event_id VARCHAR(255),
+  analysis_revision BIGINT,
+  segment_ordinal BIGINT,
+  run_index BIGINT,
+  segment_kind VARCHAR(255),
+  exercise_code VARCHAR(255),
+  event_date DATE,
+  duration_s BIGINT,
+  reference_distance_m BIGINT,
+  reference_distance_basis VARCHAR(255),
+  rule_reference_pace_s_per_km BIGINT,
+  rule_id VARCHAR(255),
+  rule_match_status VARCHAR(255),
+  event_rule_season_verified BOOLEAN,
+  measured_pace_s_per_km BIGINT,
+  avg_hr_bpm BIGINT,
+  hr_weighted_sum_bpm_s BIGINT,
+  hr_weight_s BIGINT,
+  avg_cadence_spm BIGINT,
+  cadence_weighted_sum_spm_s BIGINT,
+  cadence_weight_s BIGINT,
+  event_name VARCHAR(255),
+  race_format_code VARCHAR(255),
+  participation_mode VARCHAR(255),
+  division_code VARCHAR(255),
+  partner_ref VARCHAR(255),
+  is_official_race BOOLEAN,
+  sport_code VARCHAR(255),
+  session_intent VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE VIEW v_running_rule_reference AS SELECT * FROM running_rule_reference_fact;
+
+CREATE TABLE IF NOT EXISTS athlete_daily_training_load (
+  athlete_id VARCHAR(255),
+  source VARCHAR(255),
+  local_date DATE,
+  short_term_load BIGINT,
+  long_term_load BIGINT,
+  load_ratio DECIMAL(18,3),
+  provider_status VARCHAR(255),
+  observed_at_utc DATETIME,
+  source_snapshot_id VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_daily_sleep (
+  athlete_id VARCHAR(255),
+  source VARCHAR(255),
+  wake_date DATE,
+  data_status VARCHAR(255),
+  source_score_raw VARCHAR(255),
+  sleep_score DECIMAL(18,3),
+  daily_sleep_min BIGINT,
+  main_sleep_min BIGINT,
+  main_period_min BIGINT,
+  nap_sleep_min BIGINT,
+  deep_pct DECIMAL(18,3),
+  light_pct DECIMAL(18,3),
+  rem_pct DECIMAL(18,3),
+  awake_pct DECIMAL(18,3),
+  awake_min BIGINT,
+  awake_count BIGINT,
+  metrics_scope VARCHAR(255),
+  main_start_local DATETIME,
+  main_end_local DATETIME,
+  observed_at_utc DATETIME,
+  source_snapshot_id VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_daily_hrv (
+  athlete_id VARCHAR(255),
+  source VARCHAR(255),
+  wake_date DATE,
+  hrv_avg_ms DECIMAL(18,3),
+  normal_low_ms DECIMAL(18,3),
+  normal_high_ms DECIMAL(18,3),
+  baseline_ms DECIMAL(18,3),
+  provider_evaluation VARCHAR(255),
+  data_status VARCHAR(255),
+  observed_at_utc DATETIME,
+  source_snapshot_id VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_daily_resting_hr (
+  athlete_id VARCHAR(255),
+  source VARCHAR(255),
+  local_date DATE,
+  rhr_bpm BIGINT,
+  data_status VARCHAR(255),
+  observed_at_utc DATETIME,
+  source_snapshot_id VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_recovery_observation (
+  athlete_id VARCHAR(255),
+  observation_id VARCHAR(255),
+  source VARCHAR(255),
+  observed_at_utc DATETIME,
+  recovery_pct DECIMAL(18,3),
+  recovery_level VARCHAR(255),
+  estimated_full_recovery_h BIGINT,
+  source_snapshot_id VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_hr_zone (
+  athlete_id VARCHAR(255),
+  zone_scheme_id VARCHAR(255),
+  zone_index BIGINT,
+  sport_code VARCHAR(255),
+  scheme_method VARCHAR(255),
+  valid_from_utc DATETIME,
+  valid_to_utc DATETIME,
+  lower_inclusive_bpm BIGINT,
+  upper_exclusive_bpm BIGINT
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_pace_zone (
+  athlete_id VARCHAR(255),
+  zone_scheme_id VARCHAR(255),
+  zone_index BIGINT,
+  sport_code VARCHAR(255),
+  scheme_method VARCHAR(255),
+  valid_from_utc DATETIME,
+  valid_to_utc DATETIME,
+  fast_boundary_s_per_km BIGINT,
+  slow_boundary_s_per_km BIGINT
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS fitness_measurement (
+  athlete_id VARCHAR(255),
+  measurement_id VARCHAR(255),
+  metric_code VARCHAR(255),
+  metric_value DECIMAL(18,3),
+  unit VARCHAR(255),
+  measured_at_utc DATETIME,
+  effective_from_utc DATETIME,
+  observed_at_utc DATETIME,
+  time_quality VARCHAR(255),
+  source VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE VIEW v_latest_body_measurement AS SELECT athlete_id, measurement_id, metric_code, metric_value, unit, measured_at_utc, effective_from_utc, observed_at_utc, time_quality, source FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY athlete_id, metric_code ORDER BY COALESCE(measured_at_utc, observed_at_utc) DESC, measurement_id DESC) AS recency_rank FROM fitness_measurement) ranked WHERE recency_rank = 1;
+
+CREATE TABLE IF NOT EXISTS activity_segment (
+  athlete_id VARCHAR(255),
+  activity_id VARCHAR(255),
+  lap_ordinal BIGINT,
+  segment_kind VARCHAR(255),
+  is_canonical BOOLEAN,
+  duration_s BIGINT,
+  distance_m BIGINT,
+  avg_pace_s_per_km BIGINT,
+  avg_hr_bpm BIGINT,
+  avg_cadence_spm BIGINT,
+  avg_power_w BIGINT
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS athlete_goal (
+  athlete_id VARCHAR(255),
+  goal_id VARCHAR(255),
+  goal_version BIGINT,
+  goal_type VARCHAR(255),
+  title VARCHAR(255),
+  status VARCHAR(255),
+  created_at_utc DATETIME
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS goal_criterion (
+  athlete_id VARCHAR(255),
+  goal_id VARCHAR(255),
+  goal_version BIGINT,
+  criterion_id VARCHAR(255),
+  criterion_kind VARCHAR(255),
+  metric_name VARCHAR(255),
+  comparison_operator VARCHAR(255),
+  target_value DECIMAL(18,3),
+  target_unit VARCHAR(255),
+  aggregation_window VARCHAR(255),
+  target_date DATE,
+  evidence_policy VARCHAR(255),
+  created_at_utc DATETIME
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS recovery_state (
+  athlete_id VARCHAR(255),
+  assessment_id VARCHAR(255),
+  assessment_version BIGINT,
+  review_date DATE,
+  source VARCHAR(255),
+  status VARCHAR(255),
+  method_version VARCHAR(255),
+  evaluated_at_utc DATETIME,
+  sleep_valid_days_7 BIGINT,
+  rhr_valid_days_7 BIGINT,
+  sleep_valid_days_42 BIGINT,
+  load_source VARCHAR(255),
+  load_date DATE,
+  sleep_source VARCHAR(255),
+  sleep_wake_date DATE,
+  rhr_source VARCHAR(255),
+  rhr_date DATE,
+  provider_observation_id VARCHAR(255),
+  hrv_source VARCHAR(255),
+  hrv_wake_date DATE
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS recovery_evidence (
+  athlete_id VARCHAR(255),
+  assessment_id VARCHAR(255),
+  assessment_version BIGINT,
+  evidence_id VARCHAR(255),
+  source_dataset VARCHAR(255),
+  source_record_id VARCHAR(255),
+  source_date DATE,
+  metric_code VARCHAR(255),
+  observed_value DECIMAL(18,3),
+  unit VARCHAR(255),
+  rule_id VARCHAR(255),
+  evaluation_status VARCHAR(255),
+  valid_prior_days BIGINT,
+  baseline_days BIGINT
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS recovery_rule (
+  rule_id VARCHAR(255),
+  rule_kind VARCHAR(255),
+  metric_code VARCHAR(255),
+  lower_bound DECIMAL(18,3),
+  upper_bound DECIMAL(18,3),
+  lower_inclusive BOOLEAN,
+  upper_inclusive BOOLEAN,
+  label VARCHAR(255),
+  meaning VARCHAR(255),
+  rule_origin VARCHAR(255),
+  source_url VARCHAR(255),
+  baseline_days BIGINT,
+  min_valid_days BIGINT
+) ENGINE=OLAP DUPLICATE KEY(rule_id) DISTRIBUTED BY HASH(rule_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS capability_assessment (
+  athlete_id VARCHAR(255),
+  assessment_id VARCHAR(255),
+  assessment_version BIGINT,
+  capability_type VARCHAR(255),
+  review_date DATE,
+  status VARCHAR(255),
+  confidence VARCHAR(255),
+  method_version VARCHAR(255),
+  rationale VARCHAR(255),
+  created_at_utc DATETIME
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS capability_evidence (
+  athlete_id VARCHAR(255),
+  assessment_id VARCHAR(255),
+  assessment_version BIGINT,
+  evidence_id VARCHAR(255),
+  evidence_kind VARCHAR(255),
+  metric_name VARCHAR(255),
+  source_dataset VARCHAR(255),
+  source_record_id VARCHAR(255),
+  source_date DATE,
+  observed_value DECIMAL(18,3),
+  unit VARCHAR(255),
+  comparability_status VARCHAR(255),
+  confidence VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS goal_progress_assessment (
+  athlete_id VARCHAR(255),
+  assessment_id VARCHAR(255),
+  assessment_version BIGINT,
+  goal_id VARCHAR(255),
+  goal_version BIGINT,
+  criterion_id VARCHAR(255),
+  review_date DATE,
+  window_start_date DATE,
+  window_end_date DATE,
+  status VARCHAR(255),
+  observed_value DECIMAL(18,3),
+  difference_value DECIMAL(18,3),
+  difference_unit VARCHAR(255),
+  comparison_basis VARCHAR(255),
+  method_version VARCHAR(255),
+  rationale VARCHAR(255),
+  evaluated_at_utc DATETIME
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS goal_progress_evidence (
+  athlete_id VARCHAR(255),
+  assessment_id VARCHAR(255),
+  assessment_version BIGINT,
+  evidence_id VARCHAR(255),
+  source_dataset VARCHAR(255),
+  source_record_id VARCHAR(255),
+  source_date DATE,
+  metric_name VARCHAR(255),
+  observed_value DECIMAL(18,3),
+  unit VARCHAR(255),
+  quality_status VARCHAR(255),
+  comparison_basis VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS action_plan (
+  athlete_id VARCHAR(255),
+  plan_id VARCHAR(255),
+  plan_version BIGINT,
+  goal_id VARCHAR(255),
+  goal_version BIGINT,
+  title VARCHAR(255),
+  plan_summary VARCHAR(255),
+  status VARCHAR(255),
+  approval_status VARCHAR(255),
+  created_at_utc DATETIME,
+  approved_at_utc DATETIME,
+  revision_reason VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS planned_action (
+  athlete_id VARCHAR(255),
+  plan_id VARCHAR(255),
+  plan_version BIGINT,
+  action_id VARCHAR(255),
+  scheduled_date DATE,
+  action_kind VARCHAR(255),
+  title VARCHAR(255),
+  target_duration_min BIGINT,
+  planning_status VARCHAR(255),
+  completion_status VARCHAR(255),
+  candidate_event_id VARCHAR(255),
+  verified_event_id VARCHAR(255),
+  match_method VARCHAR(255),
+  match_reviewed_at_utc DATETIME,
+  source VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');

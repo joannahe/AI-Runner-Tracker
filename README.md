@@ -1,0 +1,202 @@
+# AI Runner Tracker
+
+Explore running history, training load, recovery signals, and goals in a local dashboard. Start with the owner's openly shared running snapshot, use a separate fictional test case, or import your own COROS or Garmin activity data. The UI starts in English and can switch to Chinese.
+
+You can use AI Runner Tracker simply to inspect your data. If you want to understand how consistent metric definitions and connected concepts help an Agent answer broader questions, follow the optional [DOSI semantic model and ontology tour](#explore-dosis-semantic-model-and-ontology).
+
+## Project overview
+
+**Local DuckDB is the default storage for running data.** The local importer writes selected watch data to a private DuckDB file; a separate fictional database powers the first-run example. The dashboard builder reads DuckDB directly and writes an offline HTML view. StarRocks is an optional warehouse for DOSI queries, with a matching model and SQL package. The current importer writes to DuckDB, and the dashboard requires a DuckDB snapshot if its source data lives in StarRocks. Coaching rules are documented guidance for an Agent or person to review, not an automatically running service. See the [component map and storage details](ARCHITECTURE.md) or give [the user-facing Agent guide](agent.md) to an assistant helping with setup.
+
+![Datus VI architecture diagram with COROS and Garmin as watch inputs, the DOSI semantic model and ontology at the center, six dashboard analysis areas, local DuckDB as default storage, and optional StarRocks](assets/architecture.svg)
+
+## Quickstart
+
+### Start with an Agent
+
+Give your coding Agent this prompt. It handles the local setup and shows you the existing dashboard first:
+
+```text
+Set up https://github.com/joannahe/AI-Runner-Tracker on my computer.
+Read README.md and agent.md before changing anything. Use the bundled,
+owner-authorized personal running data; do not connect a watch or ask me for
+credentials. Create a local Python environment, install warehouse/requirements.txt,
+rebuild dashboard/personal-preview.html from personal_duckdb/joanna_fitness.duckdb,
+and open it for me. Show me the athlete selector and the Alerts tab. Explain one
+alert using its date, metric value, baseline or rule, and source. Keep all data
+local. Do not publish or upload my data. Tell me exactly what you verified and
+report any setup error rather than claiming success.
+```
+
+The Agent can fetch the repository into a local folder if it is not present. The first view uses [the bundled personal dashboard](dashboard/personal-preview.html) and the owner's real, separately licensed data. It needs no StarRocks server, COROS login, or DOSI CLI. If you only want to look without rebuilding, open that HTML file directly and select **Alerts / 关注点**.
+
+### Manual alternative
+
+Download the repository, create a Python environment, and rebuild the owner's dashboard:
+
+```sh
+git clone https://github.com/joannahe/AI-Runner-Tracker.git
+cd AI-Runner-Tracker
+python3 -m venv .venv
+.venv/bin/python -m pip install -r warehouse/requirements.txt
+.venv/bin/python dashboard/build.py --personal
+python3 -m http.server 8000
+```
+
+Visit `http://127.0.0.1:8000/dashboard/personal-preview.html` and select **Alerts / 关注点**. Stop the server with Ctrl+C. The dashboard is a static snapshot; the rebuild reads only the included DuckDB file and does not fetch live COROS data. The requirements install a DuckDB 1.5.6-compatible reader for the bundled snapshot and DOSI CLI. The owner dataset omits the date of birth while retaining the running metrics.
+
+**Optional: reproduce the fictional test case.** This needs Python 3 with `venv` and `pip`. It creates a separate database with three synthetic athletes and an offline dashboard:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r warehouse/requirements.txt
+.venv/bin/python warehouse/build.py
+.venv/bin/python dashboard/build.py
+```
+
+Open [dashboard/index.html](dashboard/index.html) to switch among the fictional athletes. To use your own data next, follow [Supported watches](#supported-watches) and [Add your own activity data](#add-your-own-activity-data). The fixture build script regenerates fixture SQL and the bundled model dialect files from its source, so review local model edits before running it in a customized checkout.
+
+### Optional: try the DOSI semantic model
+
+Install the [DOSI CLI](https://dosi.datus.ai/) if you want to validate or query the semantic model; this project was checked with `dosi 0.1.11`. After building the fictional database above, validate the model and run its fixture checks:
+
+```sh
+dosi --version
+dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
+.venv/bin/python warehouse/verify_duckdb.py
+```
+
+Then try a DOSI query:
+
+```sh
+dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
+```
+
+This prints generated SQL. To execute against the local fixture, use `--execute --db warehouse/running_demo.duckdb`. Without a filter, the metric covers all three fictional athletes; `warehouse/verify_duckdb.py` checks the expected result.
+
+## Use another warehouse with DOSI
+
+The semantic model and ontology sit above a queryable data source. DOSI's documented connectors include **DuckDB, SQLite, MySQL, TiDB, StarRocks, Apache Doris, PostgreSQL, Hologres, GaussDB/openGauss, Oracle, SAP HANA, ClickHouse, Trino, Snowflake, BigQuery, Databricks, and Amazon Redshift**. See the [DOSI warehouse connector guide](https://dosi.datus.ai/connectors/) for the current list, setup requirements, and connection examples.
+
+This repository supplies ready-to-run schema, data import, and model files for **DuckDB and StarRocks only**. For another supported source, create or load the equivalent tables there, configure its DOSI connection, and adapt the SQL expressions, model dialect, and ontology bindings as its SQL behavior requires. Follow the relevant [DOSI connector documentation](https://dosi.datus.ai/connectors/) for that source. Changing the DOSI connection alone does not migrate data or retarget this project's watch importer and offline dashboard; those currently use local DuckDB.
+
+## Supported watches
+
+| Watch brand | Current local import method | What this version reads |
+| --- | --- | --- |
+| COROS | Authorize your own account through COROS MCP in the local importer; choose the read categories before import | Activities plus selected categories such as training load, sleep, resting heart rate, and overnight HRV when COROS makes them available |
+| Garmin | Use your own Garmin Personal API Key for a one-time activity import, or upload a Garmin Connect Activities CSV | Activity summaries: date, sport, duration, distance, and available heart rate, cadence, power, and calories; no Garmin sleep, VO₂ max, training load, or FIT files yet |
+
+Both paths run on your own computer and require a preview and confirmation before saving. COROS account authorization is controlled by COROS; the category choices limit what this app reads. Garmin's Personal API Key path is for the key holder's own account; multi-user Garmin account linking is not implemented. Other watch brands are not currently supported. See the [importer guide](coros_import/README.md) for setup and limits.
+
+## Add your own activity data
+
+1. Read [the local importer guide](coros_import/README.md), then install its additional dependencies: `.venv/bin/python -m pip install -r coros_import/requirements.txt`.
+2. Start `.venv/bin/python coros_import/run_local.py` and open `http://127.0.0.1:8767/` **on the same computer**. Choose COROS or Garmin, preview the requested categories, and confirm import.
+3. The imported DuckDB file stays under the ignored `coros_import/private_data/` directory. To preview it with the fictional fixture, run `.venv/bin/python dashboard/build.py --additional-db coros_import/private_data/coros_import.duckdb` and open `dashboard/index.html`. The athlete selector separates the sources.
+
+The local importer does not run a hosted multi-user consent service or background sync. COROS uses its own authorization flow. The Garmin path accepts the holder's Personal API Key or an Activities CSV; the CSV does not contain all health metrics. The dashboard's coach messages are review aids, not medical diagnoses or automatically applied plan changes.
+
+## What is in the repository
+
+This project contains a generic DOSI semantic model and ontology with fictional fixtures for StarRocks and DuckDB. It also contains a **separate, real personal fitness dataset** supplied by the project owner for a running dashboard and a local StarRocks rebuild. The personal SQL and DuckDB files include identifying information, workout dates, and health measurements. They are not anonymized. Credentials, source connection records, raw API responses, and synchronization state are excluded.
+
+| Data package | Included contents | Intended use |
+| --- | --- | --- |
+| Fictional fixture | Three synthetic athletes; DuckDB and StarRocks schema/seed SQL, goals, plans, metrics, and expected-result checks | First run and reproducible validation |
+| Joanna's personal snapshot | One athlete; 22 base tables and seven analytical view results, including 82 activities, 111 running observations, 96 sleep days, 93 resting-heart-rate days, 37 daily load days, and 166 overnight HRV assessments | Realistic local dashboard and optional DOSI queries |
+| Personal StarRocks rebuild | Schema, seed, verification SQL, manifest, and ZIP from the same authorized snapshot | Recreate the personal data in a separate local StarRocks database |
+| Dashboard snapshots | Fictional and personal HTML dashboards; the personal HTML embeds observations | Offline browsing without a web server |
+| Importer | COROS authorization and Garmin Personal API Key or CSV flow; writes to a Git-ignored private DuckDB file | Bring in a new user's own data locally |
+
+No other user's live watch data is bundled. The personal snapshot is **not anonymized** and its SQL/HTML exports should be reviewed as personal data before mirroring or sharing this repository.
+
+### Licenses
+
+| Material | License |
+| --- | --- |
+| Project-authored source code, SQL, DOSI-compatible model and ontology YAML, generated dashboard code, and fictional fixtures | [Apache License 2.0](LICENSE) |
+| Original project documentation and explanatory diagrams | [CC BY 4.0](DOCUMENTATION_LICENSE.md) |
+| Owner's identifiable personal fitness observations, including embedded data in SQL, DuckDB, ZIP, and HTML exports | [CC BY-NC 4.0](DATA_LICENSE.md) |
+| DOSI and other third-party products and dependencies | [Their own terms](THIRD_PARTY_NOTICES.md) |
+
+The code is open source. The separately licensed personal dataset is available for noncommercial use with attribution; commercial use of that dataset needs separate permission. You can use the fictional fixture and importer without using the owner's data. Keep another user's imported records private unless they separately agree to publication.
+
+## Explore DOSI's semantic model and ontology
+
+This optional technical tour follows **warehouse tables → DOSI datasets and metrics → ontology concepts and mappings → Agent review → dashboard evidence**. The dashboard and importer also work as a running-data exploration path on their own.
+
+1. Open [the DuckDB semantic model](fitness_analysis.yaml). Find `running_observation` and `measured_run_distance_km`; the metric aggregates measured running distance with a consistent definition. The StarRocks equivalent is [here](fitness_analysis.starrocks.yaml).
+2. Open [the ontology](fitness_ontology.yaml) and [its binding audit](ontology_bindings.yaml). Follow `Athlete → TrainingSession → SourceActivity` and `RecoveryState → OvernightHRV` to see how business concepts connect to datasets and evidence. `dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession` inspects a mapped concept.
+3. Read [the rule catalog](coaching_knowledge.yaml) and [coach contract](TRAINING_COACH_AGENT.md). They define how an Agent should interpret metrics and check evidence; DOSI does **not** automatically execute these coaching rules or edit approved plans.
+4. Open [the fictional dashboard](dashboard/index.html) or [the owner's local preview](dashboard/personal-preview.html). Use **Alerts / 关注点** to expand concept-level observations and inspect the metric evidence. The personal half-marathon goal and draft training week are a demo of a history-based Agent workflow, not a saved approved plan or a live DOSI query.
+
+### Use the owner's real-data snapshot locally
+
+The owner's included HTML dashboard is ready to inspect as described in [Quickstart](#quickstart). For model-backed queries against the owner's snapshot, install DOSI and the Python dependencies, then build the compatible overlay:
+
+```sh
+.venv/bin/python warehouse/build_personal_overlay.py
+dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb
+```
+
+Open `dashboard/personal-preview.html` for the ready-made dashboard. It embeds personal observations. Use the reader from `warehouse/requirements.txt` to rebuild against the included database; the bundled snapshot uses a DuckDB 1.5-compatible storage version. `node dashboard/rebuild_from_snapshot.mjs` remains an optional way to refresh the HTML from its bundled export.
+
+The owner has authorized this dataset for the project. **Do not treat it as anonymized** or copy it into another user's private import. Generated HTML and SQL exports also contain the data. Other people's imports stay outside Git in `coros_import/private_data/` unless they separately consent to sharing.
+
+English is the default language for the project and its local UIs. The COROS consent page and offline lineage preview offer an **English / 中文** switch. Model identifiers and SQL stay in English in both views so examples remain reproducible.
+
+## Contents
+
+- `fitness_analysis.yaml` and `fitness_ontology.yaml`: **default local DuckDB pair**. The ontology embeds the DuckDB semantic model. The model includes versioned `athlete_goal` and `action_plan`, version-scoped `planned_action` and `goal_criterion`, criterion-specific `goal_progress_assessment` with `goal_progress_evidence`, saved daily `recovery_state` with `recovery_evidence`, dated `capability_assessment` with `capability_evidence`, and the static `recovery_rule` knowledge table; existing metric formulas are unchanged.
+- `fitness_analysis.starrocks.yaml` and `fitness_ontology.starrocks.yaml`: optional **StarRocks pair**, with the same concepts and fixture data for a separately configured warehouse.
+- `ONTOLOGY_ARCHITECTURE.md`, `ontology_bindings.yaml`, `coaching_knowledge.yaml`, and `RECOVERY_RULES.md`: the three-layer concept map, a per-concept audit, and reviewable recovery rules. The rule catalog guides an agent; it is not an executable SWRL/OWL reasoner.
+- `QUESTION_CATALOG_AND_ONBOARDING.md`: reusable English/Chinese athlete questions, their ontology and evidence paths, answer limits, and first-run information needed for the future open-source setup.
+- `TRAINING_COACH_AGENT.md`: proposed Agent review cycle, rule-triggered reminder contract, evidence and duplicate-alert handling, human approval boundary, and work required before proactive coaching is enabled.
+- `AGENTS.md`: repository instructions for coding Agents, including privacy boundaries, generated-file rules, and verification commands. `agent.md` is the separate user-facing assistant guide for setup, import, DOSI exploration, and evidence-based reviews.
+- `FITNESS_GOALS_DESIGN.md`: general goal, plan, action, criterion, evidence and progress-assessment design. Fictional versioned goals, plans, proposed or approved actions, criteria and criterion-specific reviews are implemented; real provider plan import, provider ability scores and body measurements remain proposals.
+- `lineage.html`: offline visual preview of the public model and ontology, with bilingual interface controls. While the local app is running, open `http://127.0.0.1:8767/lineage`.
+- `dosi-ontology-view.html`: DOSI's generated ontology viewer, showing actual mapped concepts and joins.
+- `dashboard/index.html`: offline running capability dashboard using fictional fixtures. `dashboard/personal-preview.html` uses the owner's historical data. The dashboard has a generic English-first interface, English/Chinese toggle, date filters, and an athlete selector at the very top. Rebuild with `python3 dashboard/build.py` or `python3 dashboard/build.py --personal`. To include a separately imported athlete, add `--additional-db coros_import/private_data/coros_import.duckdb` to the personal build command; repeat that option for further databases. The shell and chart choices have been revised against the owner's Datus export and pasted entry component; see [reconstruction notes](dashboard/RECONSTRUCTION.md) for the implemented features and remaining differences.
+- `personal_duckdb/joanna_fitness.duckdb`: local analytical snapshot of the owner's StarRocks data, refreshed on 2026-11-17, with 22 base tables and 7 materialized view results in the `fitness_demo` schema. It includes 166 COROS overnight HRV assessments. The views are static in this file.
+- `personal_starrocks/schema.sql`, `seed.sql`, `verify.sql`, `manifest.json`: a local StarRocks rebuild package for an empty `joanna_fitness` database, refreshed from the same snapshot. `personal_starrocks.zip` contains the same files. StarRocks view definitions are live views. See [personal dataset instructions](personal_starrocks/README.md).
+- `warehouse/build_personal_overlay.py`: builds `warehouse/running_demo_personal.duckdb` from the fictional fixture and tracked personal snapshot. The resulting separate database is compatible with the default DuckDB DOSI model and installed DOSI engine. It retains the fictional athletes, so filter queries by athlete when analyzing one person. No calculated personal `RecoveryState` is fabricated.
+- `warehouse/build.py`: single source of fictional rows; writes two matching SQL schema/seed pairs, synchronizes both YAML dialect pairs, and builds `warehouse/running_demo.duckdb` locally.
+- `warehouse/starrocks_schema.sql`, `warehouse/starrocks_seed.sql`: StarRocks DDL and synthetic rows.
+- `warehouse/export_personal_starrocks_seed.py`, `warehouse/starrocks_personal_seed.sql`: reproducible additive personal rows for the same `fitness_demo` StarRocks schema. Load the personal seed once after the fictional seed into a new database. It contains identifying health data. The live remote `joanna_fitness` database already contains the owner's current data; this additive seed has not been loaded into a separate local StarRocks server.
+- `warehouse/duckdb_schema.sql`, `warehouse/duckdb_seed.sql`: DuckDB DDL and the same synthetic rows.
+- `warehouse/verify_duckdb.py`, `warehouse/starrocks_acceptance.sql`: expected row counts and metrics.
+- `coros_import/`: local COROS OAuth / MCP and Garmin Personal API Key or CSV importer; writes real data only to an ignored private DuckDB file after confirmation. See [its README](coros_import/README.md).
+
+## Additional build and verification notes
+
+After setting up the fictional test case, you can create an owner-inclusive overlay and export the owner's StarRocks seed with:
+
+```sh
+.venv/bin/python warehouse/build_personal_overlay.py
+.venv/bin/python warehouse/export_personal_starrocks_seed.py
+```
+
+The fictional `warehouse/running_demo.duckdb` is ignored by Git and can be recreated from the fixture generator. The separate personal DuckDB snapshot is explicitly included. Run `python3 dashboard/build.py --personal` to rebuild its HTML view.
+
+For example, after importing a watch user's data into the private DuckDB file, run `python3 dashboard/build.py --personal --additional-db coros_import/private_data/coros_import.duckdb` and open `dashboard/personal-preview.html`. The selector will include athletes from both sources. The HTML is a static snapshot: rerun the build after imports. It embeds all selected athletes' records, so keep a preview with other people's health data private unless they have agreed to share it.
+
+For a StarRocks database, run `warehouse/starrocks_schema.sql` then `warehouse/starrocks_seed.sql` **in order** using a database user with permission to create the `fitness_demo` database and its tables/views. For the owner-inclusive variant, then load `warehouse/starrocks_personal_seed.sql` once. Run `warehouse/starrocks_acceptance.sql` to check the fictional rows and compare owner counts with `personal_starrocks/manifest.json`. These seeds are intended for a new, empty schema; running them twice duplicates rows. No StarRocks connection or credentials are included.
+
+## DOSI commands
+
+```sh
+dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
+dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession
+dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
+dosi --model fitness_analysis.starrocks.yaml --ontology fitness_ontology.starrocks.yaml validate
+dosi --model fitness_analysis.starrocks.yaml query --metrics run_session_count --dialect starrocks
+```
+
+On the fictional fixtures, `measured_run_distance_km` = **41** across all athletes, `run_session_count` = **5**, canonical `coros_training_load` = **868** despite one duplicate activity record, and the fictional official 10K time = **3190 seconds**. The fictional dashboard defaults to `demo_01` (33 km over four runs). `verify_duckdb.py` executes DOSI-generated SQL against DuckDB. The fictional StarRocks DDL has not been executed against a live local StarRocks instance.
+
+The refreshed personal snapshot contains 82 activities, 111 running observation rows, and 166 overnight HRV assessments from 2026-05-21 through 2026-11-17. The personal StarRocks package was exported from a live StarRocks source and cross-checked against the DuckDB snapshot. It has **not** been loaded into a separate local StarRocks server. Review personal files before publishing this repository; base64 encoding inside the SQL is not a privacy measure.
+
+The default `fitness_analysis*.yaml` models target the `fitness_demo` fixture schema and include fictional goal/rule tables. `warehouse/running_demo_personal.duckdb` adds the owner's mapped source records to that schema and can be queried with the default DuckDB model. For example: `dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`. The personal StarRocks rebuild uses the original `joanna_fitness` database and does not add those fictional tables; using DOSI against it requires a matching personal model, not a simple database-name substitution.
+
+The local [COROS and Garmin importer](coros_import/README.md) writes consented watch data into a separate private DuckDB with the same `fitness_demo` schema. It never adds personal records to public fixtures.

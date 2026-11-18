@@ -1,0 +1,318 @@
+version: 1
+ontology: FitnessGoalOntology
+semantic_model: fitness_analysis
+concepts:
+- concept: Athlete
+  binding: direct
+  datasets:
+  - athlete
+  key:
+  - athlete.athlete_id
+- concept: TrainingSession
+  binding: direct
+  datasets:
+  - workout_event
+  key:
+  - workout_event.athlete_id
+  - workout_event.workout_event_id
+  metric_refs:
+  - official_10k_net_time_s
+  - official_finish_time_s
+  - watch_elapsed_time_s
+  note: Includes running, race and other completed workouts; a rest day is planned, not completed.
+- concept: RaceEvent
+  binding: derived_filter_not_yet_mapped
+  datasets: [workout_event]
+  required_filter: is_official_race = true, with verified completion and official course distance
+  note: Conceptually links a completed road race to TrainingSession. workout_event has an official-race flag
+    and race format, but no verified course-distance field. Watch distance cannot substitute for course distance;
+    HYROX is outside the road-race recovery policy. DOSI does not yet materialize this filtered concept.
+- concept: SourceActivity
+  binding: direct
+  datasets:
+  - activity
+  key:
+  - activity.athlete_id
+  - activity.activity_id
+  metric_refs:
+  - coros_training_load
+  fields:
+  - activity.training_focus
+  note: Deduplicate before aggregating activity records. COROS training_focus is a provider-generated primary label for one activity; it is mapped as a SourceActivity property and linked to TrainingSession through records, not a measured time-in-zone value.
+- concept: RunningObservation
+  binding: direct
+  datasets:
+  - running_observation
+  metric_refs:
+  - measured_pace_s_per_km
+  - weighted_avg_hr_bpm
+  - weighted_avg_cadence_spm
+  - measured_run_distance_km
+  - identified_run_time_s
+  - run_session_count
+  - run_day_count
+  note: Filter standalone runs for the running-only goal; mixed workout legs are separate context.
+- concept: SleepObservation
+  binding: direct
+  datasets:
+  - daily_sleep
+  metric_refs:
+  - avg_main_sleep_minutes
+  - avg_daily_sleep_minutes
+  - avg_sleep_score
+  - sleep_days_with_main
+- concept: FitnessAssessment
+  binding: direct
+  datasets:
+  - latest_fitness_measurement
+  metric_refs:
+  - latest_vo2max_running
+  - latest_threshold_pace_s_per_km
+  - latest_threshold_hr_bpm
+  note: The observed timestamp is the retrieval time, not necessarily the device calculation time.
+- concept: DailyTrainingLoad
+  binding: direct
+  datasets:
+  - daily_training_load
+  metric_refs:
+  - avg_short_term_load
+  - avg_long_term_load
+  - avg_load_ratio
+  - excessive_load_days
+  note: Device-estimated training stress is a proxy for exercise-related fatigue, not a direct fatigue
+    measurement. Preserve provider short/long load and source ratio; do not declare a fixed ACWR formula.
+- concept: OvernightHRV
+  binding: direct
+  datasets:
+  - daily_hrv
+  key:
+  - daily_hrv.athlete_id
+  - daily_hrv.source
+  - daily_hrv.wake_date
+  metric_refs:
+  - avg_overnight_hrv_ms
+  fields:
+  - daily_hrv.normal_low_ms
+  - daily_hrv.normal_high_ms
+  - daily_hrv.baseline_ms
+  - daily_hrv.provider_evaluation
+  note: Official COROS daily overnight assessment; the normal range is personal and dated. RecoveryState can cite this source by athlete, source, and wake date. The provider assessment is not recomputed from raw points.
+- concept: RestingHeartRate
+  binding: direct
+  datasets:
+  - daily_resting_hr
+  metric_refs:
+  - avg_resting_hr_bpm
+  - rhr_observed_days
+- concept: HeartRateZone
+  binding: direct
+  datasets:
+  - running_hr_zone
+  note: Athlete-specific, versioned heart-rate-zone profile linked to Athlete. It is not a recovery input.
+    Time spent in each zone requires samples or source zone-time data.
+- concept: PaceZone
+  binding: direct
+  datasets:
+  - running_pace_zone
+  fields:
+  - running_pace_zone.fast_boundary_s_per_km
+  - running_pace_zone.slow_boundary_s_per_km
+  note: Athlete-specific, versioned training-pace profile linked to Athlete. The fictional fixture has
+    boundaries; a particular imported athlete may not. Faster boundaries in seconds per kilometer can
+    support a capability trend only across comparable zone and scheme versions, with observed runs as
+    corroboration. This concept is not a recovery input.
+- concept: ProviderRecoveryEstimate
+  binding: direct
+  datasets:
+  - recovery_observation
+  metric_refs:
+  - current_recovery_pct
+  note: COROS provider point estimate, not daily history. Load/base fitness and workout intensity influence
+    the proprietary calculation. Do not infer the hidden formula from these ontology edges.
+  dependency_concepts:
+  - DailyTrainingLoad
+  - TrainingSession
+  - RunningObservation
+- concept: RecoveryState
+  binding: direct
+  datasets:
+  - recovery_state
+  key:
+  - recovery_state.athlete_id
+  - recovery_state.assessment_id
+  - recovery_state.assessment_version
+  metric_refs:
+  - avg_main_sleep_minutes
+  - avg_resting_hr_bpm
+  - avg_short_term_load
+  - avg_long_term_load
+  - avg_load_ratio
+  - current_recovery_pct
+  note: Saved daily review, with dated joins to load, sleep, resting HR and the separate provider recovery
+    estimate. Source-level evidence and rule evaluations are in recovery_evidence. The fixture has only
+    three days, so all composite statuses are insufficient_evidence. DOSI exposes these rows and joins;
+    it does not automatically run a classifier or reconstruct COROS's private recovery formula.
+  context_concepts:
+  - TrainingSession
+  - RunningObservation
+  - RecoveryRule
+- concept: RecoveryEvidence
+  binding: direct
+  datasets:
+  - recovery_evidence
+  key:
+  - recovery_evidence.athlete_id
+  - recovery_evidence.assessment_id
+  - recovery_evidence.assessment_version
+  - recovery_evidence.evidence_id
+  note: Each evidence row cites its source dataset, source record and rule; DOSI joins it to the saved
+    RecoveryState and RecoveryRule. A missing baseline is preserved as insufficient_baseline.
+- concept: Capability
+  binding: direct
+  datasets:
+  - capability_assessment
+  key:
+  - capability_assessment.athlete_id
+  - capability_assessment.assessment_id
+  - capability_assessment.assessment_version
+  metric_refs:
+  - latest_vo2max_running
+  - measured_pace_s_per_km
+  - weighted_avg_hr_bpm
+  - weighted_avg_cadence_spm
+  - latest_threshold_pace_s_per_km
+  - latest_threshold_hr_bpm
+  - official_10k_net_time_s
+  readiness_context_datasets:
+  - daily_sleep
+  - daily_resting_hr
+  - daily_training_load
+  - recovery_observation
+  note: Dated review of one ability type, linked to Athlete and cited MetricEvidence rows. Source estimates,
+    observed runs, race outcomes and versioned pace-zone boundaries remain distinct. The fixture has one
+    pace-zone scheme, so its assessment is baseline_only; no universal ability score or improvement claim
+    is computed. Sleep, load and recovery inform readiness, not this ability result.
+- concept: MetricEvidence
+  binding: direct
+  datasets:
+  - capability_evidence
+  key:
+  - capability_evidence.athlete_id
+  - capability_evidence.assessment_id
+  - capability_evidence.assessment_version
+  - capability_evidence.evidence_id
+  metric_refs:
+  - latest_vo2max_running
+  - measured_pace_s_per_km
+  - weighted_avg_hr_bpm
+  - latest_threshold_pace_s_per_km
+  - latest_threshold_hr_bpm
+  - weighted_avg_cadence_spm
+  - avg_power_w
+  - official_10k_net_time_s
+  note: Each cited evidence row links to Athlete and Capability and records source dataset, source record,
+    date, value, unit and comparability. Pace-zone boundary rows have no semantic metric name; the source
+    pointer is retained. Heterogeneous source tables are not auto-joined from this polymorphic pointer.
+- concept: Goal
+  binding: direct
+  note: Versioned, athlete-scoped stored goal. Multiple goals may be active. Target values and milestones
+    belong to GoalCriterion, which maps to the version-scoped goal_criterion dataset. The has_criterion
+    arrow is conceptual; retrieve criteria by athlete_id, goal_id and goal_version or query from
+    GoalCriterion.belongs_to.
+  datasets:
+  - athlete_goal
+  key:
+  - athlete_goal.athlete_id
+  - athlete_goal.goal_id
+  - athlete_goal.goal_version
+- concept: ActionPlan
+  binding: direct
+  datasets:
+  - action_plan
+  key:
+  - action_plan.athlete_id
+  - action_plan.plan_id
+  - action_plan.plan_version
+  note: Each plan version maps to one athlete and one exact goal version. The same plan ID can retain revisions;
+    status and human approval status are separate. A draft with pending approval is not an applied schedule.
+    Concrete workout, rest and sleep actions map to PlannedAction.
+- concept: PlannedAction
+  binding: direct
+  datasets:
+  - planned_action
+  key:
+  - planned_action.athlete_id
+  - planned_action.plan_id
+  - planned_action.plan_version
+  - planned_action.action_id
+  note: A proposed or approved run, rest day, or sleep routine belongs to an exact plan version. Candidate
+    event IDs are recorded separately and never mapped to fulfilled_by. Only a verified event ID creates
+    a TrainingSession edge. The fictional manual verification is an example, not a COROS-supplied match;
+    no scheduled COROS plan or completed activity is imported here.
+    planned_intensity is an ontology property only; planned_action currently has no structured intensity column.
+- concept: GoalReviewWorkflow
+  binding: workflow_only
+  note: Reusable Agent procedure defined in coaching_knowledge.yaml. It reads Goal, GoalCriterion,
+    GoalProgressAssessment with cited evidence, Capability and RecoveryState as context, then ActionPlan
+    and PlannedAction. The ontology's targets and uses_plan links explain the procedure; they are not
+    realized dataset joins or a queryable workflow execution record.
+- concept: InferredState
+  binding: rule_catalog_only
+  note: Keep as an Agent review-flag catalog with evidence gates in coaching_knowledge.yaml. No persisted
+    state or executable OWL/SWRL classification is present. Read the already saved GoalProgressAssessment
+    and RecoveryState rather than creating duplicate conclusions; unsupported flags remain disabled.
+    OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
+    while WeeklyMileageIncreaseReview compares two complete weeks of measured standalone running via
+    running_observation. PolarizedHighIntensityReview reads COROS activity.training_focus through
+    SourceActivity, deduplicates by TrainingSession, and compares high-focus run count to all classified
+    runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
+- concept: Recommendation
+  binding: rule_catalog_only
+  note: Agent suggestion rules remain in coaching_knowledge.yaml, without a persisted recommendation or
+    acceptance row. Cite the relevant saved assessment and evidence. A proposed change does not approve or
+    apply a plan; after human approval, persist the resulting ActionPlan or PlannedAction revision. No
+    automatic COROS write occurs. Triggered-by and adjusts are conceptual, not realized joins.
+- concept: GoalCriterion
+  binding: direct
+  datasets:
+  - goal_criterion
+  key:
+  - goal_criterion.athlete_id
+  - goal_criterion.goal_id
+  - goal_criterion.goal_version
+  - goal_criterion.criterion_id
+  note: One target or milestone per goal version. The metric_name points to an existing semantic metric;
+    criteria do not redefine the metric. Body-composition goals still lack source measurements.
+- concept: GoalProgressAssessment
+  binding: direct
+  datasets:
+  - goal_progress_assessment
+  key:
+  - goal_progress_assessment.athlete_id
+  - goal_progress_assessment.assessment_id
+  - goal_progress_assessment.assessment_version
+  note: Saved, versioned review of one versioned GoalCriterion with review date, evidence window, status,
+    nullable comparable value and gap, method version and rationale. A NULL value is retained when evidence
+    coverage or comparability is insufficient. Retrieve cited evidence by athlete_id, assessment_id and
+    assessment_version or query from GoalProgressEvidence.supports; the supported_by arrow is conceptual.
+    This is not an automatic inference engine or a universal score.
+- concept: GoalProgressEvidence
+  binding: direct
+  datasets:
+  - goal_progress_evidence
+  key:
+  - goal_progress_evidence.athlete_id
+  - goal_progress_evidence.assessment_id
+  - goal_progress_evidence.assessment_version
+  - goal_progress_evidence.evidence_id
+  note: Cited workout or sleep observation for a GoalProgressAssessment; source dataset, source record,
+    date, metric, value, unit and quality are retained. Heterogeneous source pointers are not auto-joined.
+- concept: RecoveryRule
+  binding: direct
+  datasets:
+  - recovery_rule
+  key:
+  - recovery_rule.rule_id
+  note: Queryable provider bands and user-configured review thresholds. Includes explicit interval bounds,
+    metric code, baseline days, meaning and provenance. DOSI ontology exposes these facts but does not
+    execute classifications automatically.

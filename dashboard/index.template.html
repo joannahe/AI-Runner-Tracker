@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Running capability · DOSI demo</title>
+  <style>
+    :root{font-family:Inter,system-ui,Arial,sans-serif;color:#e8f3f0;background:#071c22;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0}button,select,input{font:inherit}button{cursor:pointer}
+    .shell{display:grid;grid-template-columns:238px minmax(0,1fr);min-height:100vh}.side{background:#0d2b31;border-right:1px solid #285058;padding:28px 18px;position:sticky;top:0;height:100vh}.brand{display:flex;align-items:center;gap:10px;padding:0 10px 26px;font-weight:780;font-size:18px}.mark{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#b79cff;color:#142035;font-weight:900}.side small{display:block;color:#8fb6ba;font-weight:650;letter-spacing:.13em;font-size:10px;margin:18px 12px 10px}.nav{display:flex;align-items:center;gap:11px;width:100%;border:0;background:transparent;color:#afd0d1;text-align:left;padding:12px;border-radius:10px;margin:3px 0}.nav.active{background:#b79cff;color:#10232b;font-weight:750}.nav:hover:not(.active){background:#173c43}.side-note{position:absolute;bottom:24px;left:27px;right:27px;color:#80a5ab;font-size:12px;line-height:1.5}.side-note strong{color:#bce5dc}.main{padding:33px clamp(22px,4vw,64px) 80px;max-width:1600px;width:100%;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.eyebrow{color:#bca6ff;font-size:12px;letter-spacing:.14em;font-weight:800;text-transform:uppercase}.top h1{font-size:clamp(30px,3.5vw,47px);letter-spacing:-.045em;margin:8px 0 8px;line-height:1.07}.sub{color:#9dbdc1;max-width:740px;line-height:1.55;margin:0}.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.control{background:#11343a;border:1px solid #3b5960;color:#e8f3f0;border-radius:10px;padding:9px 12px}.control:focus{outline:2px solid #b79cff}.filters{display:flex;gap:11px;align-items:end;flex-wrap:wrap;margin:26px 0 20px;padding:16px;background:#0c2930;border:1px solid #285059;border-radius:15px}.filters label{display:grid;gap:6px;color:#91b3b6;font-size:11px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.filters input{color-scheme:dark}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #496369;background:#183e43;color:#b8e3de;border-radius:100px;padding:6px 10px;font-size:11px;font-weight:750}.content{display:grid;gap:18px}.insight{border:1px solid #615582;background:linear-gradient(110deg,#2a2545,#1a2e3b);padding:20px 22px;border-radius:16px}.insight b{color:#d7c8ff;font-size:12px;letter-spacing:.12em}.insight p{font-size:16px;line-height:1.55;margin:8px 0 0}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:#103038;border:1px solid #2a5259;border-radius:16px;padding:19px 20px;min-width:0;overflow:hidden}.card h2{font-size:16px;margin:0 0 5px;letter-spacing:-.02em}.card .hint{color:#8db3b6;font-size:12px;line-height:1.45}.stat{font-size:30px;letter-spacing:-.045em;font-weight:760;margin:12px 0 4px;color:#f5faf8}.stat small{font-size:14px;color:#b3d7d4;letter-spacing:0}.card .meta{color:#9cbec0;font-size:12px;line-height:1.45}.chart{height:230px;margin-top:12px}.chart svg{width:100%;height:100%;overflow:visible}.axis{fill:#82a6ac;font-size:11px}.chart-line{fill:none;stroke:#b99fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart-point{fill:#b99fff;stroke:#15363d;stroke-width:2}.chart-bar{fill:#b99fff}.chart-bar.alt{fill:#5fc9b7}.legend{display:flex;gap:15px;flex-wrap:wrap;color:#a8c6c8;font-size:11px;margin-top:4px}.swatch{width:8px;height:8px;border-radius:50%;display:inline-block;background:#b99fff;margin-right:5px}.swatch.alt{background:#5fc9b7}.empty{display:grid;place-items:center;height:180px;color:#86a9ad;text-align:center;font-size:13px;padding:18px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}th{text-align:left;color:#8db3b6;font-weight:650;border-bottom:1px solid #31545b;padding:11px 13px}td{border-bottom:1px solid #24454c;padding:12px 13px}tr:last-child td{border-bottom:0}.right{text-align:right}.tag{display:inline-block;background:#1f4a4f;color:#bbe4d9;border-radius:6px;padding:4px 7px;font-size:10px}.note{font-size:12px;color:#88aeb2;line-height:1.5}.footer{margin-top:26px;font-size:11px;color:#799ea3;line-height:1.5}a{color:#c7b5ff}.mobile-tabs{display:none}
+    @media(max-width:1050px){.shell{grid-template-columns:190px minmax(0,1fr)}.side{padding-left:10px;padding-right:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}.top{flex-direction:column}.controls{justify-content:flex-start}}
+    @media(max-width:720px){.shell{display:block}.side{display:none}.main{padding:22px 16px 60px}.mobile-tabs{display:flex;overflow:auto;gap:7px;margin:19px -16px 0;padding:0 16px 7px;scrollbar-width:none}.mobile-tabs .nav{width:auto;white-space:nowrap;background:#14343c;border:1px solid #31525a;padding:9px 11px;font-size:12px}.mobile-tabs .nav.active{background:#b79cff;color:#10232b}.filters{margin-top:15px}.grid,.grid.two,.grid.three{grid-template-columns:1fr}.chart{height:190px}.top h1{font-size:33px}}
+    /* Datus Studio dashboard shell, reconstructed from the exported app.jsx. */
+    :root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#213247;background:#f5f7fa}
+    .shell{display:block;min-height:100vh}.side{display:none}.main{padding:24px;max-width:1500px}
+    .top{align-items:flex-end;margin-bottom:16px}.eyebrow{display:none}.top h1{font-size:22px;letter-spacing:0;line-height:1.25;margin:0;color:#1d2b45;font-weight:700}
+    .sub{font-size:13px;color:#69788c;margin:6px 0 0}.controls{flex-direction:column;align-items:flex-end;gap:8px}
+    .stamp{font-size:12px;color:#738197}.language-toggle{display:flex;gap:4px}.language-toggle button{font-size:11px;font-weight:600;border:0;border-radius:12px;padding:3px 8px;line-height:16px;background:#edf0f5;color:#23354a}.language-toggle button.active{background:#6f5bf0;color:#fff}
+    .mobile-tabs{display:flex;overflow:auto;gap:7px;margin:0 0 12px;padding-bottom:4px}.mobile-tabs .nav{width:auto;white-space:nowrap;border:1px solid #dce2ec;background:#fff;color:#41516a;padding:8px 13px;margin:0;border-radius:9px;font-size:12px;font-weight:600}
+    .mobile-tabs .nav.active{background:#6f5bf0;color:#fff;border-color:#6f5bf0}.mobile-tabs .nav:hover:not(.active){background:#eef0ff}
+    .filters{margin:0 0 18px;padding:13px 15px;background:#fff;border-color:#e0e5ed;border-radius:12px;align-items:center}.filters label{color:#66758a}.filters input{color-scheme:light}
+    .control{background:#fff;border-color:#d6deea;color:#23354a;padding:7px 10px}.control:focus{outline:2px solid #6f5bf0}.pill{border-color:#e0e5ed;background:#f7f8fb;color:#65758b}
+    .insight{border-color:#e4e7f7;background:#f0effe;border-radius:12px;padding:17px 19px}.insight b{color:#6f5bf0}.insight p{font-size:14px;color:#2b3850}
+    .card{background:#fff;border-color:#e1e5ed;border-radius:12px;box-shadow:0 1px 3px #182a4510}.card h2{color:#1d2b45}.card .hint,.card .meta,.note,.footer{color:#68798d}.stat{color:#25364f}.stat small{color:#718095}.axis{fill:#728097}.legend{color:#68798d}
+    th{color:#66758a;border-bottom-color:#e5e9f0}td{border-bottom-color:#edf0f5}.tag{background:#edf1fa;color:#455a77}a{color:#6655e8}.empty{color:#74839a}
+    .shortcuts{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.shortcuts button{border:1px solid #dce2ec;background:#f8f9fb;color:#53647a;border-radius:7px;padding:6px 8px;font-size:11px}.shortcuts button:hover{border-color:#6f5bf0;color:#5947d9}
+    .athlete-switch{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:11px 14px;border:1px solid #e0e5ed;border-radius:11px;background:#fff}.athlete-switch label{font-size:12px;font-weight:700;color:#52637a}.athlete-switch select{min-width:205px;max-width:min(100%,340px)}.athlete-switch .switch-note{margin-left:auto;font-size:12px;color:#728097}
+    .chart-hit{cursor:crosshair}.chart-hit:focus{outline:2px solid #6f5bf0;outline-offset:-2px}.chart-tooltip{position:fixed;z-index:1000;pointer-events:none;display:none;max-width:260px;padding:10px 12px;background:#1d2b45;color:#fff;border-radius:9px;box-shadow:0 8px 24px #1d2b4540;white-space:pre-line;font-size:12px;line-height:1.5}
+    @media(max-width:1050px){.shell{display:block}.main{padding:20px}.top{flex-direction:row}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:720px){.main{padding:16px}.top{align-items:flex-start}.controls{align-items:flex-end}.top h1{font-size:20px}.athlete-switch{flex-wrap:wrap}.athlete-switch select{flex:1;min-width:160px}.athlete-switch .switch-note{width:100%;margin-left:0}.mobile-tabs{margin:0 0 12px}.mobile-tabs .nav{background:#fff;border-color:#dce2ec;color:#41516a}.mobile-tabs .nav.active{background:#6f5bf0;color:#fff}.grid,.grid.two,.grid.three{grid-template-columns:1fr}.filters{margin-top:0}.chart{height:190px}}
+    .alerts-head{padding:20px;border-radius:16px;background:linear-gradient(120deg,#222047,#443879);color:white;display:flex;justify-content:space-between;gap:15px;align-items:center}.alerts-head h2{font-size:21px;margin:2px 0 5px}.alerts-head p{margin:0;color:#e4dfff;font-size:13px;line-height:1.5}.alerts-count{font-size:29px;font-weight:800;min-width:52px;text-align:center}
+    .alert-controls{display:flex;gap:8px;overflow:auto;padding:2px 0 5px}.alert-controls button{border:1px solid #dce2ec;background:white;color:#40506b;padding:9px 13px;border-radius:999px;white-space:nowrap;font-size:12px}.alert-controls button.active{background:#6f5bf0;color:white;border-color:#6f5bf0}
+    .alert-list{display:grid;gap:11px}.concept-group{background:#fff;border:1px solid #e0e5ed;border-radius:15px;overflow:hidden}.concept-group>summary{cursor:pointer;list-style:none;padding:17px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}.concept-group>summary::-webkit-details-marker{display:none}.concept-group>summary strong{display:block;color:#25364f;font-size:15px}.concept-group>summary small{display:block;color:#718096;font-size:12px;margin-top:4px}.concept-group-body{padding:0 12px 12px;display:grid;gap:8px}.concept-group-body .alert-message{box-shadow:none}.concept-status{font-size:11px;font-weight:700;color:#6b5bd8;white-space:nowrap}.alert-message{border:1px solid #e1e5ed;border-left:5px solid #97a4b6;background:#fff;border-radius:13px;box-shadow:0 1px 3px #182a4510;overflow:hidden}.alert-message.attention{border-left-color:#e58b36}.alert-message.clear{border-left-color:#31a787}.alert-message.missing{border-left-color:#8995a7}.alert-message.context{border-left-color:#6f5bf0}.alert-message summary{list-style:none;cursor:pointer;padding:16px;display:flex;gap:12px;align-items:flex-start}.alert-message summary::-webkit-details-marker{display:none}.alert-icon{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:10px;background:#fff2e6;color:#ad5412;font-size:18px}.alert-message.clear .alert-icon{background:#e7f6ee;color:#178061}.alert-message.missing .alert-icon{background:#f0f2f6;color:#68758a}.alert-message.context .alert-icon{background:#f0edff;color:#6554d8}.alert-main{flex:1;min-width:0}.alert-main strong{display:block;color:#25364f;font-size:14px;line-height:1.4}.alert-main small{display:block;color:#69788c;font-size:12px;line-height:1.5;margin-top:4px}.alert-badge{color:#7b6585;font-size:11px;font-weight:700;white-space:nowrap}.alert-detail{padding:0 16px 17px 62px;color:#52647b;font-size:12px;line-height:1.6}.alert-detail p{margin:6px 0}.alert-detail b{color:#273851}.alert-empty{background:white;border:1px solid #e1e5ed;border-radius:12px;padding:24px;color:#68798d}.alert-footnote{color:#6a7789;font-size:12px;line-height:1.55}
+    @media(max-width:720px){.alerts-head{padding:17px}.alerts-head h2{font-size:19px}.alert-message summary{padding:14px}.alert-badge{font-size:10px}.alert-detail{padding-left:58px}.mobile-tabs{scroll-snap-type:x mandatory}.mobile-tabs .nav{scroll-snap-align:start}}
+  </style>
+</head>
+<body><div class="shell">
+  <aside class="side"><div class="brand"><span class="mark">D</span><span>DOSI <span style="font-weight:400;color:#85adb1">/ Fitness</span></span></div><small id="navLabel">WORKSPACE</small><nav id="nav"></nav><div class="side-note"><strong id="sideTitle">Local demo</strong><br><span id="sideText">Fictional data · DuckDB<br>Rebuild with dashboard/build.py</span></div></aside>
+  <main class="main"><div class="athlete-switch"><label id="athleteLabel" for="athlete">Athlete</label><select class="control" id="athlete" aria-label="Athlete"></select><span class="switch-note" id="switchNote"></span></div><header class="top"><div><h1 id="title"></h1><p class="sub" id="subtitle"></p></div><div class="controls"><div class="language-toggle"><button id="languageZh" type="button">中文</button><button id="languageEn" type="button">EN</button></div><div class="stamp" id="stamp"></div></div></header><nav class="mobile-tabs" id="mobileNav"></nav><section class="filters" id="filters"></section><section class="content" id="content"></section><footer class="footer" id="footer"></footer></main>
+</div><div class="chart-tooltip" id="chartTooltip" role="tooltip"></div><script>const DATA=/* __DATA__ */;
+const TEXT={en:{tabs:['Daily','Perf','Form','Recovery','Base'],title:'Running capability',subtitle:'Running, performance, form, recovery, and long-term capacity across the selected athlete’s data.',workspace:'WORKSPACE',local:'Local demo',fiction:'Fictional data · DuckDB',personal:'Local athlete data · DuckDB',personalSource:'Source: the bundled local fitness snapshot. All figures are filtered to the selected athlete. Rebuild this page after importing new athlete data.',athlete:'Athlete',switchNote:'Choose whose data to view',from:'From',to:'To',period:'Group by',week:'Week',month:'Month',insight:'INSIGHTS',all:'All available dates',empty:'No observations in this range',source:'Source: local DuckDB synthetic fixture. Numbers are recalculated from the selected athlete and date range. No personal workout data are included.',single:'One device estimate; no trend can be inferred.',days:'days',sessions:'sessions',run:'run',avg:'weighted average',official:'official net time',devices:'device estimate',snapshot:'single snapshot',labelDate:'Date',recorded:'Recorded',noGait:'Raw lap metadata contains ground-time and stride-height fields in some records; units and zero-value meaning are unverified, so they are not plotted.',gaitNote:'Stride length = speed ÷ cadence. Each run has one canonical lap here, so a box plot would not be meaningful.',paceRule:'Lower pace in sec/km means faster. Measured running pace is kept separate from HYROX rule-reference pace.',loadRule:'Daily load is a provider estimate; it is not summed with activity-level training load.',recoveryRule:'Sleep and resting HR are independent review context, not inputs to the COROS Recovery estimate.',foundationRule:'VO₂max and thresholds are device estimates. The observed date records when data were fetched, not when the device calculated them. One snapshot cannot show monthly change.',zoneRule:'Training-zone boundaries are reference settings, not time spent in zones.',noTrend:'More dated observations are needed for a reliable trend.'},zh:{tabs:['日常看板','表现与能力','跑姿与输出','恢复状态','长期基础能力'],title:'整体跑步能力',subtitle:'查看所选运动员的训练量、表现、跑姿、恢复和长期基础能力。',workspace:'工作区',local:'本地演示',fiction:'虚构数据 · DuckDB',personal:'本地运动员数据 · DuckDB',personalSource:'来源：本地运动数据快照。所有数字均按所选运动员筛选。导入新运动员数据后请重新生成页面。',athlete:'运动员',switchNote:'选择要查看的运动员',from:'开始日期',to:'结束日期',period:'时间粒度',week:'周',month:'月',insight:'洞察分析',all:'所有可用日期',empty:'所选范围内暂无记录',source:'来源：本地 DuckDB 虚构示例。数字按选定运动员和日期重新计算，不包含真实个人运动数据。',single:'只有一次设备估计，不能据此判断趋势。',days:'天',sessions:'次',run:'跑步',avg:'加权平均',official:'官方净成绩',devices:'设备估计',snapshot:'单次快照',labelDate:'日期',recorded:'记录时间',noGait:'部分圈段原始扩展字段含触地时间与跑步高度；单位和 0 值含义尚未验证，因此暂不绘图。',gaitNote:'步幅＝速度÷步频。此处每次跑步仅有一个有效圈段，不适合绘制箱线图。',paceRule:'秒/公里越小代表越快。实测跑步配速与 HYROX 规则参考配速分开。',loadRule:'每日负荷是设备估计，不与活动级训练负荷直接相加。',recoveryRule:'睡眠和静息心率是独立的恢复复核信息，并非 COROS Recovery 数值的输入。',foundationRule:'最大摄氧量和阈值为设备估计；读取日期不是设备计算日期。每项只有一次快照，不能计算月度变化。',zoneRule:'训练区间的边界仅供解释使用，不代表在各区间停留的时间。',noTrend:'需要更多不同时期的记录才能判断趋势。'}};
+TEXT.en.tabs.push('Alerts');TEXT.zh.tabs.push('关注点');
+let state={tab:0,lang:'en',athlete:DATA.athletes[0]?.athlete_id||'',dates:{},alertFilter:'all'};
+const $=id=>document.getElementById(id),t=()=>TEXT[state.lang],esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const own=arr=>arr.filter(x=>x.athlete_id===state.athlete),fmt=(v,d=1)=>v==null||!Number.isFinite(+v)?'—':Number(v).toFixed(d),dur=s=>s==null?'—':`${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}`,raceTime=s=>s==null?'—':`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`,pace=s=>s==null||!Number.isFinite(+s)?'—':`${Math.floor(Math.round(s)/60)}:${String(Math.round(s)%60).padStart(2,'0')}/km`;
+const dateOf=x=>x.date||x.observed?.slice(0,10)||x.effective?.slice(0,10)||'',inRange=x=>{let d=dateOf(x),f=state.dates[state.tab];return d&&(!f?.start||d>=f.start)&&(!f?.end||d<=f.end)};
+const source=(key,filter=true)=>own(DATA[key]).filter(x=>!filter||inRange(x));
+const sum=(a,k)=>a.reduce((n,x)=>n+(Number(x[k])||0),0),mean=(a,k)=>a.length?sum(a,k)/a.length:null;
+const weighted=(a,n,d)=>sum(a,d)>0?sum(a,n)/sum(a,d):null;
+function group(rows,grain){let m=new Map;for(let r of rows){let d=new Date(r.date+'T12:00:00'),k;if(grain==='month')k=r.date.slice(0,7);else{let monday=new Date(d);monday.setDate(d.getDate()-(d.getDay()+6)%7);k=monday.toISOString().slice(0,10)}(m.get(k)||m.set(k,[]).get(k)).push(r)}return [...m].sort((a,b)=>a[0].localeCompare(b[0]))}
+const stat=(label,value,sub='')=>`<article class="card"><div class="hint">${esc(label)}</div><div class="stat">${value}</div><div class="meta">${esc(sub)}</div></article>`;
+const card=(title,hint,body)=>`<article class="card"><h2>${esc(title)}</h2><div class="hint">${esc(hint)}</div>${body}</article>`;
+function chart(rows,key,kind='line',unit='',altKey){
+  if(!rows.length)return `<div class="empty">${esc(t().empty)}</div>`;
+  let vals=rows.flatMap(x=>[x[key],altKey?x[altKey]:null]).filter(x=>x!=null&&Number.isFinite(+x)).map(Number);
+  if(!vals.length)return `<div class="empty">${esc(t().empty)}</div>`;
+  let lo=Math.min(...vals),hi=Math.max(...vals);
+  if(lo===hi){lo-=1;hi+=1}else{let pad=(hi-lo)*.15;lo-=pad;hi+=pad}
+  if(kind==='bar')lo=0;
+  let W=620,H=210,L=42,R=12,T=14,B=34,area=W-L-R,
+    x=i=>L+(rows.length===1?area/2:i*area/(rows.length-1)),
+    y=v=>T+(H-T-B)*(hi-v)/(hi-lo),
+    xml=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(unit)} chart">`;
+  for(let j=0;j<3;j++){
+    let v=lo+(hi-lo)*j,yy=y(v);
+    xml+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#e3e8f0"/><text class="axis" x="${L-7}" y="${yy+4}" text-anchor="end">${fmt(v,Math.abs(hi-lo)<5?1:0)}</text>`;
+  }
+  let series=[{k:key,color:'#b99fff'},{k:altKey,color:'#5fc9b7'}].filter(item=>item.k);
+  for(let si=0;si<series.length;si++){
+    let item=series[si],pts=rows.map((r,i)=>r[item.k]==null?null:[x(i),y(r[item.k]),r]).filter(Boolean);
+    if(kind==='bar'){
+      let bw=Math.min(38,area/Math.max(rows.length,1)/3);
+      for(let point of pts)xml+=`<rect x="${point[0]-bw/2+(si?bw:0)}" y="${point[1]}" width="${bw}" height="${H-B-point[1]}" rx="4" fill="${item.color}"/>`;
+    }else{
+      xml+=`<polyline fill="none" stroke="${item.color}" stroke-width="3" stroke-linejoin="round" points="${pts.map(point=>point[0]+','+point[1]).join(' ')}"/>`;
+      for(let point of pts)xml+=`<circle cx="${point[0]}" cy="${point[1]}" r="5" fill="${item.color}" stroke="#ffffff" stroke-width="2"/>`;
+    }
+  }
+  let labels={km:['Running volume','跑量'],time:['Run time','跑步时间'],sessions:['Sessions','跑步次数'],days:['Training days','训练天数'],short:['Short-term load','短期负荷'],long:['Long-term load','长期负荷'],ratio:['Load ratio','负荷比'],pace:['Pace','配速'],hr:['Heart rate','心率'],cadence:['Cadence','步频'],power:['Power','功率'],h:['Sleep','睡眠'],bpm:['Resting HR','静息心率'],stride:['Stride length','步幅']};
+  let name=k=>(labels[k]||[k,k])[state.lang==='zh'?1:0];
+  for(let i=0;i<rows.length;i++){
+    let r=rows[i],values=series.filter(item=>r[item.k]!=null&&Number.isFinite(+r[item.k]));
+    if(values.length){
+      let label=r.label||r.date||'',body=[label,...values.map(item=>`${name(item.k)}: ${item.k==='pace'?pace(r[item.k]):fmt(r[item.k],item.k==='ratio'?2:1)} ${item.k==='pace'?'':unit}`)].join('\n');
+      let width=area/rows.length,left=Math.max(L,x(i)-width/2);
+      xml+=`<rect class="chart-hit" x="${left}" y="${T}" width="${Math.min(width,W-R-left)}" height="${H-T-B}" fill="transparent" tabindex="0" data-tip="${esc(body)}" aria-label="${esc(body.replaceAll('\n','; '))}"/>`;
+    }
+    if(i%Math.ceil(rows.length/8)!==0&&i!==rows.length-1)continue;
+    xml+=`<text class="axis" x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(r.label?.slice(5)||r.date?.slice(5)||'')}</text>`;
+  }
+  return `<div class="chart">${xml}</svg></div>`;
+}
+function boxChart(items,key,unit){
+  if(!items.length)return `<div class="empty">${esc(t().empty)}</div>`;
+  let groups=new Map;for(let row of items){let value=key==='stride'?(row.pace>0&&row.cadence>0?60000/(row.pace*row.cadence):null):row[key];if(value==null||+value<=0)continue;let k=row.id||row.date;if(!groups.has(k))groups.set(k,{label:row.date,values:[]});groups.get(k).values.push(+value)}
+  let series=[...groups.values()].slice(-12);if(!series.length)return `<div class="empty">${esc(t().empty)}</div>`;
+  let quant=(arr,q)=>{let pos=(arr.length-1)*q,lo=Math.floor(pos),hi=Math.ceil(pos);return arr[lo]+(arr[hi]-arr[lo])*(pos-lo)};
+  let boxes=series.map(g=>{let v=g.values.sort((a,b)=>a-b),q1=quant(v,.25),q3=quant(v,.75),med=quant(v,.5),iqr=q3-q1,within=v.filter(x=>x>=q1-1.5*iqr&&x<=q3+1.5*iqr);return {...g,q1,q3,med,low:within[0]??v[0],high:within.at(-1)??v.at(-1),out:v.filter(x=>x<q1-1.5*iqr||x>q3+1.5*iqr)}});
+  let all=boxes.flatMap(x=>x.values),lo=Math.min(...boxes.map(x=>x.low)),hi=Math.max(...boxes.map(x=>x.high)),pad=(hi-lo||1)*.14;lo=Math.max(0,lo-pad);hi+=pad;
+  let W=620,H=210,L=45,R=12,T=14,B=34,slot=(W-L-R)/boxes.length,y=v=>T+(H-T-B)*(hi-v)/(hi-lo),xml=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(unit)} box plot">`;
+  for(let j=0;j<3;j++){let value=lo+(hi-lo)*j,Y=y(value);xml+=`<line x1="${L}" y1="${Y}" x2="${W-R}" y2="${Y}" stroke="#e3e8f0"/><text class="axis" x="${L-7}" y="${Y+4}" text-anchor="end">${fmt(value,hi-lo<5?1:0)}</text>`}
+  let history=all.reduce((n,v)=>n+v,0)/all.length;
+  if(history>=lo&&history<=hi)xml+=`<line x1="${L}" y1="${y(history)}" x2="${W-R}" y2="${y(history)}" stroke="#17a88f" stroke-width="1.5" stroke-dasharray="5 4"><title>Historical mean: ${fmt(history,1)} ${esc(unit)}</title></line>`;
+  if(key==='cadence'&&180>=lo&&180<=hi)xml+=`<line x1="${L}" y1="${y(180)}" x2="${W-R}" y2="${y(180)}" stroke="#6f5bf0" stroke-width="1.5" stroke-dasharray="3 5"><title>180 spm reference (not a universal target)</title></line>`;
+  boxes.forEach((box,i)=>{
+    let x=L+slot*(i+.5),bw=Math.min(27,slot*.52);
+    let details=[box.label,`${state.lang==='zh'?'圈段':'Laps'}: ${box.values.length}`,`${state.lang==='zh'?'中位数':'Median'}: ${fmt(box.med,1)} ${unit}`,`Q1: ${fmt(box.q1,1)} ${unit}`,`Q3: ${fmt(box.q3,1)} ${unit}`,`${state.lang==='zh'?'须线':'Whiskers'}: ${fmt(box.low,1)}–${fmt(box.high,1)} ${unit}`,`${state.lang==='zh'?'离群点':'Outliers'}: ${box.out.length}`].join('\n');
+    xml+=`<line x1="${x}" y1="${y(box.low)}" x2="${x}" y2="${y(box.high)}" stroke="#5fc9b7" stroke-width="2"/><line x1="${x-bw*.32}" y1="${y(box.low)}" x2="${x+bw*.32}" y2="${y(box.low)}" stroke="#5fc9b7"/><line x1="${x-bw*.32}" y1="${y(box.high)}" x2="${x+bw*.32}" y2="${y(box.high)}" stroke="#5fc9b7"/><rect x="${x-bw/2}" y="${y(box.q3)}" width="${bw}" height="${Math.max(2,y(box.q1)-y(box.q3))}" rx="3" fill="#b99fff"/><line x1="${x-bw/2}" y1="${y(box.med)}" x2="${x+bw/2}" y2="${y(box.med)}" stroke="#13353d" stroke-width="2"/>`;
+    for(let value of box.out)xml+=`<circle cx="${x}" cy="${y(Math.min(hi,Math.max(lo,value)))}" r="3" fill="#e18e74"/>`;
+    xml+=`<rect class="chart-hit" x="${x-slot*.45}" y="${T}" width="${slot*.9}" height="${H-T-B}" fill="transparent" tabindex="0" data-tip="${esc(details)}" aria-label="${esc(details.replaceAll('\n','; '))}"/><text class="axis" x="${x}" y="${H-8}" text-anchor="middle">${esc(box.label.slice(5))}</text>`;
+  });
+  return `<div class="chart">${xml}</svg></div>`
+}
+function insight(text){return `<div class="insight"><b>${esc(t().insight)}</b><p>${esc(text)}</p></div>`}
+function table(headers,rows){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">${esc(t().empty)}</td></tr>`}</tbody></table></div>`}
+function alerts(){
+  const zh=state.lang==='zh',say=(a,b)=>zh?b:a,chosen=state.dates[5],allKeys=['load','hrv','rhr','sleep','runs'],all=allKeys.flatMap(k=>own(DATA[k]||[]));
+  const end=chosen.end||todayISO(),asOf=all.map(x=>x.date).filter(x=>x&&x<=end).sort().at(-1),items=[];
+  if(!asOf)return `<div class="alert-empty">${esc(say('No athlete observations before the selected end date.','所选结束日期之前没有该运动员的数据。'))}</div>`;
+  const shift=(date,n)=>{let d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+  const recentStart=[chosen.start||'0000-01-01',shift(asOf,-6)].sort().at(-1);
+  const relevant=(k)=>own(DATA[k]||[]).filter(x=>x.date>=recentStart&&x.date<=asOf).sort((a,b)=>b.date.localeCompare(a.date));
+  const add=(rule,status,date,title,summary,evidence,action)=>items.push({rule,status,date,title,summary,evidence,action});
+  const load=relevant('load').find(x=>x.ratio!=null);
+  if(load){let high=+load.ratio>1.5;add('OvertrainingRisk',high?'attention':'clear',load.date,
+    say(high?'Load ratio needs a review':'Load ratio is below the review threshold',high?'负荷比需要复核':'负荷比未超过复核阈值'),
+    say(`COROS ratio ${fmt(load.ratio,2)} · threshold >1.50`,`COROS 负荷比 ${fmt(load.ratio,2)} · 阈值 >1.50`),
+    say(`Source: daily training load on ${load.date}; COROS provider ratio, not a recomputed 7/42 average.`,`来源：${load.date} 每日训练负荷；使用 COROS 原始比值，未重算 7/42 日平均。`),
+    say(high?'Review recent recovery and consider an easier draft session. This is not a diagnosis.':'Keep observing recovery alongside load; a value below the threshold does not prove readiness.',high?'结合近期恢复情况复核训练，必要时提出轻松训练草案；这不是诊断。':'继续结合恢复情况观察；低于阈值不代表已准备好高强度训练。'))}
+  else add('OvertrainingRisk','missing',asOf,say('Load ratio unavailable','缺少训练负荷比'),say('No dated COROS load ratio in the last seven selected days.','最近七个所选日期内没有 COROS 负荷比。'),'',say('Import daily training load before evaluating this rule.','导入每日训练负荷后再检查。'));
+  const hrv=relevant('hrv').find(x=>x.avg_ms!=null&&x.normal_low!=null&&x.status!=='missing');
+  if(hrv){let low=+hrv.avg_ms<+hrv.normal_low;add('CompromisedRecovery · HRV',low?'attention':'clear',hrv.date,
+    say(low?'Overnight HRV is below your personal range':'Overnight HRV is within or above its lower bound',low?'夜间 HRV 低于个人范围':'夜间 HRV 不低于个人范围下限'),
+    say(`${fmt(hrv.avg_ms,0)} ms · personal lower bound ${fmt(hrv.normal_low,0)} ms`,`${fmt(hrv.avg_ms,0)} 毫秒 · 个人下限 ${fmt(hrv.normal_low,0)} 毫秒`),
+    say(`COROS assessment for wake date ${hrv.date}; provider evaluation: ${hrv.evaluation||'—'}.`,`COROS 在 ${hrv.date} 醒来日期的评估；设备评价：${hrv.evaluation||'—'}。`),
+    say(low?'Review sleep and training load before a key workout; propose changes for approval only.':'One HRV observation does not determine overall recovery.',low?'在关键训练前同时查看睡眠和负荷；如要调整，先提出草案供确认。':'单次 HRV 不能代表整体恢复情况。'))}
+  else add('CompromisedRecovery · HRV','missing',asOf,say('HRV range unavailable','缺少 HRV 个人范围'),say('A dated HRV value and personal lower bound are both required.','需要同一日期的 HRV 数值和个人正常范围下限。'),'',say('Do not apply a population-wide cutoff.','不要套用统一的人群阈值。'));
+  const rhrRows=relevant('rhr').filter(x=>x.bpm!=null);let rhrResult=null;
+  for(const row of rhrRows){let prior=own(DATA.rhr).filter(x=>x.date>=shift(row.date,-7)&&x.date<row.date&&x.bpm!=null);if(prior.length>=5){rhrResult={row,base:mean(prior,'bpm'),count:prior.length};break}}
+  if(rhrResult){let {row,base,count}=rhrResult,high=+row.bpm>base+5;add('CompromisedRecovery · RHR',high?'attention':'clear',row.date,
+    say(high?'Resting heart rate rose above your baseline':'Resting heart rate stayed below the review threshold',high?'静息心率高于个人基线':'静息心率未超过复核阈值'),
+    say(`${row.bpm} bpm · prior 7-day mean ${fmt(base,1)} + 5 bpm`,`${row.bpm} bpm · 前 7 天均值 ${fmt(base,1)} + 5 bpm`),
+    say(`${count} valid prior days; strict greater-than comparison on ${row.date}.`,`前 7 天有 ${count} 个有效日；${row.date} 按严格大于阈值判断。`),
+    say(high?'Review other recovery signs; do not attribute the change to training alone.':'Continue to compare with your own baseline.',high?'结合其他恢复迹象复核，不能仅凭此归因于训练。':'继续与个人基线比较。'))}
+  else add('CompromisedRecovery · RHR','missing',asOf,say('Resting-HR baseline is incomplete','静息心率基线不足'),say('Need today’s reading and at least five valid days in the prior seven.','需要当日读数及此前 7 天至少 5 个有效日。'),'',say('This check stays unknown until coverage is sufficient.','覆盖不足时此项保持待确认。'));
+  const sleepRows=relevant('sleep').filter(x=>x.sleep_score!=null);let sleepResult=null;
+  for(const row of sleepRows){let prior=own(DATA.sleep).filter(x=>x.date>=shift(row.date,-42)&&x.date<row.date&&x.sleep_score!=null);if(prior.length>=28){sleepResult={row,base:mean(prior,'sleep_score'),count:prior.length};break}}
+  if(sleepResult){let {row,base,count}=sleepResult,low=+row.sleep_score<base*.9;add('CompromisedRecovery · Sleep',low?'attention':'clear',row.date,
+    say(low?'Sleep score fell below your baseline':'Sleep score did not cross its review threshold',low?'睡眠评分低于个人基线':'睡眠评分未低于复核阈值'),
+    say(`${fmt(row.sleep_score,0)} · 90% of 42-day mean ${fmt(base*.9,1)}`,`${fmt(row.sleep_score,0)} · 42 天均值的 90% 为 ${fmt(base*.9,1)}`),
+    say(`${count} valid prior scores; wake date ${row.date}. This is sleep score, not duration.`,`此前 42 天有 ${count} 个有效评分；醒来日期 ${row.date}。这是睡眠评分，不是时长。`),
+    say(low?'Review with other recovery evidence before changing a key workout.':'Continue observing the trend rather than judging recovery from one score.',low?'结合其他恢复证据复核关键训练。':'继续观察趋势，不凭一个评分判断整体恢复。'))}
+  else add('CompromisedRecovery · Sleep','missing',asOf,say('Sleep-score baseline is incomplete','睡眠评分基线不足'),say('Need at least 28 valid scores in the previous 42 wake dates.','此前 42 个醒来日期需要至少 28 个有效评分。'),'',say('Do not label missing scores as poor sleep.','不要把缺失评分视为睡眠差。'));
+  const weekStart=d=>shift(d,-(new Date(d+'T12:00:00Z').getUTCDay()+6)%7),currentMonday=weekStart(asOf),lastMonday=shift(currentMonday,-7),priorMonday=shift(lastMonday,-7);
+  const measured=own(DATA.runs).filter(x=>x.run_context==='standalone'&&x.measured_distance_m>0),wk=(lo,hi)=>sum(measured.filter(x=>x.date>=lo&&x.date<hi),'measured_distance_m')/1000,previous=wk(priorMonday,lastMonday),last=wk(lastMonday,currentMonday);
+  if(previous>0){let change=last/previous-1,high=change>.1;add('WeeklyMileageIncreaseReview',high?'attention':'clear',shift(currentMonday,-1),
+    say(high?'Weekly distance increased over 10%':'Weekly distance change is below 10%',high?'周跑量增幅超过 10%':'周跑量增幅未超过 10%'),
+    say(`${fmt(previous,1)} → ${fmt(last,1)} km · ${fmt(change*100,1)}%`,`${fmt(previous,1)} → ${fmt(last,1)} 公里 · ${fmt(change*100,1)}%`),
+    say(`Completed weeks ${priorMonday}–${shift(lastMonday,-1)} and ${lastMonday}–${shift(currentMonday,-1)}. Import completeness is not verified; this is a provisional review.`,`完整自然周 ${priorMonday}–${shift(lastMonday,-1)} 与 ${lastMonday}–${shift(currentMonday,-1)}。导入完整性尚未核验，此为初步复核。`),
+    say(high?'Review recovery and next week’s planned volume; 10% is a planning heuristic, not an injury prediction.':'A smaller increase does not guarantee safety.',high?'结合恢复情况复核下周计划跑量；10% 是规划参考，不是受伤预测。':'增幅较小也不保证安全。'))}
+  else add('WeeklyMileageIncreaseReview','missing',asOf,say('Weekly distance comparison unavailable','周跑量比较不可用'),say('Two completed weeks of measured standalone runs and a positive prior week are needed.','需要连续两个完整自然周的独立跑实测距离，且前一周跑量大于零。'),'',say('HYROX reference distance and missing distances are excluded.','不纳入 HYROX 规则参考距离或缺失距离。'));
+  add('PostRaceRecoveryReview','missing',asOf,say('Post-race plan check needs setup','赛后计划检查需要补充信息'),say('A verified course distance, personal recovery-window setting, and dated planned intensity are required.','需要正式赛程距离、个人恢复窗口设置和有日期的计划训练强度。'),'',say('The current dashboard has no complete plan inputs; no post-race alert is inferred.','当前看板没有完整计划输入，因此不会推断赛后告警。'));
+  add('HardEasySequenceReview','missing',asOf,say('Hard/easy sequencing needs a plan','高低强度交替检查需要计划'),say('The current plan data has no structured intensity or explicit rest-day coverage.','目前计划数据没有结构化强度或明确休息日覆盖。'),'',say('A blank calendar day is unknown, not a confirmed rest day.','日历空白不等于已确认休息。'));
+  const recentFocus=own(DATA.activity_focus||[]).filter(x=>x.date>=shift(asOf,-13)&&x.date<=asOf);
+  const focusWeek=recentFocus.filter(x=>x.date>=lastMonday&&x.date<currentMonday);
+  const focusCounts={low:0,moderate:0,high:0,unknown:0};
+  for(const x of focusWeek){let f=x.focus;if(['Recovery','Easy','Base'].includes(f))focusCounts.low++;else if(f==='Tempo')focusCounts.moderate++;else if(['Threshold','VO2 Max','Anaerobic'].includes(f))focusCounts.high++;else focusCounts.unknown++}
+  const weekRunIds=new Set(measured.filter(x=>x.date>=lastMonday&&x.date<currentMonday).map(x=>x.id));
+  const focusComplete=focusWeek.length>0&&focusCounts.unknown===0&&[...weekRunIds].every(id=>focusWeek.some(x=>x.id===id));
+  if(focusComplete){let share=focusCounts.high/focusWeek.length,high=share>.2;add('PolarizedHighIntensityReview',high?'attention':'context',shift(currentMonday,-1),
+    say(high?'High-focus runs deserve a review':'Training focus mix this week',high?'高强度主要标签需要复核':'本周训练强度结构'),
+    say(`Low ${focusCounts.low} · moderate ${focusCounts.moderate} · high ${focusCounts.high} (${fmt(share*100,0)}%)`,`低强度 ${focusCounts.low} · 中等 ${focusCounts.moderate} · 高强度 ${focusCounts.high}（${fmt(share*100,0)}%）`),
+    say('COROS primary focus per completed run; a session-count view, not minutes in heart-rate zones. Import completeness is not verified.','按每次完成跑步的 COROS 主要标签计数；不是心率区间停留时间。导入完整性尚未核验。'),
+    say(high?'Review next week’s intensity spacing and recovery.':'Keep moderate sessions separate from low-intensity runs.',high?'复核下周强度课间隔及恢复情况。':'中等强度训练与低强度训练分别看待。'))}
+  else add('PolarizedHighIntensityReview','missing',asOf,say('Training-focus coverage is incomplete','训练强度标签覆盖不足'),say(`Low ${focusCounts.low} · moderate ${focusCounts.moderate} · high ${focusCounts.high} · unknown ${focusCounts.unknown}`,`低强度 ${focusCounts.low} · 中等 ${focusCounts.moderate} · 高强度 ${focusCounts.high} · 未知 ${focusCounts.unknown}`),
+    say('Need one canonical COROS primary focus for every completed standalone run in the last full week.','上个完整周的每次独立跑都需要一条 COROS 主要训练标签。'),
+    say('Do not infer a time-in-zone distribution from a primary label.','不要用主要标签推断各区间停留时间。'));
+  const signals=[load&&+load.ratio>1.5,rhrResult&&+rhrResult.row.bpm>rhrResult.base+5,sleepResult&&+sleepResult.row.sleep_score<sleepResult.base*.9];
+  const known=signals.filter(x=>x!==null&&x!==undefined).length,hit=signals.filter(Boolean).length;
+  add('PossibleExerciseRelatedFatigueReview',hit>=2?'attention':known<3?'missing':'context',asOf,
+    say(hit>=2?'Multiple recovery signals need review':'Recovery signals considered together',hit>=2?'多项恢复信号需要复核':'综合查看恢复信号'),
+    say(`${hit} of ${known} available signals crossed their review thresholds`,`${known} 项可用信号中有 ${hit} 项越过复核阈值`),
+    say('Checks COROS load ratio, resting HR versus the prior seven days, and sleep score versus the prior 42 days. HRV is shown separately and is not an extra vote.','检查 COROS 负荷比、静息心率与前 7 天均值、睡眠评分与前 42 天均值。HRV 单独展示，不额外计票。'),
+    say(hit>=2?'Discuss a lighter draft week; this is not a fatigue diagnosis.':known<3?'Wait for missing baseline evidence before clearing this composite review.':'Keep monitoring; no composite review signal on these observations.',hit>=2?'讨论减量草案；这不是疲劳诊断。':known<3?'补齐缺失基线后才能排除这项综合复核。':'继续观察；当前数据未触发综合复核。'));
+  const goal=DATA.meta.goal?.athlete_id===state.athlete?DATA.meta.goal:null;
+  if(goal){const race=own(DATA.runs).filter(x=>x.is_official_race&&x.official_finish_s>0).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    add('GoalProgressReview','context',asOf,say('Half-marathon goal context','半马目标进展背景'),
+      say(`Target 2:10 on 2027-03-21 · about 6:10/km`,`目标 2027-03-21 完赛 2:10 · 约 6:10/公里`),
+      say(race?`Latest official race in this snapshot: ${race.date} ${race.event_name||''} ${raceTime(race.official_finish_s)}. A 10K result is not a measured half-marathon gap.`:'No comparable official half-marathon result is available in this snapshot.',
+          race?`此快照最近的正式赛事：${race.date} ${race.event_name||''} ${raceTime(race.official_finish_s)}。10 公里成绩不能直接当成半马目标差距。`:'此快照没有可比的正式半马成绩。'),
+      say('Review endurance trend and a future comparable race; label any prediction explicitly.','查看耐力趋势及未来可比赛事；如做预测须明确标注。'))}
+  const fitness=source('fitness',false),vo=fitness.find(x=>x.code==='vo2max_running'),th=fitness.find(x=>x.code==='threshold_pace_s_per_km');
+  add('CapabilityReview','context',asOf,say('Aerobic and threshold capacity snapshot','有氧与阈值能力快照'),
+    say(`VO₂max ${fmt(vo?.value,0)} · threshold pace ${pace(th?.value)}`,`最大摄氧量 ${fmt(vo?.value,0)} · 阈值配速 ${pace(th?.value)}`),
+    say('These are device estimates; the recorded timestamp may be the data fetch time. One snapshot does not show improvement.','这些是设备估计；记录时间可能是数据读取时间。单次快照无法说明能力提升。'),
+    say('Compare future readings and similar runs before changing a goal or training load.','结合后续读数及可比跑步表现，再调整目标或训练量。'));
+  const priority={attention:0,missing:1,context:2,clear:3},order=[...items].sort((a,b)=>priority[a.status]-priority[b.status]||b.date.localeCompare(a.date));
+  const visible=order.filter(x=>state.alertFilter==='all'||(state.alertFilter==='attention'?x.status==='attention':x.status===state.alertFilter));
+  const n=items.filter(x=>x.status==='attention').length,filter=(key,label)=>`<button type="button" data-alert-filter="${key}" class="${state.alertFilter===key?'active':''}" aria-pressed="${state.alertFilter===key}">${esc(label)}</button>`;
+  const message=x=>`<details class="alert-message ${x.status}"><summary><span class="alert-icon" aria-hidden="true">${x.status==='attention'?'!':x.status==='clear'?'✓':x.status==='context'?'i':'·'}</span><span class="alert-main"><strong>${esc(x.title)}</strong><small>${esc(x.summary)}</small></span><span class="alert-badge">${esc(x.date)}</span></summary><div class="alert-detail"><p><b>${esc(x.rule)}</b> · ${esc(x.status==='attention'?say('Review signal','复核信号'):x.status==='missing'?say('Evidence needed','需要证据'):x.status==='context'?say('Coach observation','教练观察'):say('No threshold crossing','未越过阈值'))}</p><p>${esc(x.evidence)}</p><p><b>${esc(say('Next step','建议'))}:</b> ${esc(x.action)}</p></div></details>`;
+  const concepts=[
+    {name:say('Recovery & readiness','恢复与准备度'),rules:['CompromisedRecovery','PossibleExerciseRelatedFatigueReview']},
+    {name:say('Training load & volume','训练负荷与跑量'),rules:['OvertrainingRisk','WeeklyMileageIncreaseReview']},
+    {name:say('Intensity balance','训练强度结构'),rules:['PolarizedHighIntensityReview']},
+    {name:say('Goal & capability','目标与运动能力'),rules:['GoalProgressReview','CapabilityReview']},
+    {name:say('Plan & race recovery','计划与赛后恢复'),rules:['PostRaceRecoveryReview','HardEasySequenceReview']}
+  ];
+  const grouped=concepts.map(g=>{let rows=visible.filter(x=>g.rules.some(r=>x.rule===r||x.rule.startsWith(r+' ·')));if(!rows.length)return '';
+    let flagged=rows.filter(x=>x.status==='attention').length,missing=rows.filter(x=>x.status==='missing').length,status=flagged?say(`${flagged} review`,`${flagged} 项需复核`):missing?say(`${missing} need data`,`${missing} 项待补数据`):say('Observations','观察记录');
+    let summary=say(`${rows.length} metric and rule messages · tap to inspect evidence`,`${rows.length} 条指标与规则消息 · 点开查看证据`);
+    return `<details class="concept-group" ${flagged?'open':''}><summary><span><strong>${esc(g.name)}</strong><small>${esc(summary)}</small></span><span class="concept-status">${esc(status)} ↗</span></summary><div class="concept-group-body">${rows.map(message).join('')}</div></details>`}).join('');
+  const focusText=recentFocus.length?recentFocus.slice(-6).map(x=>`${x.date.slice(5)} ${x.focus}`).join(' · '):say('No provider focus labels exported','未导出设备强度标签');
+  const goalCard=goal?`<article class="card"><h2>${esc(say('Your goal · Spring half marathon','你的目标 · 春季半马'))}</h2><div class="stat">2:10:00 <small>· 2027-03-21</small></div><div class="meta">${esc(say('21.0975 km · target pace about 6:10/km','21.0975 公里 · 目标配速约 6:10/公里'))}</div><div class="note" style="margin-top:12px">${esc(say(`Training context: last completed week ${fmt(last,1)} km. Recent COROS primary focus: ${focusText}. The focus label describes a completed run, not time spent in a zone.`,`训练背景：上个完整自然周 ${fmt(last,1)} 公里。近期 COROS 主要训练标签：${focusText}。标签描述整次训练的主要效果，不代表在区间内停留时间。`))}</div></article>`:'';
+  const hardRecent=recentFocus.filter(x=>['Threshold','VO2 Max','Anaerobic'].includes(x.focus)).length;
+  const weekKm=last>0?Math.min(32,last*.9):null,nextMonday=shift(currentMonday,7);
+  const draftRows=weekKm?[
+    [0,say('Rest','休息'),null],[1,say('Easy run','轻松跑'),weekKm*.20],
+    [2,say('Rest','休息'),null],[3,hardRecent>1?say('Easy run','轻松跑'):say('Steady run · moderate','稳态跑 · 中等强度'),weekKm*.24],
+    [4,say('Rest','休息'),null],[5,say('Easy run','轻松跑'),weekKm*.16],
+    [6,say('Long easy run','长距离轻松跑'),weekKm*.40]
+  ]:[];
+  const planCard=goal?`<details class="card"><summary style="cursor:pointer;font-weight:700;color:#25364f">${esc(say('Preview a history-based training week','查看基于历史数据的训练周草案'))}</summary>${weekKm?`<p class="hint" style="margin:12px 0">${esc(say(`Week of ${nextMonday} · about ${fmt(weekKm,1)} km, 10% below the last completed week of ${fmt(last,1)} km. ${hardRecent} high-focus runs in the last 14 days. This is an illustrative cutback draft, not a full race plan.`,`${nextMonday} 开始的一周 · 约 ${fmt(weekKm,1)} 公里，比上个完整自然周的 ${fmt(last,1)} 公里少 10%。近 14 天有 ${hardRecent} 次高强度主要标签。这是减量周演示草案，不是完整备赛计划。`))}</p>`+table([say('Date','日期'),say('Proposed action','草案安排'),say('Distance','距离')],draftRows.map(([offset,label,km])=>[shift(nextMonday,offset),label,km==null?'—':fmt(km,1)+' km'])):`<p class="hint">${esc(say('A completed baseline week is needed before drafting mileage.','需要完整的基线周跑量才能建议距离。'))}</p>`}<p class="note">${esc(say('Agent workflow demo: goal → mapped training history and COROS focus → draft → rule review → athlete approval. No plan has been saved or sent to a watch. Confirm available days and recovery before using it.','Agent 流程演示：目标 → 语义模型中的训练历史与 COROS 标签 → 草案 → 规则复核 → 用户确认。计划尚未保存，也未发送到手表；使用前需确认可训练日期及恢复情况。'))}</p></details>`:'';
+  return goalCard+planCard+`<section class="alerts-head"><div><h2>${esc(say('Training attention','训练关注点'))}</h2><p>${esc(say(`As of ${asOf} · Each message follows a documented review rule.`,`截至 ${asOf} · 每条消息对应一条已记录的复核规则。`))}</p></div><div class="alerts-count" aria-label="${esc(say(n+' review signals',n+' 条复核信号'))}">${n}</div></section>`+
+    `<div class="alert-controls" role="group" aria-label="${esc(say('Filter messages','筛选消息'))}">${filter('all',say('All','全部'))}${filter('attention',say('Needs review','需关注'))}${filter('context',say('Coach notes','教练观察'))}${filter('missing',say('Needs data','待补数据'))}${filter('clear',say('Below threshold','未触发'))}</div>`+
+    (visible.length?`<div class="alert-list">${grouped}</div>`:`<div class="alert-empty">${esc(say('No messages in this view. Choose All to see the evidence status for every rule.','当前筛选下没有消息。选择“全部”查看每条规则的证据状态。'))}</div>`)+
+    `<p class="alert-footnote">${esc(say('These are planning review signals, not medical diagnoses or automated plan changes. The page is a snapshot: rebuild it after importing new watch data.','这些是训练计划复核信号，不是医学诊断，也不会自动修改计划。页面是数据快照；导入新手表数据后需重新生成。'))}</p>`;
+}
+function daily(){
+  let a=source('runs'),load=source('load'),d=state.dates[0],i=state.lang==='zh';
+  let g=group(a,d.grain),trend=g.map(([label,r])=>({label,km:sum(r,'measured_distance_m')/1000,time:sum(r,'duration_s')/3600,sessions:new Set(r.map(x=>x.id)).size,days:new Set(r.map(x=>x.date)).size}));
+  let end=new Date((d.end||todayISO())+'T12:00:00'),start=new Date(end),previousStart=new Date(end),previousEnd=new Date(end);
+  if(d.grain==='month'){
+    start.setDate(1);previousStart=new Date(start);previousStart.setMonth(start.getMonth()-1);previousEnd=new Date(start);previousEnd.setDate(0);
+  }else{start.setDate(end.getDate()-6);previousEnd=new Date(start);previousEnd.setDate(start.getDate()-1);previousStart=new Date(previousEnd);previousStart.setDate(previousEnd.getDate()-6)}
+  let iso=x=>[x.getFullYear(),String(x.getMonth()+1).padStart(2,'0'),String(x.getDate()).padStart(2,'0')].join('-');
+  let all=own(DATA.runs),current=all.filter(x=>x.date>=iso(start)&&x.date<=iso(end)),previous=all.filter(x=>x.date>=iso(previousStart)&&x.date<=iso(previousEnd));
+  let values=r=>({km:sum(r,'measured_distance_m')/1000,time:sum(r,'duration_s'),sessions:new Set(r.map(x=>x.id)).size,days:new Set(r.map(x=>x.date)).size});
+  let cur=values(current),prev=values(previous),delta=(key,unit,digits=1)=>{let diff=cur[key]-prev[key],sign=diff>0?'+':'',value=key==='time'?fmt(diff/60,0):fmt(diff,digits);return `${i?'环比':'vs previous period'} ${sign}${value} ${unit}`};
+  let latest=load.at(-1),status=latest?.status||'—';
+  let statusText=status==='Optimized'?(i?'优化':'Optimized'):status==='Excessive'?(i?'过高':'Excessive'):status==='Maintaining'?(i?'维持':'Maintaining'):status==='Performance'?(i?'巅峰表现':'Performance'):status;
+  let insightText=i?`${d.grain==='month'?'本月':'最近一周'}跑量 ${fmt(cur.km,2)} 公里，环比 ${cur.km>=prev.km?'+':''}${fmt(cur.km-prev.km,2)} 公里。最新 COROS 负荷状态：${statusText}，负荷比 ${latest?fmt(latest.ratio,2):'—'}。`
+    :`${d.grain==='month'?'This month':'Last 7 days'}: ${fmt(cur.km,2)} km, ${cur.km>=prev.km?'+':''}${fmt(cur.km-prev.km,2)} km versus the previous period. Latest COROS load state: ${statusText}; ratio ${latest?fmt(latest.ratio,2):'—'}.`;
+  let label=d.grain==='month'?(i?'本月':'This month'):(i?'最近一周':'Last 7 days');
+  return insight(insightText)+`<div class="grid">${stat(`${label} ${i?'跑量':'running volume'}`,`${fmt(cur.km,2)} <small>km</small>`,delta('km','km',2))}${stat(`${label} ${i?'跑步时间':'running time'}`,`${fmt(cur.time/3600,1)} <small>h</small>`,delta('time',i?'分钟':'min',0))}${stat(`${label} ${i?'跑步次数':'run sessions'}`,cur.sessions,delta('sessions',i?'次':'runs',0))}${stat(`${label} ${i?'训练天数':'training days'}`,cur.days,delta('days',i?'天':'days',0))}</div>`+
+    `<div class="grid two">${card(i?'跑量与跑步时间':'Running volume and time',`${t().period}: ${d.grain==='week'?t().week:t().month}`,chart(trend,'km','bar','km')+`<div class="note">${i?'同周期跑步时间':'Running time in the same periods'}: ${trend.map(x=>fmt(x.time,1)).join(' · ')} h</div>`)}${card(i?'跑步次数与训练天数':'Sessions and training days',`${t().period}: ${d.grain==='week'?t().week:t().month}`,chart(trend,'sessions','bar',i?'次':'runs','days')+`<div class="legend"><span><i class="swatch"></i>${i?'次数':'Sessions'}</span><span><i class="swatch alt"></i>${i?'天数':'Days'}</span></div>`)}</div>`+
+    `<div class="grid two">${card(i?'COROS 短期与长期负荷':'COROS short and long-term load',t().loadRule,chart(load.map(x=>({label:x.date,short:x.short_load,long:x.long_load})),'short','line','points','long'))}${card(i?'COROS 负荷比':'COROS load ratio',t().loadRule,chart(load.map(x=>({label:x.date,ratio:x.ratio})),'ratio','line','ratio'))}</div>`+
+    card(i?'每次训练详细记录':'Training detail',t().paceRule+' '+(a.length>25?(i?`显示最近 25 次，共 ${a.length} 次。`:`Showing latest 25 of ${a.length} sessions.`):''),table([t().labelDate,i?'距离':'Distance',i?'时长':'Duration',i?'实测配速':'Measured pace',i?'官方赛事':'Official race'],a.slice(-25).reverse().map(x=>[x.date,x.measured_distance_m==null?'—':fmt(x.measured_distance_m/1000,1)+' km',dur(x.duration_s),x.pace_distance_m>0?pace(x.pace_time_s*1000/x.pace_distance_m):'—',x.is_official_race?x.event_name:'—'])));
+}
+function performance(){let a=source('runs').filter(x=>x.pace_distance_m>0),g=group(a,state.dates[1].grain),trend=g.map(([label,r])=>({label,pace:weighted(r,'pace_time_s','pace_distance_m')*1000,hr:weighted(r,'hr_weighted_sum_bpm_s','hr_weight_s'),cadence:weighted(r,'cadence_weighted_sum_spm_s','cadence_weight_s')})),races=a.filter(x=>x.is_official_race&&x.official_finish_s!=null),i=state.lang==='zh';return insight(a.length?(i?`实测加权配速 ${pace(weighted(a,'pace_time_s','pace_distance_m')*1000)}；心率 ${fmt(weighted(a,'hr_weighted_sum_bpm_s','hr_weight_s'),0)} bpm。只有 ${g.length} 个时间段，趋势仅供观察。`:`Weighted measured pace ${pace(weighted(a,'pace_time_s','pace_distance_m')*1000)} and heart rate ${fmt(weighted(a,'hr_weighted_sum_bpm_s','hr_weight_s'),0)} bpm. ${g.length} periods are available; interpret direction cautiously.`):t().empty)+`<div class="grid three">${stat(i?'实测配速':'Measured pace',pace(weighted(a,'pace_time_s','pace_distance_m')*1000),t().avg)}${stat(i?'平均心率':'Heart rate',`${fmt(weighted(a,'hr_weighted_sum_bpm_s','hr_weight_s'),0)} <small>bpm</small>`,t().avg)}${stat(i?'官方 10K':'Official 10K',races.length?raceTime(Math.min(...races.map(x=>x.official_finish_s))):'—',t().official)}</div><div class="grid three">${card(i?'实测配速':'Measured pace trend',t().paceRule,chart(trend,'pace','line','s/km'))}${card(i?'平均心率':'Weighted heart rate',t().avg,chart(trend,'hr','line','bpm'))}${card(i?'平均步频':'Weighted cadence',t().avg,chart(trend,'cadence','line','spm'))}</div>${card(i?'逐次表现':'Session performance',t().paceRule,table([t().labelDate,i?'配速':'Pace',i?'心率':'Heart rate',i?'步频':'Cadence'],a.map(x=>[x.date,pace(x.pace_time_s*1000/x.pace_distance_m),fmt(x.hr_weighted_sum_bpm_s/x.hr_weight_s,0)+' bpm',fmt(x.cadence_weighted_sum_spm_s/x.cadence_weight_s,0)+' spm'])))}`}
+function gait(){let a=source('laps'),i=state.lang==='zh',m=mean(a,'cadence'),summary=DATA.meta.gait_source_by_athlete?.[state.athlete]==='activity_summary';let stride=x=>x.pace>0&&x.cadence>0?60000/(x.pace*x.cadence):null;let bars=a.map(x=>({label:x.date,cadence:x.cadence,power:x.power,stride:stride(x)})).slice(-20),multi=a.length>new Set(a.map(x=>x.id)).size;
+return insight(a.length?(i?`${summary?'跑步摘要':'有效圈段'} ${a.length} 条，平均步频 ${fmt(m,0)} spm；步频应结合配速和训练目的解读，没有统一的“最佳 180”。`:`${a.length} ${summary?'run summaries':'canonical laps'}, average cadence ${fmt(m,0)} spm. Read cadence together with pace and run purpose; there is no universal 180 target.`):t().empty)+`<div class="grid three">${stat(i?'圈段平均步频':'Lap cadence',`${fmt(m,0)} <small>spm</small>`)}${stat(i?'圈段平均功率':'Lap power',`${fmt(mean(a.filter(x=>x.power>0),'power'),0)} <small>W</small>`)}${stat(i?'推算步幅':'Estimated step length',`${fmt(mean(a.map(x=>({stride:stride(x)})).filter(x=>x.stride>0),'stride'),2)} <small>m/step</small>`)}</div><div class="grid two">${card(i?'逐次步频':'Cadence by run',(summary?(i?'每次跑步摘要；暂无圈段分布。':'Per-run summaries; lap distributions are unavailable.'):multi?(i?'最近 12 次跑步的有效圈段分布。':'Canonical-lap distribution for the latest 12 runs.'):t().gaitNote),multi?boxChart(a,'cadence','spm'):chart(bars,'cadence','bar','spm'))}${card(i?'逐次功率':'Power by run',(summary?(i?'每次跑步摘要；暂无圈段分布。':'Per-run summaries; lap distributions are unavailable.'):multi?(i?'最近 12 次跑步的有效圈段分布。':'Canonical-lap distribution for the latest 12 runs.'):t().gaitNote),multi?boxChart(a,'power','W'):chart(bars,'power','bar','W'))}${card(i?'步幅（推算值）':'Estimated stride length',i?'速度÷步频；最近 12 次跑步的圈段分布。':'Speed divided by cadence; canonical-lap distribution for the latest 12 runs.',multi?boxChart(a,'stride','m/step'):chart(bars,'stride','bar','m/step'))}</div>${card(summary?(i?'逐次跑步摘要':'Run summaries'):(i?'圈段明细':'Canonical laps'),t().noGait+' '+(a.length>30?(i?`显示最近 30 条，共 ${a.length} 条。`:`Showing latest 30 of ${a.length} laps.`):''),table([t().labelDate,i?'步频':'Cadence',i?'功率':'Power',i?'配速':'Pace',i?'推算步幅':'Estimated step'],a.slice(-30).reverse().map(x=>[x.date,fmt(x.cadence,0)+' spm',x.power>0?fmt(x.power,0)+' W':'—',pace(x.pace),fmt(stride(x),2)+' m'])))}`}
+function recovery(){let load=source('load'),sleep=source('sleep'),rhr=source('rhr'),rec=source('recovery'),latest=rec.at(-1),i=state.lang==='zh';return insight(latest?(i?`最近一次设备恢复度为 ${fmt(latest.pct,0)}%，记录于 ${latest.observed.slice(0,10)}。睡眠和静息心率单独用于复核；当前有 ${load.length} 天负荷数据；42 天基线仍不足。`:`Latest device recovery estimate is ${fmt(latest.pct,0)}% on ${latest.observed.slice(0,10)}. Sleep and resting HR provide separate context. ${load.length} daily load records are available; a 42-day baseline is still unavailable.`):(i?`暂无设备恢复度记录。当前有 ${load.length} 天负荷、${sleep.length} 天睡眠和 ${rhr.length} 天静息心率数据，可分别观察；不足以计算 42 天基线。`:`No device recovery estimate is available. There are ${load.length} load, ${sleep.length} sleep and ${rhr.length} resting-HR days to review separately; a 42-day baseline is unavailable.`))+`<div class="grid three">${stat(i?'恢复度':'Recovery estimate',latest?`${fmt(latest.pct,0)} <small>%</small>`:'—',t().single)}${stat(i?'主睡眠':'Main sleep',`${fmt(mean(sleep,'main_min')/60,1)} <small>h</small>`,i?'所选日期平均':'Selected-date average')}${stat(i?'静息心率':'Resting HR',`${fmt(mean(rhr,'bpm'),0)} <small>bpm</small>`,i?'所选日期平均':'Selected-date average')}</div><div class="grid two">${card(i?'短期与长期负荷':'Short & long-term load',t().loadRule,chart(load.map(x=>({label:x.date,short:x.short_load,long:x.long_load})),'short','line','points','long'))}${card(i?'主睡眠时长':'Main sleep duration',t().recoveryRule,chart(sleep.map(x=>({label:x.date,h:x.main_min/60})),'h','bar','h'))}</div><div class="grid two">${card(i?'静息心率':'Resting heart rate',t().recoveryRule,chart(rhr.map(x=>({label:x.date,bpm:x.bpm})),'bpm','line','bpm'))}${card(i?'负荷比':'Load ratio',t().loadRule,chart(load.map(x=>({label:x.date,ratio:x.ratio})),'ratio','line','ratio'))}</div><div class="note">${esc(t().recoveryRule)} ${esc(t().noTrend)}</div>`}
+function foundation(){let f=source('fitness'),hr=source('hr_zones',false),pz=source('pace_zones',false),i=state.lang==='zh';let get=k=>f.find(x=>x.code===k),vo=get('vo2max_running'),th=get('threshold_hr_bpm'),tp=get('threshold_pace_s_per_km');return insight(f.length?(i?`最大摄氧量和阈值为设备估计的单次快照。读取日期并非设备计算日期，不能仅凭当前记录判断改善幅度。`:`VO₂max and threshold values are single device-estimated snapshots. Their observed dates are fetch times, and changes cannot be inferred from one reading.`):t().empty)+`<div class="grid three">${stat('VO₂max',`${fmt(vo?.value,0)} <small>ml/kg/min</small>`,t().devices)}${stat(i?'阈值心率':'Threshold HR',`${fmt(th?.value,0)} <small>bpm</small>`,t().devices)}${stat(i?'阈值配速':'Threshold pace',pace(tp?.value),t().devices)}</div><div class="grid two">${card(i?'心率区间':'Heart-rate zones',t().zoneRule,table([i?'区间':'Zone',i?'下限':'Lower',i?'上限（不含）':'Upper (exclusive)'],hr.map(x=>['Z'+x.zone,x.low==null?'—':x.low+' bpm',x.high==null?'—':x.high+' bpm'])))}${card(i?'配速区间':'Pace zones',t().zoneRule,table([i?'区间':'Zone',i?'较快边界':'Fast edge',i?'较慢边界':'Slow edge'],pz.map(x=>['Z'+x.zone,pace(x.fast),pace(x.slow)])))}</div><div class="note">${esc(t().foundationRule)}</div>`}
+function todayISO(){let d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function daysAgo(n){let d=new Date();d.setDate(d.getDate()-n);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function monthsAgo(n){let d=new Date(),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()-n);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function render(){
+  document.documentElement.lang=state.lang;document.title=t().title+' · DOSI demo';
+  $('title').textContent=t().title;$('subtitle').textContent=t().subtitle;
+  let latest=own([...DATA.runs,...DATA.load,...DATA.sleep,...DATA.rhr,...(DATA.hrv||[])]).map(dateOf).filter(Boolean).sort().at(-1);
+  $('stamp').textContent=(state.lang==='zh'?'数据更新至 ':'Data updated through ')+(latest||'—');
+  $('languageZh').classList.toggle('active',state.lang==='zh');$('languageEn').classList.toggle('active',state.lang==='en');
+  $('mobileNav').innerHTML=t().tabs.map((x,j)=>`<button type="button" class="nav ${j===state.tab?'active':''}" data-tab="${j}" aria-current="${j===state.tab?'page':'false'}">${esc(x)}</button>`).join('');
+  $('athleteLabel').textContent=t().athlete;$('switchNote').textContent=t().switchNote;
+  $('athlete').innerHTML=DATA.athletes.map((a,j)=>`<option value="${esc(a.athlete_id)}" ${a.athlete_id===state.athlete?'selected':''}>${esc(a.display_name||`${t().athlete} ${j+1} · ${a.athlete_id}`)}</option>`).join('');
+  let d=state.dates[state.tab],gran=state.tab<2;
+  let start=`<label>${t().from}<input class="control" id="start" type="date" value="${esc(d.start||'')}"></label>`;
+  let end=`<label>${t().to}<input class="control" id="end" type="date" value="${esc(d.end||'')}"></label>`;
+  let choices=gran?`<label>${t().period}<select class="control" id="grain"><option value="week" ${d.grain==='week'?'selected':''}>${t().week}</option><option value="month" ${d.grain==='month'?'selected':''}>${t().month}</option></select></label>`:'';
+  let quick=(gran?[[84,state.lang==='zh'?'12 周':'12 weeks'],[42,state.lang==='zh'?'6 周':'6 weeks'],[28,state.lang==='zh'?'4 周':'4 weeks'],[112,state.lang==='zh'?'16 周':'16 weeks']]:[[30,state.lang==='zh'?'1 个月':'1 month'],[60,state.lang==='zh'?'2 个月':'2 months'],[180,state.lang==='zh'?'6 个月':'6 months']]);
+  let shortcuts=`<div class="shortcuts">${quick.map(([days,label])=>`<button type="button" data-days="${days}">${label}</button>`).join('')}</div>`;
+  $('filters').innerHTML=start+end+choices+shortcuts+`<span class="pill">${esc(DATA.meta.personal?t().personal:t().fiction)}</span>`;
+  $('content').innerHTML=[daily,performance,gait,recovery,foundation,alerts][state.tab]();
+  $('footer').textContent=DATA.meta.personal?t().personalSource:t().source;
+  document.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=+el.dataset.tab;render()});
+  for(let k of ['start','end','grain']){let el=$(k);if(el)el.onchange=()=>{if(k==='grain')d.grain=el.value;else for(let j=0;j<6;j++)state.dates[j][k]=el.value;render()}}
+  document.querySelectorAll('[data-days]').forEach(el=>el.onclick=()=>{let n=+el.dataset.days,from=gran?daysAgo(n):(n===30?monthsAgo(1):n===60?monthsAgo(2):monthsAgo(6));for(let j=0;j<6;j++){state.dates[j].start=from;state.dates[j].end=todayISO()}render()});
+  document.querySelectorAll('[data-alert-filter]').forEach(el=>el.onclick=()=>{state.alertFilter=el.dataset.alertFilter;render()});
+}
+for(let j=0;j<6;j++)state.dates[j]={start:daysAgo(84),end:todayISO(),grain:'week'};
+$('athlete').onchange=e=>{state.athlete=e.target.value;hideTooltip();render()};
+$('languageZh').onclick=()=>{state.lang='zh';render()};$('languageEn').onclick=()=>{state.lang='en';render()};render();
+const tooltip=$('chartTooltip');
+function hideTooltip(){tooltip.style.display='none'}
+function showTooltip(target,x,y){
+  tooltip.textContent=target.dataset.tip;
+  tooltip.style.display='block';
+  let box=tooltip.getBoundingClientRect();
+  tooltip.style.left=Math.max(8,Math.min(window.innerWidth-box.width-8,x+14))+'px';
+  tooltip.style.top=Math.max(8,Math.min(window.innerHeight-box.height-8,y+14))+'px';
+}
+$('content').addEventListener('pointermove',event=>{
+  let target=event.target.closest?.('.chart-hit');
+  if(target)showTooltip(target,event.clientX,event.clientY);else hideTooltip();
+});
+$('content').addEventListener('pointerleave',hideTooltip);
+$('content').addEventListener('focusin',event=>{
+  let target=event.target.closest?.('.chart-hit');
+  if(target){let box=target.getBoundingClientRect();showTooltip(target,box.right,box.top)}
+});
+$('content').addEventListener('focusout',hideTooltip);
+$('content').addEventListener('pointerdown',event=>{
+  let target=event.target.closest?.('.chart-hit');
+  if(target){showTooltip(target,event.clientX,event.clientY);if(event.pointerType==='touch')setTimeout(hideTooltip,4000)}
+});
+</script></body></html>

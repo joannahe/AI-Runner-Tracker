@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">AI Runner Tracker architecture</title>
+  <desc id="desc">COROS and Garmin watch data are stored in a local DuckDB by default. A central optional DOSI semantic model and ontology define metrics and concepts for queries. The dashboard reads DuckDB directly for training, performance, gait, recovery, long-term ability and alerts. StarRocks is an optional warehouse for DOSI queries; its data must be snapshotted into DuckDB for the current dashboard.</desc>
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L8 5L1 9" fill="none" stroke="#402DF3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="arr-muted" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L8 5L1 9" fill="none" stroke="#696B63" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  </defs>
+  <style>
+    text{font-family:Inter,system-ui,Arial,sans-serif;fill:#252624}
+    .title{font-size:42px;font-weight:500;letter-spacing:-1.5px}
+    .sub{font-size:18px;fill:#696B63}
+    .section{font-size:13px;font-weight:700;letter-spacing:1.7px;fill:#696B63}
+    .eyebrow{font-size:13px;font-weight:700;letter-spacing:1.3px;fill:#402DF3}
+    .heading{font-size:29px;font-weight:500;letter-spacing:-.6px}
+    .row{font-size:18px;font-weight:500}
+    .body{font-size:16px;fill:#696B63}
+    .small{font-size:14px;fill:#696B63}
+    .white{fill:#FFFFFF}
+  </style>
+  <rect width="1440" height="900" fill="#F7F7F2"/>
+  <path d="M0 257H1440" stroke="#DCDED4"/>
+  <text x="72" y="91" class="title">AI Runner Tracker</text>
+  <text x="72" y="130" class="sub">A local warehouse. Shared definitions. A clearer running picture.</text>
+  <rect x="72" y="165" width="1296" height="66" rx="5" fill="#EEEEE7"/>
+  <rect x="95" y="185" width="99" height="26" rx="4" fill="#402DF3"/>
+  <text x="111" y="204" class="white" font-size="12" font-weight="700" letter-spacing="1.2">DEFAULT</text>
+  <text x="219" y="205" font-size="18" font-weight="500">Watch data stays in local DuckDB.</text>
+  <text x="1060" y="205" class="small">StarRocks optional ↓</text>
+
+  <text x="72" y="294" class="section">01  COLLECT &amp; STORE</text>
+  <text x="480" y="294" class="section">02  DEFINE &amp; QUERY</text>
+  <text x="1020" y="294" class="section">03  REVIEW</text>
+
+  <rect x="72" y="311" width="310" height="155" rx="5" fill="#F7F7F2" stroke="#DCDED4"/>
+  <text x="96" y="352" class="heading">Watch data</text>
+  <path d="M96 370H358" stroke="#DCDED4"/>
+  <circle cx="108" cy="403" r="6" fill="#402DF3"/>
+  <text x="131" y="410" class="row">COROS MCP</text>
+  <circle cx="108" cy="441" r="6" fill="none" stroke="#402DF3" stroke-width="2"/>
+  <text x="131" y="448" class="row">Garmin key / CSV</text>
+  <path d="M227 466V489" fill="none" stroke="#402DF3" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <rect x="72" y="501" width="310" height="154" rx="5" fill="#F7F7F2" stroke="#DCDED4"/>
+  <text x="96" y="536" class="eyebrow">DEFAULT STORAGE</text>
+  <text x="96" y="574" class="heading">Local DuckDB</text>
+  <text x="96" y="605" class="body">Private import · compatible schema</text>
+  <text x="96" y="630" class="small">Preview before saving</text>
+
+  <path d="M391 566H467" fill="none" stroke="#696B63" stroke-width="1.6" marker-start="url(#arr-muted)" marker-end="url(#arr-muted)"/>
+  <text x="401" y="550" class="small">SQL / result</text>
+
+  <rect x="480" y="311" width="450" height="344" rx="5" fill="#F7F7F2" stroke="#402DF3" stroke-width="1.6"/>
+  <text x="508" y="346" class="eyebrow">DOSI · OPTIONAL SEMANTIC PATH</text>
+  <text x="508" y="388" class="heading">Semantic model</text>
+  <text x="508" y="417" class="body">Datasets · metrics · calculation definitions</text>
+  <path d="M508 443H902" stroke="#DCDED4"/>
+  <text x="508" y="482" class="heading">Ontology</text>
+  <text x="508" y="511" class="body">Athlete · session · capability · recovery · goal</text>
+  <path d="M508 537H902" stroke="#DCDED4"/>
+  <circle cx="540" cy="584" r="25" fill="none" stroke="#402DF3" stroke-width="1.6"/>
+  <circle cx="540" cy="584" r="33" fill="none" stroke="#402DF3" stroke-width=".8" opacity=".35"/>
+  <path d="M527 581H551M531 590H547" stroke="#402DF3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="568" cy="564" r="4" fill="#402DF3"/>
+  <text x="590" y="579" class="row">DOSI query</text>
+  <text x="590" y="605" class="small">Generated SQL runs in the chosen warehouse</text>
+
+  <rect x="1020" y="311" width="348" height="344" rx="5" fill="#F7F7F2" stroke="#DCDED4"/>
+  <text x="1046" y="346" class="eyebrow">DIRECT DUCKDB SQL</text>
+  <text x="1046" y="385" class="heading">Running dashboard</text>
+  <text x="1046" y="415" class="small">Bilingual · athlete selector · offline HTML</text>
+  <path d="M1046 434H1342" stroke="#DCDED4"/>
+  <circle cx="1054" cy="452" r="4" fill="#402DF3"/><text x="1070" y="458" class="row">Daily training</text>
+  <circle cx="1054" cy="487" r="4" fill="#402DF3"/><text x="1070" y="493" class="row">Pace &amp; performance</text>
+  <circle cx="1054" cy="522" r="4" fill="#402DF3"/><text x="1070" y="528" class="row">Running form</text>
+  <circle cx="1054" cy="557" r="4" fill="#402DF3"/><text x="1070" y="563" class="row">Recovery &amp; load</text>
+  <circle cx="1054" cy="592" r="4" fill="#402DF3"/><text x="1070" y="598" class="row">Long-term ability</text>
+  <circle cx="1054" cy="627" r="4" fill="#402DF3"/><text x="1070" y="633" class="row">Alerts &amp; attention</text>
+
+  <path d="M227 656V688H1195V656" fill="none" stroke="#402DF3" stroke-width="1.7" marker-end="url(#arr)"/>
+  <rect x="650" y="660" width="264" height="25" fill="#F7F7F2"/>
+  <text x="671" y="678" class="small">Dashboard reads DuckDB directly</text>
+
+  <rect x="72" y="728" width="1296" height="129" rx="5" fill="#EEEEE7" stroke="#DCDED4"/>
+  <text x="96" y="759" class="section">OPTIONAL WAREHOUSE</text>
+  <text x="96" y="798" class="heading">StarRocks</text>
+  <text x="96" y="827" class="body">Use its matching DOSI model and supplied SQL package.</text>
+  <path d="M782 747V838" stroke="#DCDED4"/>
+  <text x="808" y="775" class="eyebrow">DASHBOARD BRIDGE</text>
+  <text x="808" y="806" class="body">Snapshot StarRocks into DuckDB.</text>
+  <text x="808" y="833" class="small">The importer and dashboard currently use DuckDB.</text>
+</svg>

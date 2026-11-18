@@ -1,0 +1,40 @@
+{
+  "database": "joanna_fitness",
+  "scope": "fitness analytics; credentials and raw ingestion excluded",
+  "base_table_count": 22,
+  "view_count": 7,
+  "row_counts": {
+    "activity": 82,
+    "activity_context": 3,
+    "activity_device": 0,
+    "activity_sample": 0,
+    "activity_segment": 987,
+    "athlete": 1,
+    "athlete_body_measurement": 5,
+    "athlete_daily_hrv": 166,
+    "athlete_daily_resting_hr": 93,
+    "athlete_daily_sleep": 96,
+    "athlete_daily_training_load": 37,
+    "athlete_device_binding": 1,
+    "athlete_hr_zone": 6,
+    "athlete_pace_zone": 0,
+    "athlete_recovery_observation": 4,
+    "device": 1,
+    "exercise_definition": 13,
+    "exercise_segment": 590,
+    "segment_hr_zone_time": 0,
+    "segment_rule_mapping": 32,
+    "sport_rule_segment": 16,
+    "workout_event": 82
+  },
+  "view_row_counts": {
+    "v_current_exercise_segment": 580,
+    "v_current_segments": 977,
+    "v_hyrox_race_station": 16,
+    "v_latest_body_measurement": 5,
+    "v_running_activity": 44,
+    "v_running_observation": 111,
+    "v_running_rule_reference": 16
+  },
+  "source_duckdb_sha256": "502830eafc3d3fdd0a924d1a02d45863027edc3cf3b114eb68f55a22732ec3c9"
+}
