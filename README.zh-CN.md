@@ -162,6 +162,8 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 
 打开 `http://127.0.0.1:8768/dashboard` 查看个人快照，或打开 `/demo` 查看虚构数据。展开触发的告警，确认一项本体中定义的建议行动。服务会把**已批准的请求**写入 Git 忽略的 `dashboard/private_data/approved_actions.jsonl`；它不会私自修改已批准的计划，也不会调用尚未运行的 Agent。将 [Agent 指南](agent.md)交给本地 Agent，请它处理待办请求。Agent 须重新核对数据与目标计划，在 `dashboard/private_data/` 中创建带版本的**草案**，再通过 `dashboard/agent_actions.py` 回写结果。页面在此之前显示“等待中”。如缺少目标或具体训练安排，Agent 应记录缺失项，不得声称已修改计划。
 
+个人数据的“关注点”页现在按“先看 Agent 的示例计划，再看规则建议如何调整”展示周跑量场景：最近两个完整周记录为 8.45 公里和 26.70 公里；演示初稿为 28.0 公里，减量建议为 24.0 公里，并列出每天距离。前一周跑量较低，因此增幅本身不能证明训练不安全。此处是待核对的情景草案，并非已经保存的计划；行动请求会把具体建议交给本地 Agent，Agent 仍须确认可跑日期、恢复情况和现有计划后才能写入新草案。
+
 ### 在本地使用作者的真实数据快照
 
 随仓库提供的个人 HTML 看板可直接按[快速开始](#快速开始)查看。若要对个人快照进行基于模型的查询，请安装 DOSI 和 Python 依赖，并构建兼容的叠加数据库：

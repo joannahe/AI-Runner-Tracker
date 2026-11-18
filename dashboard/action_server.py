@@ -96,9 +96,12 @@ class Handler(BaseHTTPRequestHandler):
             action = value["action_code"]
             athlete = value["athlete_id"]
             observed = value["observation_date"]
+            proposed_change = value.get("proposed_change", "")
             date.fromisoformat(observed)
             if not all(isinstance(v, str) and 0 < len(v) <= 100 for v in (rule, action, athlete, observed)):
                 raise ValueError("Invalid fields")
+            if not isinstance(proposed_change, str) or len(proposed_change) > 1000:
+                raise ValueError("Invalid proposed change")
             if action not in ALLOWED_ACTIONS.get(rule, set()):
                 raise ValueError("Action is not defined for that ontology rule")
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
@@ -113,6 +116,7 @@ class Handler(BaseHTTPRequestHandler):
             "rule_code": rule,
             "action_code": action,
             "observation_date": observed,
+            "proposed_change": proposed_change,
             "ontology_file": "fitness_ontology.yaml",
             "ontology_extension": "x_coaching_knowledge",
             "note": "Agent must recheck evidence and target plan before making a versioned change.",
