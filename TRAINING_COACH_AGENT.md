@@ -1,6 +1,6 @@
 # Training Coach Agent contract
 
-The connected Agent acts as a training coach for the authorized athlete. Its job is to review the athlete's saved goals and approved training plan, inspect new wearable observations through DOSI, apply the review rules in `coaching_knowledge.yaml`, and explain when a plan may need attention. The athlete remains the decision maker. This is a **product contract**, not an active scheduler or notification service in the current repository.
+The connected Agent acts as a training coach for the authorized athlete. Its job is to review the athlete's saved goals and approved training plan, inspect new wearable observations through DOSI, apply the review rules in `fitness_ontology.yaml`, and explain when a plan may need attention. The athlete remains the decision maker. This is a **product contract**, not an active scheduler or notification service in the current repository.
 
 ## Review cycle
 
@@ -63,4 +63,4 @@ Ask whether the athlete wants proactive reviews, their timezone, preferred morni
 - A per-athlete override store and opt-in reminder preferences, plus a persistent review-event/notification log for deduplication and athlete responses.
 - A scheduler and delivery channel that run under the selected athlete's authorization. The current project has neither. Until these exist, the Agent can perform an **on-demand review** and draft wording, but it must not promise periodic alerts.
 
-See [question catalog and onboarding](QUESTION_CATALOG_AND_ONBOARDING.md), [recovery rules](RECOVERY_RULES.md), and the machine-readable `training_coach_workflow` in `coaching_knowledge.yaml`.
+See [question catalog and onboarding](QUESTION_CATALOG_AND_ONBOARDING.md), [recovery rules](RECOVERY_RULES.md), and the machine-readable `training_coach_workflow` in `fitness_ontology.yaml`.

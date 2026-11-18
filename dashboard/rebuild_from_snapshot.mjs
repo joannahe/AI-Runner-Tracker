@@ -7,9 +7,11 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const previous = readFileSync(join(here, 'personal-preview.html'), 'utf8');
 const template = readFileSync(join(here, 'index.template.html'), 'utf8');
-const match = previous.match(/<script>const DATA=([\s\S]*?);\s*const TEXT=/);
+const match = previous.match(/<script>const DATA=([\s\S]*?);\s*const RULES=/);
 if (!match) throw new Error('Existing personal dashboard payload not found');
 const data = JSON.parse(match[1]);
+const previousRules = previous.match(/;const RULES=([\s\S]*?);\s*const TEXT=/);
+if (!previousRules) throw new Error('Existing ontology rule snapshot not found; rebuild with dashboard/build.py');
 const sql = readFileSync(join(here, '../warehouse/starrocks_personal_seed.sql'), 'utf8');
 const block = sql.match(/INSERT INTO `athlete_daily_hrv`[^;]*;/g) || [];
 const decode = value => Buffer.from(value, 'base64').toString('utf8');
@@ -48,5 +50,5 @@ data.meta.goal = {
   status: 'demo_goal'
 };
 const encoded = JSON.stringify(data).replaceAll('<', '\\u003c');
-writeFileSync(join(here, 'personal-preview.html'), template.replace('/* __DATA__ */', encoded));
+writeFileSync(join(here, 'personal-preview.html'), template.replace('/* __DATA__ */', encoded).replace('/* __RULES__ */', previousRules[1]));
 console.log(`Rebuilt personal-preview.html with ${rows.length} daily HRV assessments`);

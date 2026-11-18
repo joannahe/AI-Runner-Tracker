@@ -18,3 +18,4 @@ exports/
 .venv/
 __pycache__/
 coros_import/private_data/
+dashboard/private_data/

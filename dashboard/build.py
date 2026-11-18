@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 import duckdb
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "running_demo.duckdb"
@@ -133,5 +134,12 @@ def merge_databases(paths):
 payload = merge_databases([DB, *[path.expanduser().resolve() for path in args.additional_db]])
 
 encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-OUTPUT.write_text(TEMPLATE.read_text().replace("/* __DATA__ */", encoded), encoding="utf-8")
+ontology = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))
+rules = ontology["x_coaching_knowledge"]
+rule_codes = {item["code"] for item in rules["rule_bindings"]}
+required = {"OvertrainingRisk", "WeeklyMileageIncreaseReview", "PolarizedHighIntensityReview", "CompromisedRecovery", "PossibleExerciseRelatedFatigueReview", "PostRaceRecoveryReview", "HardEasySequenceReview"}
+if not required <= rule_codes:
+    raise ValueError(f"Ontology coaching bindings missing: {required - rule_codes}")
+encoded_rules = json.dumps(rules, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+OUTPUT.write_text(TEMPLATE.read_text().replace("/* __DATA__ */", encoded).replace("/* __RULES__ */", encoded_rules), encoding="utf-8")
 print(f"Built {OUTPUT} from {1 + len(args.additional_db)} DuckDB source(s); {len(payload['athletes'])} athletes, {len(payload['runs'])} running sessions")

@@ -252,13 +252,13 @@ concepts:
     planned_intensity is an ontology property only; planned_action currently has no structured intensity column.
 - concept: GoalReviewWorkflow
   binding: workflow_only
-  note: Reusable Agent procedure defined in coaching_knowledge.yaml. It reads Goal, GoalCriterion,
+  note: Reusable Agent procedure defined in x_coaching_knowledge in this ontology. It reads Goal, GoalCriterion,
     GoalProgressAssessment with cited evidence, Capability and RecoveryState as context, then ActionPlan
     and PlannedAction. The ontology's targets and uses_plan links explain the procedure; they are not
     realized dataset joins or a queryable workflow execution record.
 - concept: InferredState
   binding: rule_catalog_only
-  note: Keep as an Agent review-flag catalog with evidence gates in coaching_knowledge.yaml. No persisted
+  note: Keep as an Agent review-flag catalog with evidence gates in x_coaching_knowledge in this ontology. No persisted
     state or executable OWL/SWRL classification is present. Read the already saved GoalProgressAssessment
     and RecoveryState rather than creating duplicate conclusions; unsupported flags remain disabled.
     OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
@@ -268,7 +268,7 @@ concepts:
     runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
 - concept: Recommendation
   binding: rule_catalog_only
-  note: Agent suggestion rules remain in coaching_knowledge.yaml, without a persisted recommendation or
+  note: Agent suggestion rules remain in x_coaching_knowledge in this ontology, without a persisted recommendation or
     acceptance row. Cite the relevant saved assessment and evidence. A proposed change does not approve or
     apply a plan; after human approval, persist the resulting ActionPlan or PlannedAction revision. No
     automatic COROS write occurs. Triggered-by and adjusts are conceptual, not realized joins.

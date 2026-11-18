@@ -130,7 +130,7 @@ This optional technical tour follows **warehouse tables → DOSI datasets and me
 
 1. Open [the DuckDB semantic model](fitness_analysis.yaml). Find `running_observation` and `measured_run_distance_km`; the metric aggregates measured running distance with a consistent definition. The StarRocks equivalent is [here](fitness_analysis.starrocks.yaml).
 2. Open [the ontology](fitness_ontology.yaml) and [its binding audit](ontology_bindings.yaml). Follow `Athlete → TrainingSession → SourceActivity` and `RecoveryState → OvernightHRV` to see how business concepts connect to datasets and evidence. `dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession` inspects a mapped concept.
-3. Read [the rule catalog](coaching_knowledge.yaml) and [coach contract](TRAINING_COACH_AGENT.md). They define how an Agent should interpret metrics and check evidence; DOSI does **not** automatically execute these coaching rules or edit approved plans.
+3. Read [the rule catalog](fitness_ontology.yaml) and [coach contract](TRAINING_COACH_AGENT.md). They define how an Agent should interpret metrics and check evidence; DOSI does **not** automatically execute these coaching rules or edit approved plans.
 4. Open [the fictional dashboard](dashboard/index.html) or [the owner's local preview](dashboard/personal-preview.html). Use **Alerts / 关注点** to expand concept-level observations and inspect the metric evidence. The personal half-marathon goal and draft training week are a demo of a history-based Agent workflow, not a saved approved plan or a live DOSI query.
 
 ### Questions to try with an Agent
@@ -149,6 +149,18 @@ These everyday questions are designed to test whether an Agent can use the ontol
 | “Can I train hard after my race, and is my plan spaced well?” | Verified race distance, athlete-specific recovery policy and dated planned intensity; identify missing plan fields before claiming a conflict or a pass. |
 
 The bundled personal snapshot has observations, but no saved personal goal, dated personal plan or computed personal `RecoveryState`. The fictional fixture has example goals and plans. DOSI maps concepts and queries semantic metrics; the Agent must apply the documented review rules to evidence. It cannot claim that DOSI automatically evaluates coaching rules, changes a plan or sends reminders.
+
+### Approve a suggested action locally
+
+The quantitative review rules and their `recommendation_options` now live in `x_coaching_knowledge` inside [the DuckDB ontology](fitness_ontology.yaml); the StarRocks ontology carries the same catalog. The dashboard builder reads that extension for alert thresholds and focus-label groups. DOSI validates the ontology's concepts and mappings but does **not** execute this project extension as a rule engine.
+
+To enable the alert buttons, start the loopback-only action service after installing `warehouse/requirements.txt`:
+
+```sh
+.venv/bin/python dashboard/action_server.py
+```
+
+Open `http://127.0.0.1:8768/dashboard` for the personal snapshot or `/demo` for the fictional one. Expand a triggered alert and confirm one of the ontology-defined suggested actions. The service records an **approved request** in Git-ignored `dashboard/private_data/approved_actions.jsonl`; it does not silently alter an approved plan or call an Agent that is not running. Give [the Agent guide](agent.md) to a local Agent and ask it to process pending requests. The Agent must recheck the source evidence and target plan, create a versioned **draft** under `dashboard/private_data/`, then record its result with `dashboard/agent_actions.py`. The page shows “waiting” until that result exists. If there is no usable goal or scheduled action, the Agent records the missing input instead of claiming a plan change.
 
 ### Use the owner's real-data snapshot locally
 
@@ -169,7 +181,7 @@ English is the default language for the project and its local UIs. The COROS con
 
 - `fitness_analysis.yaml` and `fitness_ontology.yaml`: **default local DuckDB pair**. The ontology embeds the DuckDB semantic model. The model includes versioned `athlete_goal` and `action_plan`, version-scoped `planned_action` and `goal_criterion`, criterion-specific `goal_progress_assessment` with `goal_progress_evidence`, saved daily `recovery_state` with `recovery_evidence`, dated `capability_assessment` with `capability_evidence`, and the static `recovery_rule` knowledge table; existing metric formulas are unchanged.
 - `fitness_analysis.starrocks.yaml` and `fitness_ontology.starrocks.yaml`: optional **StarRocks pair**, with the same concepts and fixture data for a separately configured warehouse.
-- `ONTOLOGY_ARCHITECTURE.md`, `ontology_bindings.yaml`, `coaching_knowledge.yaml`, and `RECOVERY_RULES.md`: the three-layer concept map, a per-concept audit, and reviewable recovery rules. The rule catalog guides an agent; it is not an executable SWRL/OWL reasoner.
+- `ONTOLOGY_ARCHITECTURE.md`, `ontology_bindings.yaml`, `fitness_ontology.yaml`, and `RECOVERY_RULES.md`: the three-layer concept map, a per-concept audit, and reviewable recovery rules. The rule catalog guides an agent; it is not an executable SWRL/OWL reasoner.
 - `QUESTION_CATALOG_AND_ONBOARDING.md`: reusable English/Chinese athlete questions, their ontology and evidence paths, answer limits, and first-run information needed for the future open-source setup.
 - `TRAINING_COACH_AGENT.md`: proposed Agent review cycle, rule-triggered reminder contract, evidence and duplicate-alert handling, human approval boundary, and work required before proactive coaching is enabled.
 - `AGENTS.md`: repository instructions for coding Agents, including privacy boundaries, generated-file rules, and verification commands. `agent.md` is the separate user-facing assistant guide for setup, import, DOSI exploration, and evidence-based reviews.

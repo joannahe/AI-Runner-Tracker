@@ -1,6 +1,6 @@
 # Recovery mapping and review rules
 
-These are **user-configured review signals** for the fictional public fitness demo, not medical diagnoses or universal exercise thresholds. The structured, agent-facing version is in `coaching_knowledge.yaml` under `recovery_rules`. The DOSI ontology maps the source observations; it does not execute the rules automatically.
+These are **user-configured review signals** for the fictional public fitness demo, not medical diagnoses or universal exercise thresholds. The structured, agent-facing version is in `fitness_ontology.yaml` under `recovery_rules`. The DOSI ontology maps the source observations; it does not execute the rules automatically.
 
 The ontology contains a mapped `RecoveryRule` concept backed by `fitness_demo.recovery_rule`. Its rows are queryable from DOSI and carry bounds, labels, meanings, baseline requirements, and a `rule_origin` of `coros` or `user_configured`. A saved `RecoveryState` row links to the dated load, sleep, resting-HR and separate provider-recovery observations; `RecoveryEvidence` rows cite the source record and rule used in that review. These joins do **not** assert that sleep or resting HR enter COROS's own formula.
 
@@ -20,11 +20,11 @@ The fictional fixture saves three daily reviews and 13 evidence rows. All three 
 
 ## Configurable high-load review
 
-`coaching_knowledge.yaml` defines the agent-facing default `coros_load_ratio_high: 1.5`. A dated COROS `daily_training_load.load_ratio` **strictly greater** than the applicable threshold produces the conceptual `OvertrainingRisk` review flag and a `ScaleBackVolume` suggestion for the runner to consider. At exactly 1.5, the COROS provider band is “excessive” while this separate user-configured flag does not fire. The flag name is not an overtraining diagnosis. Cite the athlete, observation date, provider value, configured threshold and rule version. A per-athlete override can replace the default in the rule configuration; the current ontology does not persist overrides or execute the rule. No plan is changed without the runner's approval.
+`fitness_ontology.yaml` defines the agent-facing default `coros_load_ratio_high: 1.5`. A dated COROS `daily_training_load.load_ratio` **strictly greater** than the applicable threshold produces the conceptual `OvertrainingRisk` review flag and a `ScaleBackVolume` suggestion for the runner to consider. At exactly 1.5, the COROS provider band is “excessive” while this separate user-configured flag does not fire. The flag name is not an overtraining diagnosis. Cite the athlete, observation date, provider value, configured threshold and rule version. A per-athlete override can replace the default in the rule configuration; the current ontology does not persist overrides or execute the rule. No plan is changed without the runner's approval.
 
 ## Biometric recovery review and draft workout change
 
-`CompromisedRecovery` is an **Agent review flag** in `coaching_knowledge.yaml`, not a DOSI-executed classifier or a diagnosis. Each signal is evaluated for the athlete and the local day of a planned workout:
+`CompromisedRecovery` is an **Agent review flag** in `fitness_ontology.yaml`, not a DOSI-executed classifier or a diagnosis. Each signal is evaluated for the athlete and the local day of a planned workout:
 
 - **Resting HR:** today's valid `daily_resting_hr.rhr_bpm` is strictly more than **5 bpm above** the mean of at least five valid observations in the preceding seven local days. The 5 bpm default is user-configurable and is not a COROS medical threshold.
 - **Overnight HRV:** the COROS official daily overnight HRV estimate is **below the lower bound of that athlete's COROS normal range**. COROS builds this personal range from previous nights, initially after five nights. Do not compare against a population HRV cutoff or treat a missing range as low HRV. The COROS MCP returns the official assessment. It is mapped to `daily_hrv` and the `OvernightHRV` concept; the local importer saves daily assessments without raw sample points.

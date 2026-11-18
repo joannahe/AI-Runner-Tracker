@@ -130,7 +130,7 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 
 1. 打开 [DuckDB 语义模型](fitness_analysis.yaml)，查看 `running_observation` 与 `measured_run_distance_km`：后者按一致口径汇总实测跑量。[StarRocks 对应模型](fitness_analysis.starrocks.yaml)也在仓库中。
 2. 打开[本体](fitness_ontology.yaml)及其[映射核查表](ontology_bindings.yaml)，沿 `Athlete → TrainingSession → SourceActivity` 和 `RecoveryState → OvernightHRV` 查看概念如何关联数据集与证据。`dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession` 可检查一个已映射概念。
-3. 阅读[规则目录](coaching_knowledge.yaml)和[教练工作约定](TRAINING_COACH_AGENT.md)。它们指导 Agent 如何解释指标和检查证据；DOSI **不会**自动执行这些教练规则或修改已批准的计划。
+3. 阅读[规则目录](fitness_ontology.yaml)和[教练工作约定](TRAINING_COACH_AGENT.md)。它们指导 Agent 如何解释指标和检查证据；DOSI **不会**自动执行这些教练规则或修改已批准的计划。
 4. 打开[虚构数据看板](dashboard/index.html)或[作者个人预览](dashboard/personal-preview.html)。在 **Alerts / 关注点** 中展开按概念整理的观察及指标证据。个人半马目标与训练周草案是基于历史数据的 Agent 工作流示例，并非已批准、已保存的计划或实时 DOSI 查询。
 
 ### 可以交给 Agent 测试的问题
@@ -149,6 +149,18 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 | “比赛后能练强度吗？训练安排合理吗？” | 经核实的赛程距离、运动员自己的赛后恢复设置，以及按日期记录的计划强度；计划字段不足时不能断言有冲突或已经安全。 |
 
 随仓库提供的个人快照有观测数据，但没有已保存的个人目标、按日期的个人训练计划或已计算的个人 `RecoveryState`；虚构测试库有示例目标和计划。DOSI 负责概念映射和语义指标查询；Agent 需要依据证据应用文档中的复核规则，不能声称 DOSI 会自动执行教练规则、修改计划或发送提醒。
+
+### 在本地确认建议行动
+
+量化规则及其 `recommendation_options` 现在统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `x_coaching_knowledge` 中；StarRocks 本体包含相同目录。生成看板时会从该扩展读取告警阈值和强度标签分类。DOSI 会验证本体概念和映射，但**不会**自动执行此项目扩展中的训练规则。
+
+安装 `warehouse/requirements.txt` 后，启动仅监听本机的行动服务，才可使用告警按钮：
+
+```sh
+.venv/bin/python dashboard/action_server.py
+```
+
+打开 `http://127.0.0.1:8768/dashboard` 查看个人快照，或打开 `/demo` 查看虚构数据。展开触发的告警，确认一项本体中定义的建议行动。服务会把**已批准的请求**写入 Git 忽略的 `dashboard/private_data/approved_actions.jsonl`；它不会私自修改已批准的计划，也不会调用尚未运行的 Agent。将 [Agent 指南](agent.md)交给本地 Agent，请它处理待办请求。Agent 须重新核对数据与目标计划，在 `dashboard/private_data/` 中创建带版本的**草案**，再通过 `dashboard/agent_actions.py` 回写结果。页面在此之前显示“等待中”。如缺少目标或具体训练安排，Agent 应记录缺失项，不得声称已修改计划。
 
 ### 在本地使用作者的真实数据快照
 
@@ -169,7 +181,7 @@ dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-
 
 - `fitness_analysis.yaml` 与 `fitness_ontology.yaml`：默认的 **DuckDB 模型与本体**。本体内嵌 DuckDB 语义模型，包含带版本的 `athlete_goal`、`action_plan`，与版本关联的 `planned_action`、`goal_criterion`，逐条件的 `goal_progress_assessment` / `goal_progress_evidence`，每日 `recovery_state` / `recovery_evidence`，按日期的 `capability_assessment` / `capability_evidence`，以及静态 `recovery_rule` 知识表。已有指标公式未改动。
 - `fitness_analysis.starrocks.yaml` 与 `fitness_ontology.starrocks.yaml`：用于单独配置的 StarRocks 数据仓库，与 DuckDB 版本采用相同概念和虚构测试数据。
-- `ONTOLOGY_ARCHITECTURE.md`、`ontology_bindings.yaml`、`coaching_knowledge.yaml`、`RECOVERY_RULES.md`：三层概念图、逐概念映射审查及恢复规则。规则目录用于指导 Agent，并非可执行的 SWRL / OWL 推理器。
+- `ONTOLOGY_ARCHITECTURE.md`、`ontology_bindings.yaml`、`fitness_ontology.yaml`、`RECOVERY_RULES.md`：三层概念图、逐概念映射审查及恢复规则。规则目录用于指导 Agent，并非可执行的 SWRL / OWL 推理器。
 - `QUESTION_CATALOG_AND_ONBOARDING.md`：中英文通用问题、对应的本体与证据路径、回答边界，以及首次使用所需的信息。
 - `TRAINING_COACH_AGENT.md`：拟议的 Agent 定期复核流程、规则触发提醒的约定、证据与重复提醒处理、人工批准边界，以及启用主动教练前仍需完成的工作。
 - `AGENTS.md`：供编程 Agent 遵循的仓库约定，包括隐私边界、生成文件和验证命令；`agent.md` 则面向协助用户安装、导入和分析数据的助手。

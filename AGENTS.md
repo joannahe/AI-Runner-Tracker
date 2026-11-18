@@ -11,7 +11,7 @@ Local DuckDB is the default storage and dashboard source. StarRocks is an option
 3. Read `LICENSE`, `DATA_LICENSE.md`, `DOCUMENTATION_LICENSE.md`, and `THIRD_PARTY_NOTICES.md` before reusing or exporting repository material.
 4. Read `fitness_analysis.yaml` (DuckDB) and `fitness_ontology.yaml` together. Their `.starrocks.yaml` counterparts use the same concepts for StarRocks.
 5. Read `ontology_bindings.yaml` to distinguish mapped concepts from conceptual or workflow-only links.
-6. Read `coaching_knowledge.yaml`, `RECOVERY_RULES.md`, and `TRAINING_COACH_AGENT.md` before explaining any alert or proposing a plan change.
+6. Read `fitness_ontology.yaml`, `RECOVERY_RULES.md`, and `TRAINING_COACH_AGENT.md` before explaining any alert or proposing a plan change.
 
 ## Data and privacy boundaries
 
@@ -25,7 +25,7 @@ Local DuckDB is the default storage and dashboard source. StarRocks is an option
 - Preserve the distinction between an actual workout, its source-platform records, and a proposed plan action. Deduplicate source activities before totals.
 - Keep measured running distance separate from HYROX rule-reference distance; keep official race time separate from watch time. Missing values are not zero.
 - COROS `activity.training_focus` is a completed session's primary focus label. It is not measured time in a heart-rate zone and cannot classify the intensity of a future planned action.
-- Metrics live in the semantic model. Concepts, relationships, and their bindings live in the ontology. Configurable review conditions and evidence gates live in `coaching_knowledge.yaml`. The markdown guides explain those choices.
+- Metrics live in the semantic model. Concepts, relationships, and their bindings live in the ontology. Configurable review conditions and evidence gates live in `fitness_ontology.yaml`. The markdown guides explain those choices.
 - DOSI validates and queries the semantic model and maps ontology concepts. The rule catalog does not run automatically in DOSI. Do not describe an Agent workflow, reminder, draft generator, or plan approval as implemented unless there is a tested evaluator and persistence path.
 - A review signal is not a diagnosis. Present values, personal baseline or provider range, observation date, source, effective rule version, and missing evidence. Never infer rest from an empty calendar date or a verified race distance from watch GPS distance.
 - The athlete approves any proposed plan change. Preserve the approved plan and do not write a draft to COROS or Garmin automatically.
