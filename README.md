@@ -1,5 +1,7 @@
 # AI Runner Tracker
 
+**Documentation:** English (default) · [简体中文](README.zh-CN.md)
+
 Explore running history, training load, recovery signals, and goals in a local dashboard. Start with the owner's openly shared running snapshot, use a separate fictional test case, or import your own COROS or Garmin activity data. The UI starts in English and can switch to Chinese.
 
 You can use AI Runner Tracker simply to inspect your data. If you want to understand how consistent metric definitions and connected concepts help an Agent answer broader questions, follow the optional [DOSI semantic model and ontology tour](#explore-dosis-semantic-model-and-ontology).
