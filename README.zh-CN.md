@@ -152,7 +152,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 
 ### 在本地确认建议行动
 
-量化规则及其 `recommendation_options` 现在统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `x_coaching_knowledge` 中；StarRocks 本体包含相同目录。生成看板时会从该扩展读取告警阈值和强度标签分类。DOSI 会验证本体概念和映射，但**不会**自动执行此项目扩展中的训练规则。
+量化规则及其 `recommendation_options` 统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `ai_context.x_coaching_knowledge` 中；StarRocks 本体包含相同目录。两套本体／模型／映射文件均已按与 DOSI 0.2.2 的 `osi spec 0.2.0.dev0` 对应的 [Apache Ossie 0.2 schema](https://github.com/apache/ossie/tree/5ebe400b393b837b3a8c8b2f22738b5e30eb05e5/ontology) 校验。生成看板时会从中读取告警阈值和强度标签分类。这些 AI 上下文规则属于项目引导，**不是** Ossie 原生可执行的 `requires` 或 `derived_by` 规则；DOSI 不会自动运行它们。
 
 安装 `warehouse/requirements.txt` 后，启动仅监听本机的行动服务，才可使用告警按钮：
 
@@ -162,7 +162,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 
 打开 `http://127.0.0.1:8768/dashboard` 查看个人快照，或打开 `/demo` 查看虚构数据。展开触发的告警，确认一项本体中定义的建议行动。服务会把**已批准的请求**写入 Git 忽略的 `dashboard/private_data/approved_actions.jsonl`；它不会私自修改已批准的计划，也不会调用尚未运行的 Agent。将 [Agent 指南](agent.md)交给本地 Agent，请它处理待办请求。Agent 须重新核对数据与目标计划，在 `dashboard/private_data/` 中创建带版本的**草案**，再通过 `dashboard/agent_actions.py` 回写结果。页面在此之前显示“等待中”。如缺少目标或具体训练安排，Agent 应记录缺失项，不得声称已修改计划。
 
-通过本地服务打开「关注点」时，页面会重新读取 `fitness_ontology.yaml` 中当前的 `x_coaching_knowledge` 规则目录。恢复检查的比较方式、阈值和基线要求由该目录提供。单独打开 HTML 文件时使用生成页面时嵌入的规则快照；修改规则后需要重新生成。运动数据同样是生成时的快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
+通过本地服务打开「关注点」时，页面会重新读取 `fitness_ontology.yaml` 中当前的 `ai_context.x_coaching_knowledge` 规则目录。恢复检查的比较方式、阈值和基线要求由该目录提供。单独打开 HTML 文件时使用生成页面时嵌入的规则快照；修改规则后需要重新生成。运动数据同样是生成时的快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
 
 个人数据的“关注点”页现在按“先看 Agent 的示例计划，再看规则建议如何调整”展示周跑量场景：最近两个完整周记录为 8.45 公里和 26.70 公里；演示初稿为 28.0 公里，减量建议为 24.0 公里，并列出每天距离。前一周跑量较低，因此增幅本身不能证明训练不安全。此处是待核对的情景草案，并非已经保存的计划；行动请求会把具体建议交给本地 Agent，Agent 仍须确认可跑日期、恢复情况和现有计划后才能写入新草案。
 

@@ -23,7 +23,7 @@ DATA_DIR = ROOT / "dashboard" / "private_data"
 QUEUE = DATA_DIR / "approved_actions.jsonl"
 RESULTS = DATA_DIR / "agent_results.jsonl"
 def current_rules() -> dict:
-    return yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))["x_coaching_knowledge"]
+    return yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))["ai_context"]["x_coaching_knowledge"]
 HOST = "127.0.0.1"
 PORT = 8768
 SESSION = secrets.token_urlsafe(32)
@@ -122,7 +122,7 @@ class Handler(BaseHTTPRequestHandler):
             "observation_date": observed,
             "proposed_change": proposed_change,
             "ontology_file": "fitness_ontology.yaml",
-            "ontology_extension": "x_coaching_knowledge",
+            "ontology_extension": "ai_context.x_coaching_knowledge",
             "note": "Agent must recheck evidence and target plan before making a versioned change.",
         }
         with QUEUE.open("a", encoding="utf-8") as stream:

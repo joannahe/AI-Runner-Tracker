@@ -135,7 +135,7 @@ payload = merge_databases([DB, *[path.expanduser().resolve() for path in args.ad
 
 encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
 ontology = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))
-rules = ontology["x_coaching_knowledge"]
+rules = ontology["ai_context"]["x_coaching_knowledge"]
 rule_codes = {item["code"] for item in rules["rule_bindings"]}
 required = {"OvertrainingRisk", "WeeklyMileageIncreaseReview", "PolarizedHighIntensityReview", "CompromisedRecovery", "PossibleExerciseRelatedFatigueReview", "PostRaceRecoveryReview", "HardEasySequenceReview"}
 if not required <= rule_codes:
