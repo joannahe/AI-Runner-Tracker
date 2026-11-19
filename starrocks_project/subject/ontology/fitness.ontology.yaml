@@ -1,0 +1,2421 @@
+---
+version: 0.2.0.dev0
+name: FitnessGoalOntology
+description: Reusable ontology for running, race, body-composition and sleep goals;
+  separates observations, capability evidence, goal criteria, progress reviews and
+  human-approved decisions.
+ontology:
+- concept: Athlete
+  type: EntityType
+  identify_by:
+  - id
+  description: 'Layer 1 Runner: a fictional athlete identity. Physiological estimates
+    are time-stamped observations, not permanent properties on this person.'
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+- concept: TrainingSession
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - id
+  description: Layer 1 RunSession or other completed workout, deduplicated across
+    source activities. A rest day belongs in PlannedAction, not here.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: intent
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: sport
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: is_official_race
+    roles:
+    - concept: Boolean
+      multiplicity: ManyToOne
+  - name: race_format
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: performed_by
+    description: An athlete performs a training session.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - An athlete performs a training session.
+- concept: RaceEvent
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - id
+  description: A completed, verified race identified from an official TrainingSession.
+    Race course distance must be verified separately; watch distance and HYROX format
+    are not road-race distance.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: completed_on
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: course_distance_km
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: completed_as
+    description: A verified race is a completed training session.
+    roles:
+    - concept: TrainingSession
+    multiplicity: ManyToOne
+- concept: SourceActivity
+  type: EntityType
+  identify_by:
+  - id
+  description: Layer 1 wearable source record; multiple records may describe the same
+    completed session. COROS training_focus is a provider-generated primary session
+    label, not time in a physiological zone.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: distance_m
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: training_load
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: training_focus
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: records
+    description: A source activity records a training session.
+    roles:
+    - concept: TrainingSession
+    multiplicity: ManyToOne
+    verbalizes:
+    - A source activity records a training session.
+- concept: RunningObservation
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - analysis_revision
+  - segment_ordinal
+  - id
+  description: Layer 1 Split or running leg at a particular analysis revision. A session
+    may have several observations.
+  relationships:
+  - name: segment_ordinal
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: analysis_revision
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: measured_distance_m
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: duration_s
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: heart_rate_bpm
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: cadence_spm
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: part_of
+    description: A running observation belongs to a training session.
+    roles:
+    - concept: TrainingSession
+    multiplicity: ManyToOne
+    verbalizes:
+    - A running observation belongs to a training session.
+- concept: SleepObservation
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - source
+  - id
+  description: Layer 2 source sleep observation aligned to wake date, a recovery-context
+    signal.
+  relationships:
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: wake_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: sleep_minutes
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: score
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: observed_for
+    description: A sleep observation belongs to an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A sleep observation belongs to an athlete.
+- concept: FitnessAssessment
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - id
+  description: Layer 2 provider estimate with observed time and metric code; its value
+    does not become a permanent athlete property.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: metric_code
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: observed_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: assesses
+    description: A fitness assessment describes an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A fitness assessment describes an athlete.
+  - name: unit
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: time_quality
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+- concept: GoalReviewWorkflow
+  type: EntityType
+  description: Layer 3 Agent procedure for reviewing any athlete goal. It has no warehouse
+    row or automatic execution; its conceptual targets and uses_plan edges are explained
+    in x_coaching_knowledge in this ontology.
+  relationships:
+  - name: targets
+    description: A goal review workflow targets a goal.
+    roles:
+    - concept: Goal
+    multiplicity: ManyToOne
+    verbalizes:
+    - A goal review workflow targets a goal.
+  - name: uses_plan
+    description: A goal review workflow uses a action plan.
+    roles:
+    - concept: ActionPlan
+    multiplicity: ManyToOne
+    verbalizes:
+    - A goal review workflow uses a action plan.
+- concept: DailyTrainingLoad
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - source
+  - id
+  description: Layer 2 provider-estimated training stress from recent sessions. Short-term
+    load, long-term load and source ratio help review possible exercise-related fatigue;
+    they are not a direct fatigue measurement or a diagnosis.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: Date
+      multiplicity: OneToOne
+  - name: short_term_load
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: long_term_load
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: load_ratio
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+- concept: OvernightHRV
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - source
+  - id
+  description: COROS official overnight HRV assessment at the sleep wake date. The
+    personal normal range and provider evaluation are stored as observed; this is
+    not a medical diagnosis.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+    multiplicity: OneToOne
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+    multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: Date
+      multiplicity: OneToOne
+    multiplicity: OneToOne
+  - name: avg_ms
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: normal_low_ms
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: normal_high_ms
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: baseline_ms
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: provider_evaluation
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: observed_for
+    description: An overnight HRV assessment belongs to an athlete.
+    roles:
+    - concept: Athlete
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - An overnight HRV assessment belongs to an athlete.
+- concept: RestingHeartRate
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - source
+  - id
+  description: Layer 2 resting heart-rate observation; compare with the same athlete
+    and device baseline, not a fixed population threshold.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: Date
+      multiplicity: OneToOne
+  - name: bpm
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+- concept: HeartRateZone
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - scheme_id
+  - id
+  description: Layer 2 athlete-specific heart-rate boundary with scheme version; not
+    time spent in zone. The public fixture does not supply per-sample zone duration.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: scheme_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: lower_bpm
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: upper_bpm
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: valid_from
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: valid_to
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: scheme_method
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: assigned_to
+    description: A heart-rate zone belongs to an athlete and a versioned zone scheme.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A heart-rate zone belongs to an athlete and a versioned zone scheme.
+- concept: Goal
+  type: EntityType
+  description: Versioned athlete-defined objective. A runner may have multiple concurrent
+    goals; a revision does not overwrite an earlier version. Quantitative targets
+    belong to GoalCriterion.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: kind
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: set_by
+    description: An athlete sets a goal.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - An athlete sets a goal.
+  - name: goal_type
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: created_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: has_criterion
+    description: A goal has one or more measurable or milestone criteria.
+    roles:
+    - concept: GoalCriterion
+      multiplicity: ManyToOne
+    verbalizes:
+    - A goal has one or more measurable or milestone criteria.
+  - name: version
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: title
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  identify_by:
+  - athlete_id
+  - id
+  - version
+- concept: ActionPlan
+  type: EntityType
+  description: Layer 1 goal-specific, human-reviewable plan. It can contain running
+    workouts, sleep routines, or other planned actions; it is not a recorded outcome
+    or automatic prescription.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: name
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: summary
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: approval_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: created_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: approved_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: revision_reason
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: for_goal
+    description: A plan version serves exactly one versioned athlete goal.
+    roles:
+    - concept: Goal
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: owned_by
+    description: A plan version belongs to one athlete, whether draft or approved.
+    roles:
+    - concept: Athlete
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  identify_by:
+  - athlete_id
+  - id
+  - version
+- concept: PlannedAction
+  type: EntityType
+  description: A proposed or approved action within one versioned plan. A candidate
+    workout match is not completion; only a manually verified event may fulfill the
+    action.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: plan_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: plan_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: scheduled_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: kind
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: planned_intensity
+    description: Proposed low, moderate or high intensity; requires a structured planned_action
+      field before querying.
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: title
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: target_duration_min
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: planning_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: completion_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: candidate_event_id
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: verified_event_id
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: match_method
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: match_reviewed_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: in_plan
+    description: A planned action belongs to one versioned plan.
+    roles:
+    - concept: ActionPlan
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  - name: fulfilled_by
+    description: Only a reviewed, verified workout may fulfill a planned action.
+    roles:
+    - concept: TrainingSession
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+  identify_by:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - id
+- concept: Capability
+  type: EntityType
+  description: Dated assessment of one running-capability type, backed by cited observations.
+    Status distinguishes a provider baseline, descriptive evidence and an observed
+    outcome; no universal score is computed.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: kind
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: belongs_to
+    description: A capability assessment concerns an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A capability assessment concerns an athlete.
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: review_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: confidence
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: method_version
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: rationale
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  identify_by:
+  - athlete_id
+  - id
+  - assessment_version
+- concept: MetricEvidence
+  type: EntityType
+  description: One cited metric or versioned pace-zone boundary supporting a dated
+    capability review. Source, comparability and observed value are retained; the
+    semantic metric formula is unchanged.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: metric_name
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: evidence_kind
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_on
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: confidence
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: concerns
+    description: Metric evidence concerns an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - Metric evidence concerns an athlete.
+  - name: indicates
+    description: Metric evidence may indicate a capability when comparison conditions
+      are satisfied.
+    roles:
+    - concept: Capability
+    multiplicity: ManyToOne
+    verbalizes:
+    - Metric evidence may indicate a capability when comparison conditions are satisfied.
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: source_dataset
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source_record_id
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: unit
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: comparability_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  identify_by:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  - id
+- concept: RecoveryState
+  type: EntityType
+  description: Saved daily, evidence-backed recovery review. A review with inadequate
+    personal baselines is explicitly insufficient_evidence; COROS recovery remains
+    a separate provider estimate.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: review_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: for_athlete
+    description: A recovery review concerns an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review concerns an athlete.
+  - name: considers_sleep
+    description: A recovery review considers available sleep observations.
+    roles:
+    - concept: SleepObservation
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review considers available sleep observations.
+  - name: considers_hrv
+    description: A recovery review may consider the dated COROS overnight HRV assessment.
+    roles:
+    - concept: OvernightHRV
+      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review may consider the dated COROS overnight HRV assessment.
+  - name: considers_resting_hr
+    description: A recovery review considers resting heart rate.
+    roles:
+    - concept: RestingHeartRate
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review considers resting heart rate.
+  - name: considers_load
+    description: A recovery review considers daily training load.
+    roles:
+    - concept: DailyTrainingLoad
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review considers daily training load.
+  - name: considers_provider_estimate
+    description: A recovery review may consider a provider recovery estimate.
+    roles:
+    - concept: ProviderRecoveryEstimate
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review may consider a provider recovery estimate.
+  - name: considers_workout
+    description: A recovery review considers the recent workout and its duration.
+    roles:
+    - concept: TrainingSession
+      multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review considers the recent workout and its duration.
+  - name: considers_running_intensity
+    description: A recovery review considers measured pace and heart rate as workout
+      intensity context.
+    roles:
+    - concept: RunningObservation
+      multiplicity: ManyToOne
+    verbalizes:
+    - A recovery review considers measured pace and heart rate as workout intensity
+      context.
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: method_version
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: sleep_valid_days_7
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: rhr_valid_days_7
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: sleep_valid_days_42
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  identify_by:
+  - athlete_id
+  - id
+  - assessment_version
+- concept: RecoveryEvidence
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  - id
+  description: One dated source observation evaluated against a named review rule;
+    includes baseline coverage and a source record reference.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: source_dataset
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source_record_id
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: metric_code
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: unit
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: evaluation_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: valid_prior_days
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: baseline_days
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: belongs_to
+    description: Evidence belongs to one saved recovery review.
+    roles:
+    - concept: RecoveryState
+    multiplicity: ManyToOne
+    verbalizes:
+    - Evidence belongs to one saved recovery review.
+  - name: evaluated_with
+    description: Evidence is evaluated with one versioned recovery rule.
+    roles:
+    - concept: RecoveryRule
+    multiplicity: ManyToOne
+    verbalizes:
+    - Evidence is evaluated with one versioned recovery rule.
+- concept: PaceZone
+  type: EntityType
+  description: Athlete-specific, versioned training-pace boundary. Faster comparable
+    boundaries over time can support a running-capability interpretation; a single
+    profile is not an ability score and this is not a recovery input.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: scheme_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: fast_boundary_s_per_km
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: slow_boundary_s_per_km
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: valid_from
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: valid_to
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: assigned_to
+    description: A pace zone belongs to an athlete and scheme version.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A pace zone belongs to an athlete and scheme version.
+  identify_by:
+  - athlete_id
+  - scheme_id
+  - id
+- concept: InferredState
+  type: EntityType
+  description: Layer 3 conceptual review flag, not a medical diagnosis or a persisted
+    assertion. Codes include LoadRecoveryReview, OvertrainingRisk (high COROS load
+    review only), WeeklyMileageIncreaseReview, PolarizedHighIntensityReview (weekly
+    session-count share), CompromisedRecovery (biometric review), PostRaceRecoveryReview,
+    HardEasySequenceReview, ReadyToProgress, GoalProgressReview, and disabled CardiacDriftDetected.
+    Their evidence gates and configurable thresholds live in x_coaching_knowledge
+    in this ontology; DOSI does not execute these rules.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: code
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: detected_on
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: confidence
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: for_athlete
+    description: An inferred state concerns an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - An inferred state concerns an athlete.
+  - name: supported_by
+    description: An inferred state cites metric evidence.
+    roles:
+    - concept: MetricEvidence
+    multiplicity: ManyToOne
+    verbalizes:
+    - An inferred state cites metric evidence.
+  identify_by:
+  - id
+- concept: Recommendation
+  type: EntityType
+  description: Layer 3 evidence-backed, human-reviewable suggestion for a goal or
+    its planned action. Examples vary by goal; the ontology does not automatically
+    prescribe or execute an action.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: code
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: review_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: rationale_code
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: triggered_by
+    description: A recommendation is justified by an inferred state.
+    roles:
+    - concept: InferredState
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recommendation is justified by an inferred state.
+  - name: for_goal
+    description: A recommendation may support a goal.
+    roles:
+    - concept: Goal
+    multiplicity: ManyToOne
+    verbalizes:
+    - A recommendation may support a goal.
+  - name: adjusts
+    description: A reviewed recommendation may adjust a planned action.
+    roles:
+    - concept: PlannedAction
+    multiplicity: ManyToOne
+    verbalizes:
+    - A reviewed recommendation may adjust a planned action.
+  identify_by:
+  - id
+- concept: ProviderRecoveryEstimate
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - id
+  description: Layer 2 COROS recovery observation at capture time. It is a provider
+    point estimate, not a daily recovery history or a clinical readiness score.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: source
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: recovery_pct
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: level
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_for
+    description: A provider recovery estimate is observed for an athlete.
+    roles:
+    - concept: Athlete
+    multiplicity: ManyToOne
+    verbalizes:
+    - A provider recovery estimate is observed for an athlete.
+  - name: influenced_by_load
+    description: COROS recovery estimates are influenced by provider training load
+      and base fitness; the proprietary formula is not reproduced here.
+    roles:
+    - concept: DailyTrainingLoad
+      multiplicity: ManyToOne
+    verbalizes:
+    - COROS recovery estimates are influenced by provider training load and base fitness;
+      the proprietary formula is not reproduced here.
+  - name: influenced_by_workout
+    description: Workout duration and intensity influence COROS training load, which
+      in turn influences its recovery estimate.
+    roles:
+    - concept: TrainingSession
+      multiplicity: ManyToOne
+    verbalizes:
+    - Workout duration and intensity influence COROS training load, which in turn
+      influences its recovery estimate.
+  - name: uses_run_intensity_context
+    description: Running heart rate and pace help characterize intensity through the
+      provider calculation; this is a conceptual dependency, not a reproduced formula.
+    roles:
+    - concept: RunningObservation
+      multiplicity: ManyToOne
+    verbalizes:
+    - Running heart rate and pace help characterize intensity through the provider
+      calculation; this is a conceptual dependency, not a reproduced formula.
+- concept: GoalCriterion
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - goal_id
+  - goal_version
+  - id
+  description: A versioned measurable criterion or milestone belonging to a goal.
+    Examples include same-distance race time, weekly running frequency, sleep duration,
+    and body-mass trend; each requires an appropriate metric and evidence source.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: metric_name
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: comparison_operator
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: target_value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: target_unit
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: target_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: belongs_to
+    description: A criterion belongs to a runner-defined goal.
+    roles:
+    - concept: Goal
+      multiplicity: ManyToOne
+    verbalizes:
+    - A criterion belongs to a runner-defined goal.
+    multiplicity: ManyToOne
+  - name: aggregation_window
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: goal_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: goal_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: criterion_kind
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: evidence_policy
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+- concept: GoalProgressAssessment
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - id
+  - assessment_version
+  description: Layer 3 evidence-backed assessment of one goal criterion at a review
+    time. Status may be on_track, needs_review, insufficient_evidence, or achieved;
+    no universal readiness percentage is implied.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: reviewed_at
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: window_start
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: window_end
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: difference_value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: difference_unit
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: comparison_basis
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: method_version
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: rationale
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: reviews
+    description: A progress assessment reviews one versioned goal criterion.
+    roles:
+    - concept: GoalCriterion
+      multiplicity: ManyToOne
+      verbalizes:
+      - A progress assessment reviews one versioned goal criterion.
+    multiplicity: ManyToOne
+  - name: supported_by
+    description: A progress assessment is supported by its cited goal evidence.
+    roles:
+    - concept: GoalProgressEvidence
+      multiplicity: ManyToOne
+      verbalizes:
+      - A progress assessment is supported by its cited goal evidence.
+- concept: RecoveryRule
+  type: EntityType
+  identify_by:
+  - id
+  description: Sourced interval or personal review rule with explicit bounds, baseline
+    and meaning. The ontology exposes rule facts; DOSI does not automatically evaluate
+    them.
+  relationships:
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: rule_kind
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: metric_code
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: lower_bound
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: upper_bound
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: lower_inclusive
+    roles:
+    - concept: Boolean
+      multiplicity: ManyToOne
+  - name: upper_inclusive
+    roles:
+    - concept: Boolean
+      multiplicity: ManyToOne
+  - name: label
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: meaning
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: rule_origin
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source_url
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: baseline_days
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+  - name: min_valid_days
+    roles:
+    - concept: Integer
+      multiplicity: ManyToOne
+- concept: GoalProgressEvidence
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  - id
+  description: A source observation cited by one saved criterion review, with source
+    identity, date, value and quality.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: assessment_version
+    roles:
+    - concept: Integer
+      multiplicity: OneToOne
+  - name: id
+    roles:
+    - concept: String
+      multiplicity: OneToOne
+  - name: source_dataset
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source_record_id
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: source_date
+    roles:
+    - concept: Date
+      multiplicity: ManyToOne
+  - name: metric_name
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: observed_value
+    roles:
+    - concept: Decimal
+      multiplicity: ManyToOne
+  - name: unit
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: quality_status
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: comparison_basis
+    roles:
+    - concept: String
+      multiplicity: ManyToOne
+  - name: supports
+    description: Cited evidence supports one saved criterion review.
+    roles:
+    - concept: GoalProgressAssessment
+      multiplicity: ManyToOne
+      verbalizes:
+      - Cited evidence supports one saved criterion review.
+    multiplicity: ManyToOne
+x_coaching_knowledge:
+  execution: agent_review_only; DOSI ignores this project extension during ontology
+    validation
+  rule_bindings:
+  - code: OvertrainingRisk
+    concept_path:
+    - Athlete
+    - DailyTrainingLoad
+    - InferredState
+    - Recommendation
+    source_metric: daily_training_load.load_ratio
+  - code: WeeklyMileageIncreaseReview
+    concept_path:
+    - Athlete
+    - RunningObservation
+    - InferredState
+    - Recommendation
+    source_metric: measured_run_distance_km
+  - code: PolarizedHighIntensityReview
+    concept_path:
+    - Athlete
+    - SourceActivity
+    - TrainingSession
+    - InferredState
+    - Recommendation
+    source_field: activity.training_focus
+  - code: CompromisedRecovery
+    concept_path:
+    - Athlete
+    - OvernightHRV
+    - RestingHeartRate
+    - SleepObservation
+    - RecoveryState
+    - InferredState
+    - Recommendation
+    source_metrics:
+    - avg_overnight_hrv_ms
+    - avg_resting_hr_bpm
+    - avg_sleep_score
+  - code: PossibleExerciseRelatedFatigueReview
+    concept_path:
+    - Athlete
+    - DailyTrainingLoad
+    - RestingHeartRate
+    - SleepObservation
+    - RecoveryState
+    - InferredState
+    distinct_signals_required: 2
+  - code: PostRaceRecoveryReview
+    concept_path:
+    - Athlete
+    - RaceEvent
+    - ActionPlan
+    - PlannedAction
+    - InferredState
+    - Recommendation
+    availability: needs_verified_course_distance_athlete_policy_and_structured_plan_intensity
+  - code: HardEasySequenceReview
+    concept_path:
+    - Athlete
+    - ActionPlan
+    - PlannedAction
+    - InferredState
+    - Recommendation
+    availability: needs_structured_plan_intensity_and_explicit_recovery_actions
+  version: 1
+  ontology: FitnessGoalOntology
+  metric_model: fitness_analysis
+  policy:
+    require_source_and_observation_date: true
+    compare_like_for_like: true
+    missing_is_not_zero: true
+    recommendations_require_human_review: true
+    no_medical_or_injury_diagnosis: true
+    independent_runs_only_for_running_goal: true
+  training_coach_workflow:
+    status: agent_contract_not_scheduled_or_executed
+    role: Help the athlete review training and recovery against their own goals and
+      the dated, evidence-backed rules below.
+    invocation:
+    - after_successful_watch_import
+    - at_athlete_configured_morning_review_time
+    - after_each_completed_local_monday_to_sunday_week
+    - whenever_the_athlete_requests_a_plan_review
+    - after_a_verified_race_result_is_imported
+    cadence_note: A future scheduler and notification channel must be configured per
+      athlete; this catalog does not create a recurring job.
+    ordered_steps:
+    - Resolve the authorized athlete, timezone, effective goal and plan versions,
+      rule overrides, and last successful data import.
+    - Check source freshness, deduplicate activities, align observation dates, and
+      mark missing or incomplete evidence.
+    - Evaluate biometric_fatigue_override and recovery_rules for completed local dates.
+      Keep one-signal CompromisedRecovery separate from the two-distinct-signal composite
+      fatigue review.
+    - At the end of a completed week, evaluate training_progression_rules and polarized_intensity_distribution
+      only when their stated coverage gates pass.
+    - Review each active GoalCriterion and the next seven dated PlannedActions; distinguish
+      an approved action from a proposed or already completed one.
+    - Check verified race recovery windows and consecutive planned high-intensity
+      sessions; require explicit intensity and recovery evidence before a pass or
+      trigger.
+    - Create a review event with rule code, observation window, values, baseline or
+      provider range, effective threshold, rule version, source IDs, evidence sufficiency,
+      and any affected planned action.
+    - Notify the athlete only for a new actionable review event; explain the evidence
+      and ask for approval before changing a plan.
+    - Record the athlete's response and resulting plan version if the product later
+      supports reminders and revisions.
+    candidate_review_rules:
+    - LoadRecoveryReview
+    - ReadyToProgress
+    - CompromisedRecovery
+    - PossibleExerciseRelatedFatigueReview
+    - OvertrainingRisk
+    - WeeklyMileageIncreaseReview
+    - PolarizedHighIntensityReview
+    - GoalProgressReview
+    - PostRaceRecoveryReview
+    - HardEasySequenceReview
+    reminder_policy:
+      requires_athlete_opt_in_and_channel: true
+      deduplicate_by:
+      - athlete_id
+      - rule_code
+      - observation_window_end
+      - effective_rule_version
+      - planned_action_id_if_any
+      no_repeated_message_without_new_evidence_or_material_plan_change: true
+      insufficient_evidence: State the missing coverage in the periodic review; do
+        not emit a triggered-rule alert.
+      no_trigger: Summarize observed trends without claiming the athlete is medically
+        recovered or that a plan is safe.
+      proposed_change: Draft only, tied to an exact goal and plan version; require
+        athlete approval.
+      no_external_provider_write: true
+      message_fields:
+      - review_date
+      - plain_language_finding
+      - observed_value
+      - personal_baseline_or_provider_range
+      - threshold
+      - source_dates
+      - affected_plan_action
+      - suggested_review
+      - evidence_limit
+    required_plan_checks:
+      when:
+      - after_a_verified_race_result_is_imported
+      - before_presenting_a_new_plan_version
+      - during_an_approved_plan_review
+      - when_asked_about_training_spacing_or_post_race_readiness
+      resolve:
+      - authorized_athlete
+      - local_timezone
+      - exact_action_plan_version
+      - dated_planned_actions
+      rules:
+      - PostRaceRecoveryReview
+      - HardEasySequenceReview
+      race_evidence:
+      - verified_completion
+      - official_course_distance_km
+      - effective_athlete_recovery_setting
+      sequencing_evidence:
+      - structured_planned_intensity
+      - explicit_easy_or_rest_actions
+      - intervening_date_coverage
+      output:
+      - rule_code
+      - affected_action
+      - dates
+      - plan_version
+      - evidence_status
+      - configured_value
+      - source_ids
+      - proposed_draft_if_triggered
+      missing_input: Return insufficient_evidence or unknown with the specific missing
+        item; do not assume an empty day was rest or a watch distance was the course
+        distance.
+      approval: Never edit an approved plan or external wearable schedule without
+        athlete approval.
+  goal_review_workflow:
+    concept: GoalReviewWorkflow
+    persistence: none
+    interpretation: Agent procedure, not a queryable warehouse entity or an automatically
+      executed ontology rule.
+    steps:
+    - name: resolve_goal
+      read_concepts:
+      - Athlete
+      - Goal
+      - GoalCriterion
+      check: Select the athlete and exact goal version, then filter GoalCriterion
+        by athlete_id, goal_id and goal_version. The Goal.has_criterion arrow is conceptual;
+        use the queryable GoalCriterion.belongs_to relation or the versioned criterion
+        keys. Retain concurrent goals separately.
+    - name: review_progress
+      read_concepts:
+      - GoalProgressAssessment
+      - GoalProgressEvidence
+      check: Read the latest applicable criterion-specific review and filter GoalProgressEvidence
+        by athlete_id, assessment_id and assessment_version. The assessment's supported_by
+        arrow is conceptual; use the queryable GoalProgressEvidence.supports relation.
+        Retain cited source records, time window, units, status and method version.
+        Insufficient evidence stays insufficient.
+    - name: review_context
+      read_concepts:
+      - Capability
+      - MetricEvidence
+      - RecoveryState
+      - RecoveryEvidence
+      check: Treat capability and recovery as context for a next step, not a substitute
+        for the goal criterion result.
+    - name: inspect_plan
+      read_concepts:
+      - ActionPlan
+      - PlannedAction
+      check: Select the plan linked to that goal version. Separate approved actions,
+        proposals, verified completion and candidate event matches.
+    - name: propose_next_step
+      read_concepts:
+      - InferredState
+      - Recommendation
+      check: Cite the review and supporting observations; require human review before
+        changing a plan or treating a candidate as completed.
+  capability_evidence:
+  - capability: running_pace_capacity
+    concept_refs:
+    - PaceZone
+    dataset_refs:
+    - running_pace_zone
+    metric_refs: []
+    relation: versioned_profile_may_support_running_capability_trend
+    confidence: contextual
+    conditions:
+    - same_athlete_and_zone_index
+    - same_device_and_scheme_method
+    - distinct_effective_dates
+    - compare_both_zone_boundaries_in_seconds_per_kilometer
+    - corroborate_with_comparable_running_observations
+    interpretation: Lower pace seconds per kilometer means a faster boundary. A change
+      across comparable dated profiles may reflect improved running capacity; it may
+      also reflect recalibration or provider algorithm changes. One zone snapshot
+      cannot establish improvement. This is not recovery evidence.
+  - capability: aerobic_capacity
+    concept_refs:
+    - FitnessAssessment
+    context_concept_refs:
+    - HeartRateZone
+    - PaceZone
+    dataset_refs:
+    - latest_fitness_measurement
+    metric_refs:
+    - latest_vo2max_running
+    zone_context:
+    - running_hr_zone
+    - running_pace_zone
+    relation: provider_estimates
+    confidence: contextual
+    interpretation: Device estimate; compare the same device over time and with actual
+      performance, not with laboratory VO2max as if interchangeable.
+  - capability: aerobic_endurance
+    concept_refs:
+    - RunningObservation
+    context_concept_refs:
+    - HeartRateZone
+    - PaceZone
+    - DailyTrainingLoad
+    dataset_refs:
+    - running_observation
+    metric_refs:
+    - measured_pace_s_per_km
+    - weighted_avg_hr_bpm
+    zone_context:
+    - running_hr_zone
+    - running_pace_zone
+    relation: paired_metrics_may_indicate
+    confidence: exploratory
+    conditions:
+    - same_run_type
+    - comparable_route_and_weather
+    - compatible_timing_basis
+    - multiple_sessions
+    interpretation: Faster pace at similar heart rate, or lower heart rate at similar
+      pace, may be a trend; activity averages cannot establish a controlled test.
+  - capability: threshold_endurance
+    concept_refs:
+    - FitnessAssessment
+    - RunningObservation
+    context_concept_refs:
+    - HeartRateZone
+    - PaceZone
+    dataset_refs:
+    - latest_fitness_measurement
+    - running_observation
+    metric_refs:
+    - latest_threshold_pace_s_per_km
+    - latest_threshold_hr_bpm
+    zone_context:
+    - running_hr_zone
+    - running_pace_zone
+    relation: provider_estimates
+    confidence: contextual
+    conditions:
+    - same_test_protocol
+    - source_and_retrieval_time_shown
+    interpretation: Do not infer a threshold from an ordinary run's average heart
+      rate.
+  - capability: running_mechanics
+    concept_refs:
+    - RunningObservation
+    - SourceActivity
+    dataset_refs:
+    - running_observation
+    - running_power_observation
+    - running_lap
+    metric_refs:
+    - weighted_avg_cadence_spm
+    - avg_power_w
+    - lap_avg_cadence_spm
+    - lap_avg_power_w
+    relation: describes_output_not_ability_score
+    confidence: descriptive
+    conditions:
+    - same_device_and_mode
+    - comparable_pace_and_terrain
+    interpretation: Higher cadence or power is not inherently better; these metrics
+      alone do not measure running economy.
+  - capability: race_performance
+    concept_refs:
+    - TrainingSession
+    dataset_refs:
+    - workout_event
+    metric_refs:
+    - official_10k_net_time_s
+    relation: validates_outcome
+    confidence: observed
+    conditions:
+    - official_race
+    - same_distance_and_clock_basis
+    interpretation: Race time reflects several abilities and race conditions; keep
+      official and watch times separate.
+  training_exposure:
+    metric_refs:
+    - measured_run_distance_km
+    - identified_run_time_s
+    - run_session_count
+    - run_day_count
+    - coros_training_load
+    interpretation: These describe training performed or device-estimated load, not
+      a physiological ability. Filter standalone runs when answering a pure running
+      question; do not add load scores across brands.
+  recovery_context:
+    dataset_refs:
+    - daily_training_load
+    - daily_sleep
+    - daily_resting_hr
+    - recovery_observation
+    metric_refs:
+    - avg_short_term_load
+    - avg_long_term_load
+    - avg_load_ratio
+    - avg_main_sleep_minutes
+    - avg_sleep_score
+    - avg_resting_hr_bpm
+    - current_recovery_pct
+    interpretation: These inform readiness to train and how to interpret an ability
+      trend; they are not direct measures of aerobic capacity, endurance or running
+      mechanics. COROS short/long load and source ratio are preserved as given; do
+      not rename them ACWR or infer a fixed 7/28-day formula. Recovery percentage
+      currently has only one observation and cannot form a history.
+    fatigue_proxy: Use device-estimated daily short-term load, long-term load, source
+      ratio and provider status as evidence of recent exercise stress; use the time-stamped
+      COROS recovery estimate as a separate provider estimate. Sleep and resting heart
+      rate are independent context, not inputs claimed to be in the COROS recovery
+      formula. Do not infer all bodily fatigue or diagnose overreaching from load
+      alone.
+  inference_state_policy:
+    persistence: none
+    execution: agent_review_only
+    interpretation: Review flags are possible interpretations of cited observations,
+      not measured values, diagnoses, or saved athlete states.
+    reuse_saved_assessments: Read GoalProgressAssessment and RecoveryState instead
+      of duplicating their stored conclusions as new state rows.
+    missing_evidence: Do not emit a state when its listed evidence gate is unmet;
+      keep disabled codes disabled.
+  rule_thresholds:
+    configuration: Agent-facing defaults. An athlete-specific override may replace
+      the default for that athlete; record the override value, effective date, and
+      rule version with each review. This catalog does not store overrides or execute
+      rules.
+    athlete_overrides: []
+    defaults:
+      coros_load_ratio_high: 1.5
+      completed_week_distance_growth_fraction: 0.1
+      high_intensity_session_fraction: 0.2
+      resting_hr_above_7d_baseline_bpm: 5
+      sleep_score_below_42d_baseline_fraction: 0.1
+      low_load_ratio: 0.8
+      sleep_duration_change_fraction: 0.1
+      sleep_duration_drop_fraction: 0.1
+      resting_hr_rise_fraction: 0.1
+      resting_hr_week_change_fraction: 0.1
+    comparison: Strictly greater than the configured threshold; equality does not
+      trigger the review flag.
+  recommendation_policy:
+    persistence: none
+    execution: agent_suggestion_only
+    evidence: Cite the relevant saved goal-progress or recovery review and its source
+      observations. A missing or disabled inferred state cannot justify a recommendation.
+    human_decision: The athlete decides whether to change a plan. A proposal does
+      not approve or apply an ActionPlan or PlannedAction.
+    accepted_change: If the athlete approves a change, record the resulting plan or
+      action revision in the versioned plan model; this catalog does not store a separate
+      acceptance event.
+    external_write: Never write a proposed adjustment to COROS or another provider
+      automatically.
+  inference_states:
+  - code: LoadRecoveryReview
+    status: review_only
+    evidence:
+    - training_exposure
+    - recovery_context
+    recommendation_options:
+    - ScaleBackVolume
+    - InsertRestDay
+    rule: Review several days of device-estimated load together with available sleep,
+      resting heart rate and running-performance trends; one load cutoff does not
+      measure total bodily fatigue or diagnose overreaching. No subjective-feedback
+      input is required.
+  - code: ReadyToProgress
+    status: review_only
+    evidence:
+    - training_exposure
+    - recovery_context
+    - aerobic_endurance
+    recommendation_options:
+    - ProgressIntensity
+    rule: Consider only after several stable weeks with adequate recovery evidence;
+      a person approves any change.
+  - code: GoalProgressReview
+    status: needs_goal_criterion_and_comparable_evidence
+    evidence:
+    - goal_criterion
+    - matching_semantic_metric_or_milestone
+    - dated_source
+    recommendation_options: []
+    rule: Review each criterion using a matching metric, unit, period and comparator.
+      Race-time gaps need same-distance results or labelled predictions; sleep goals
+      use observed sleep metrics; training-consistency goals use run counts or days;
+      body-composition goals remain unsupported until suitable measurements exist.
+      Missing target or evidence yields insufficient_evidence, not a fabricated percentage.
+  - code: CardiacDriftDetected
+    status: disabled_missing_sample_series
+    evidence: []
+    recommendation_options: []
+    rule: Requires continuous, valid heart-rate and speed samples from a steady run;
+      activity averages do not establish drift.
+  - code: PostRaceRecoveryReview
+    status: review_only_requires_verified_race_distance_and_athlete_policy
+    evidence:
+    - verified_completed_race
+    - course_distance_km
+    - approved_plan
+    - planned_intensity
+    - rule_version
+    recommendation_options:
+    - InsertRestDay
+    - ScaleBackVolume
+    rule: Flag a proposed high-intensity action inside the athlete-configured post-race
+      easy/rest window. Review an approved plan and propose a new draft; do not silently
+      change or block the approved plan.
+  - code: HardEasySequenceReview
+    status: review_only_requires_structured_plan_intensity
+    evidence:
+    - dated_planned_actions
+    - planned_intensity
+    - explicit_easy_or_rest_action
+    - rule_version
+    recommendation_options:
+    - InsertRestDay
+    rule: Flag consecutive planned high-intensity sessions with no explicit intervening
+      easy run or rest day. A blank calendar day is unknown, not proof of rest.
+  - code: OverreachingRisk
+    status: disabled_insufficient_evidence
+    evidence: []
+    recommendation_options: []
+    rule: A load ratio alone must not be classified as overreaching or injury risk.
+  - code: OvertrainingRisk
+    status: review_only
+    evidence:
+    - high_recent_load
+    recommendation_options:
+    - ScaleBackVolume
+    rule: Name retained for the requested workflow. Only flag a COROS-provided daily
+      load_ratio strictly above the athlete's configured threshold (default 1.5) as
+      high-load stress needing review. This is not a diagnosis of overtraining syndrome,
+      overreaching, or injury risk. Cite the ratio, local date, source, and rule version.
+      Suggest reducing upcoming volume for human review; do not modify a plan automatically.
+  - code: WeeklyMileageIncreaseReview
+    status: review_only
+    evidence:
+    - completed_week_distance_growth
+    recommendation_options:
+    - ScaleBackVolume
+    rule: When two complete, comparable calendar weeks of measured standalone running
+      exist, flag current-week kilometers strictly above prior-week kilometers multiplied
+      by 1 plus the configured growth fraction (default 0.10). Review the planned
+      increase with the runner. This is a planning heuristic, not an injury-risk diagnosis
+      or universal safe limit.
+  - code: PolarizedHighIntensityReview
+    status: review_only_when_focus_coverage_complete
+    evidence:
+    - coros_primary_training_focus_for_each_completed_run
+    - complete_week_and_deduplicated_sessions
+    recommendation_options:
+    - ReviewNextInterval
+    rule: Follow polarized_intensity_distribution.weekly_review. Count the COROS primary
+      focus of each unique completed run; if the high-label share is strictly above
+      the configured 20% default, propose reviewing the next interval session. Do
+      not infer time in zone or a physiological HighStrain state.
+  - code: CompromisedRecovery
+    status: agent_review_only_no_automatic_evaluator
+    evidence:
+    - resting_hr_above_personal_baseline_bpm
+    - overnight_hrv_below_provider_normal_range_when_available
+    - sleep_score_below_personal_42d_baseline
+    recommendation_options:
+    - DraftActiveRecoveryOrRest
+    rule: Follow biometric_fatigue_override. A valid signal prompts a dated recovery
+      review; when an uncompleted key workout is scheduled for that day, propose an
+      easier action in a new draft ActionPlan version and notify the athlete for approval.
+      Do not change an approved plan or a COROS schedule automatically. This is not
+      a diagnosis.
+  - code: PossibleExerciseRelatedFatigueReview
+    status: review_only
+    evidence:
+    - high_recent_load
+    - sleep_drop_7d
+    - resting_hr_rise_7d
+    recommendation_options:
+    - ScaleBackVolume
+    - InsertRestDay
+    rule: 'Follow recovery_rules.composite_review: require at least two distinct available
+      signals, report source dates and coverage, and ask the person to review the
+      next training step. No diagnosis or automatic plan change.'
+  not_currently_available:
+  - per_sample_zone_time
+  - cardiac_drift
+  - stride_length_and_ground_contact_time_as_validated_metrics
+  - automatic_plan_modification
+  goal_criteria_examples:
+  - goal_type: race
+    criterion: finish_or_time
+    supported_metric_refs:
+    - official_10k_net_time_s
+    - official_finish_time_s
+    requirements: Same-distance official result or labelled prediction for time-gap
+      assessment; completion can use milestone review.
+  - goal_type: running_consistency
+    criterion: sessions_or_days_per_week
+    supported_metric_refs:
+    - run_session_count
+    - run_day_count
+    - measured_run_distance_km
+    requirements: Define target, week boundaries and standalone-run filter.
+  - goal_type: sleep
+    criterion: sleep_duration_or_quality_trend
+    supported_metric_refs:
+    - avg_main_sleep_minutes
+    - avg_daily_sleep_minutes
+    - avg_sleep_score
+    requirements: Define period, wake-date alignment and source-specific score interpretation.
+  - goal_type: body_composition
+    criterion: body_mass_or_body_fat_trend
+    supported_metric_refs: []
+    requirements: Requires consented, dated body measurement data and appropriate
+      semantic metrics; do not infer from training load or calories.
+  recovery_rules:
+    status: agent_review_rules_not_executable_ontology_reasoner
+    scope: athlete and source; align sleep by wake_date and load/resting heart rate
+      by local_date in the athlete timezone
+    provenance: user_configured_thresholds_with_provider_context
+    baseline_policy:
+      exclude_current_day: true
+      short_window_days: 7
+      long_sleep_window_days: 42
+      proposed_min_valid_days_7: 5
+      proposed_min_valid_days_42: 28
+      missing_data: insufficient_evidence
+    dashboard_signals:
+    - code: low_recent_load
+      label_en: Low recent training load
+      label_zh: 近期训练负荷较低
+      action_en: Review your goal, planned recovery, and recent consistency before
+        increasing load.
+      action_zh: 结合目标、计划休息和近期训练连续性，决定是否需要逐步增加负荷。
+      source: load
+      field: ratio
+      comparison: below
+      threshold: low_load_ratio
+      baseline: none
+    - code: sleep_duration_42d_outlier
+      label_en: Sleep duration differs from your longer baseline
+      label_zh: 睡眠时长偏离长期基线
+      action_en: Check the direction and recent nights; longer sleep is not automatically
+        poor sleep.
+      action_zh: 核对变化方向和近几晚情况；睡得更久不自动代表睡眠差。
+      source: sleep
+      field: main_min
+      comparison: absolute_fraction_change_above
+      threshold: sleep_duration_change_fraction
+      baseline: prior_valid_days
+      baseline_days: 42
+      min_valid_days: 28
+    - code: sleep_drop_7d
+      label_en: Sleep duration is below your recent baseline
+      label_zh: 睡眠时长低于近期基线
+      action_en: Review recent nights and the next key workout before proposing a
+        lighter day.
+      action_zh: 结合近几晚睡眠与下一次重点训练，复核是否需要轻松日。
+      source: sleep
+      field: main_min
+      comparison: fraction_below_baseline
+      threshold: sleep_duration_drop_fraction
+      baseline: prior_valid_days
+      baseline_days: 7
+      min_valid_days: 5
+    - code: resting_hr_rise_7d
+      label_en: Resting heart rate rose against your recent baseline
+      label_zh: 静息心率高于近期基线
+      action_en: Compare sleep, load, and other context; do not attribute a rise to
+        training alone.
+      action_zh: 结合睡眠、负荷等情况复核，不能只归因于训练。
+      source: rhr
+      field: bpm
+      comparison: fraction_above_baseline
+      threshold: resting_hr_rise_fraction
+      baseline: prior_valid_days
+      baseline_days: 7
+      min_valid_days: 5
+    - code: resting_hr_week_change
+      label_en: Resting heart rate changed between weeks
+      label_zh: 静息心率周间变化
+      action_en: Check whether the change is upward; a downward change is context,
+        not a fatigue signal.
+      action_zh: 先看变化方向；下降是观察信息，不作为疲劳信号。
+      source: rhr
+      field: bpm
+      comparison: consecutive_window_mean_change_above
+      threshold: resting_hr_week_change_fraction
+      baseline: prior_valid_days
+      baseline_days: 7
+      min_valid_days: 5
+    inputs:
+    - concept: DailyTrainingLoad
+      dataset: daily_training_load
+      fields:
+      - short_term_load
+      - long_term_load
+      - load_ratio
+      metrics:
+      - avg_short_term_load
+      - avg_long_term_load
+      - avg_load_ratio
+    - concept: SleepObservation
+      dataset: daily_sleep
+      fields:
+      - main_sleep_min
+      - wake_date
+      metrics:
+      - avg_main_sleep_minutes
+    - concept: RestingHeartRate
+      dataset: daily_resting_hr
+      fields:
+      - rhr_bpm
+      - local_date
+      metrics:
+      - avg_resting_hr_bpm
+    - concept: ProviderRecoveryEstimate
+      dataset: recovery_observation
+      fields:
+      - recovery_pct
+      - observed_at_utc
+      metrics:
+      - current_recovery_pct
+      role: corroborating_provider_estimate_not_independent_of_training_load
+    signals:
+    - code: high_recent_load
+      rule: latest COROS-provided daily_training_load.load_ratio > configured coros_load_ratio_high
+        (default 1.5)
+      meaning: recent exercise stress may be high; review recovery and next training
+        session
+      not: diagnosis of overtraining
+      evidence_gate: A dated, non-null COROS ratio for the same athlete; do not compare
+        avg_load_ratio or recompute the provider's 7/42 weighted ratio.
+    - code: low_recent_load
+      rule: provider load_ratio < 0.8
+      meaning: recent load is low relative to provider baseline; review goal and taper/rest
+        context
+      not: automatic conclusion that training cannot improve fitness
+    - code: sleep_duration_42d_outlier
+      rule: abs(current main_sleep_min / mean(prior valid 42 wake-days main_sleep_min)
+        - 1) > 0.10
+      meaning: duration differs by more than 10% from the personal long baseline
+      not: proof of low sleep quality or fatigue
+    - code: sleep_drop_7d
+      rule: current main_sleep_min / mean(prior valid 7 wake-days main_sleep_min)
+        < 0.90
+      meaning: recent sleep shortening may contribute to fatigue review
+      not: proof of accumulated fatigue
+    - code: resting_hr_rise_7d
+      rule: current rhr_bpm / mean(prior valid 7 local-days rhr_bpm) > 1.10
+      meaning: a rise may contribute to fatigue review
+      not: diagnosis; illness, environment and measurement changes can also matter
+    - code: resting_hr_week_change
+      rule: abs(mean(current 7 valid local-days rhr_bpm) / mean(previous 7 valid local-days
+        rhr_bpm) - 1) > 0.10
+      meaning: week-to-week change to review; only a rise is a fatigue-supporting
+        signal
+      not: a standalone fatigue diagnosis
+    composite_review:
+      code: possible_exercise_related_fatigue_review
+      rule: at least two available, distinct signals among high_recent_load, sleep_drop_7d,
+        resting_hr_rise_7d; do not count provider recovery as independent of load
+      result: review suggested, with cited values and dates; no numeric fatigue score
+        or automatic plan change
+      low_load_handling: low_recent_load is a training-context flag, not a fatigue
+        signal
+    sources:
+    - https://support.coros.com/hc/en-us/articles/26485283220884-EvoLab
+    - https://support.coros.com/hc/en-us/articles/15406707571732-Understanding-the-Recovery-Widget
+    ontology_concept: RecoveryRule
+    rule_dataset: recovery_rule
+    provider_bands:
+      recovery_pct: 0–<20 exhausted; 20–<70 fatigued; 70–<90 normal; 90–100 fresh
+        (COROS running fitness help)
+      load_ratio: 0–<0.5 decreasing; 0.5–<0.8 resuming/performance; 0.8–<1.0 maintaining;
+        1.0–<1.5 optimized; >=1.5 excessive (COROS EvoLab)
+  training_progression_rules:
+    status: agent_review_rules_not_executable_ontology_reasoner
+    signal:
+      code: completed_week_distance_growth
+      concept: RunningObservation
+      dataset: running_observation
+      semantic_metric: measured_run_distance_km
+      scope: Same athlete, standalone running, measured distance only; exclude hybrid
+        segments without measured distance and HYROX rule-reference kilometers.
+      periods: Two completed, consecutive local Monday-to-Sunday calendar weeks; never
+        compare a partial current week with a full prior week.
+      rule: current_week_measured_km > prior_week_measured_km * (1 + configured completed_week_distance_growth_fraction)
+      default_growth_fraction: 0.1
+      evidence_gate: Prior week distance > 0 and both weeks have verified import coverage
+        and comparable source/dedup rules; otherwise insufficient_evidence.
+      meaning: Review the proposed mileage increase and recovery context before accepting
+        the next week's plan.
+      not: A prediction of injury or a guarantee that a smaller increase is safe.
+    sources:
+    - https://research.rug.nl/files/2727628/Buist_2008_Am_J_Sports_Med.pdf
+    - https://www.klokeavskade.no/globalassets/publications/brandt-frandsen_2025_how-much-running-is-too-much.....pdf
+  polarized_intensity_distribution:
+    status: provider_session_focus_review_only
+    purpose: Athlete-configurable session-count review using COROS's primary Training
+      Focus label; not measured time in physiological domains.
+    primary_method: provider_training_focus_per_completed_run
+    source_dataset: activity
+    source_field: training_focus
+    scope: Canonical or unique COROS running activities only; count each workout_event_id
+      once and keep hybrid workouts separate.
+    provider_focus_mapping:
+      low:
+      - Recovery
+      - Easy
+      - Base
+      moderate:
+      - Tempo
+      high:
+      - Threshold
+      - VO2 Max
+      - Anaerobic
+      unknown: Null, unrecognized or unavailable focus; report separately and suppress
+        the weekly flag until reviewed.
+    mapping_note: This maps the provider's primary training effect to a session-level
+      planning category. It does not imply all minutes in that run were in the mapped
+      physiological domain. Threshold is placed in high because its focus is around
+      lactate-threshold pace; the mapping is a configurable project choice.
+    availability: The personal StarRocks and DuckDB activity table contains training_focus.
+      The public synthetic activity schema and DOSI semantic model expose the same
+      source field; the week-level ratio remains an external rule evaluation, with
+      a local SQL example.
+    physiological_model: low below LT1; moderate from LT1 to below LT2; high at or
+      above LT2. Use measured thresholds when available.
+    secondary_proxy_method: threshold_relative_v1_for_comparison_only
+    inputs:
+      threshold_hr_metric: latest_threshold_hr_bpm
+      threshold_pace_metric: latest_threshold_pace_s_per_km
+      threshold_history: Use the estimate effective on the workout date, not the latest
+        value for historical runs.
+      preferred_observations: Valid heart-rate sample durations; pace sample durations
+        only as a labeled fallback. Activity or lap averages cannot recover time in
+        each domain.
+    configurable_proxy_boundaries:
+      heart_rate:
+        low: sample_bpm < 0.85 * threshold_hr_bpm
+        moderate: 0.85 * threshold_hr_bpm <= sample_bpm < threshold_hr_bpm
+        high: sample_bpm >= threshold_hr_bpm
+      pace_seconds_per_km:
+        low: sample_pace_s_per_km > 1.12 * threshold_pace_s_per_km
+        moderate: threshold_pace_s_per_km < sample_pace_s_per_km <= 1.12 * threshold_pace_s_per_km
+        high: sample_pace_s_per_km <= threshold_pace_s_per_km
+      note: These continuous boundaries resolve the supplied 100%-101% and 112%-115%
+        gaps. The 1.12 low boundary is a configurable choice within the supplied 1.12-1.15
+        range, not a validated LT1 estimate. Faster pace means fewer seconds per kilometer.
+        Round only for display, after classification.
+    exclusions:
+    - No subjective RPE input; the athlete explicitly removed subjective feedback
+      from this project.
+    - Do not assign a whole interval session to one domain from its average heart
+      rate or pace.
+    - Do not treat watch five-zone indices as physiological domains without an athlete-
+      and scheme-specific mapping.
+    weekly_review:
+      code: PolarizedHighIntensityReview
+      state: review_only_when_focus_coverage_complete
+      period: Complete local Monday-to-Sunday week; count deduplicated, completed
+        running workouts only.
+      denominator: Count of low, moderate and high classified running sessions; show
+        moderate separately, never fold it into low.
+      numerator: Count of high-classified running sessions.
+      formula: numerator / denominator > configured high_intensity_session_fraction
+        (default 0.20)
+      evidence_gate: Require a nonzero denominator, a primary focus label on every
+        included running session, complete weekly import and a single selected canonical
+        activity per workout. Otherwise insufficient_evidence.
+      interpretation: Session-count training-distribution planning review, not an
+        80/20 time-in-zone measurement, a measured HighStrain physiological state
+        or a diagnosis.
+      suggested_action: Propose changing the next uncompleted IntervalSession to an
+        EasyRun in a new draft ActionPlan version; the athlete must approve it. Do
+        not overwrite an approved action.
+      missing_model: TrainingPhase and structured interval/easy action types are not
+        yet represented; current PlannedAction action_kind is generic run.
+    sources:
+    - https://support.coros.com/hc/en-us/articles/360061452651-COROS-Fitness-Metrics-Explained
+    - https://pmc.ncbi.nlm.nih.gov/articles/PMC7689383/
+    - https://pmc.ncbi.nlm.nih.gov/articles/PMC4621419/
+  biometric_fatigue_override:
+    status: agent_review_rule_not_automated
+    scope: Athlete-local date; compare the morning's rest and the sleep ending that
+      morning before the scheduled workout.
+    threshold_policy: User-configurable per athlete; record the effective values and
+      rule version when evaluating. Defaults below are project choices, not COROS-certified
+      cutoffs.
+    resting_hr:
+      concept: RestingHeartRate
+      dataset: daily_resting_hr
+      field: rhr_bpm
+      baseline: Mean of valid observations in the preceding 7 local dates, excluding
+        the current date; require at least 5 valid prior days.
+      signal: current rhr_bpm > baseline_rhr_bpm + configured resting_hr_above_7d_baseline_bpm
+        (default 5)
+    overnight_hrv:
+      concept: OvernightHRV
+      dataset: daily_hrv
+      availability: COROS MCP querySleepHRV supplies the official daily assessment
+        and personal normal range; mapped as daily_hrv with avg_overnight_hrv_ms.
+        The local importer captures daily assessments only.
+      baseline: Use COROS's official normal-range lower bound for that athlete and
+        wake date, never a population-wide HRV number or a recomputation from raw
+        points.
+      signal: official overnight_hrv_ms < provider_normal_range_lower_ms
+      missing_data: Skip this signal when the assessment or normal range is unavailable;
+        never treat missing HRV as low HRV.
+    sleep_quality:
+      concept: SleepObservation
+      dataset: daily_sleep
+      field: sleep_score
+      baseline: Mean of valid sleep scores from the preceding 42 wake dates, excluding
+        the current wake date; require at least 28 valid prior scores.
+      signal: current sleep_score < baseline_sleep_score * (1 - configured sleep_score_below_42d_baseline_fraction)
+        (default fraction 0.10)
+      distinction: Sleep score and sleep duration are separate signals; do not relabel
+        a duration change as poor sleep quality.
+    inference:
+      concept: InferredState
+      code: CompromisedRecovery
+      condition: At least one valid signal above; cite observed value, baseline or
+        provider lower bound, coverage, source and rule version. Report missing or
+        insufficient-baseline signals separately.
+      interpretation: Recovery review signal, not a diagnosis of fatigue, illness
+        or overtraining.
+    action:
+      source_concepts:
+      - ActionPlan
+      - PlannedAction
+      target_concepts:
+      - Recommendation
+      - PlannedAction
+      key_workout_types:
+      - Tempo
+      - VO2 Max
+      proposal: If an uncompleted, scheduled key workout exists on the same local
+        date, generate a new draft ActionPlan version proposing ActiveRecovery or
+        Rest and notify the athlete for approval. Preserve the approved plan until
+        the athlete accepts; never update COROS automatically.
+      current_gap: PlannedAction.action_kind is generic run/rest/sleep_routine; key
+        workout type and the draft-generation/notification evaluator are not yet implemented.
+    sources:
+    - https://support.coros.com/hc/en-us/articles/20959044334612-Overnight-HRV
+    - https://support.coros.com/hc/en-us/articles/51716381180948-Understand-Your-COROS-Sleep-Score
+  post_race_recovery:
+    status: agent_review_rule_not_automated
+    code: PostRaceRecoveryReview
+    concept_path:
+    - Athlete
+    - RaceEvent
+    - TrainingSession
+    - ActionPlan
+    - PlannedAction
+    - InferredState
+    - Recommendation
+    source: workout_event
+    race_gate: is_official_race must be true; confirm completion and official road-race
+      course distance. Exclude HYROX and unverified watch distance.
+    distance_policy:
+      unit: km
+      athlete_setting: easy_or_rest_days_per_km
+      default:
+      optional_example: One easy/rest day per mile raced equals approximately 0.6214
+        days per km; illustrative only, not a validated universal recovery prescription.
+      calculation: ceiling(verified_course_distance_km * configured_easy_or_rest_days_per_km)
+      missing_setting: request athlete or coach input; do not calculate an automatic
+        restricted window.
+      versioning: Record setting value, effective date, rule version and verified
+        race-distance source.
+    evaluation: For each uncompleted planned high-intensity action dated after the
+      race and inside the configured window, raise a review flag.
+    action: Propose an easier or rest action in a new draft plan version. Ask the
+      athlete to approve. For an existing approved plan, flag the conflict and leave
+      that plan intact.
+    missing_model: RaceEvent is a filtered conceptual view of TrainingSession, not
+      yet a DOSI-mapped table. The warehouse has no verified course-distance field;
+      PlannedAction has no structured planned_intensity field. No automated evaluator
+      or schedule block exists.
+    sources:
+    - https://worldathletics.org/personal-best/performance/recovery-after-road-races-marathon
+    - https://stillmed.olympics.com/media/Documents/Athletes/Medical-Scientific/Consensus-Statements/2016_How-much-is-too-much-load-sport-risk-illness-part-2.pdf
+  hard_easy_sequencing:
+    status: agent_review_rule_not_automated
+    code: HardEasySequenceReview
+    concept_path:
+    - Athlete
+    - ActionPlan
+    - PlannedAction
+    - TrainingSession
+    - InferredState
+    - Recommendation
+    scope: Same athlete and exact approved or draft plan version, ordered by local
+      scheduled date.
+    classification: Use structured planned_intensity high/low/moderate and explicit
+      rest action; do not infer intensity from free-text title. Completed COROS training_focus
+      can provide retrospective context, not future plan classification.
+    rule: Two consecutive planned high-intensity workouts require an intervening explicit
+      easy run or rest day. If intervening calendar dates have no plan entries, report
+      unknown rather than treating them as rest.
+    trigger: Flag the later high-intensity action for review when the intervening
+      dated actions are known and contain no easy run or rest.
+    action: Suggest moving or downgrading the later session in a new draft plan version;
+      athlete approval required before changing an approved plan.
+    missing_model: planned_action has no structured planned_intensity field; the ontology
+      property is conceptual and unmapped. A deterministic evaluator and reminder
+      channel are not implemented.
+    sources:
+    - https://worldathletics.org/personal-best/performance/speed-training-endurance-runners-benefits-limits

@@ -48,13 +48,13 @@ After the fictional warehouse exists and DOSI is separately installed:
 
 ```sh
 dosi --version
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
-dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
-dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --execute --db warehouse/running_demo.duckdb
+dosi validate --mapping subject/ontology/fitness.mapping.yaml
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_run_distance_km --dialect duckdb
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_run_distance_km --execute --db warehouse/running_demo.duckdb
 .venv/bin/python warehouse/verify_duckdb.py
 ```
 
-Show both the generated SQL and executed result. Explain that metrics are defined in `fitness_analysis.yaml`, concepts and mappings are in `fitness_ontology.yaml`, and DuckDB executes the SQL. Open `lineage.html` or `dosi-ontology-view.html` to inspect the graph; use `ontology_bindings.yaml` to distinguish executable mappings from conceptual links. The `.starrocks.yaml` files and `warehouse/starrocks_*.sql` provide a separate StarRocks path.
+Show both the generated SQL and executed result. Explain that metrics are defined in `subject/semantic_models/duckdb/fitness_analysis.yaml`, concepts in `subject/ontology/fitness.ontology.yaml`, and executable bindings in `subject/ontology/fitness.mapping.yaml`; DuckDB executes the SQL. Open `lineage.html` or `dosi-ontology-view.html` to inspect the graph; use `ontology_bindings.yaml` to distinguish executable mappings from conceptual links. `starrocks_project/subject/` and `warehouse/starrocks_*.sql` provide a separate StarRocks path.
 
 The dashboard builder runs its **own direct SQL** against DuckDB; it does not call DOSI. StarRocks can replace the warehouse for DOSI queries using the matching model, but the current watch importer still writes to DuckDB and the dashboard needs a DuckDB snapshot of StarRocks data. The ontology maps concepts, but DOSI does not automatically execute `fitness_ontology.yaml` as coaching rules. Distinguish a model-backed query, dashboard calculation, and Agent interpretation. Do not describe a proposed review workflow or reminder as an already running background coach.
 

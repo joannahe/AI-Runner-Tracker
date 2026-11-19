@@ -7,7 +7,7 @@ import duckdb
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "running_demo.duckdb"
 CONN = duckdb.connect(str(DB), read_only=True)
-MODEL = ROOT / "fitness_analysis.yaml"
+MAPPING = ROOT / "subject" / "ontology" / "fitness.mapping.yaml"
 
 
 def one(sql):
@@ -16,7 +16,7 @@ def one(sql):
 
 def model_metric(name):
     result = subprocess.run(
-        ["dosi", "--model", str(MODEL), "query", "--metrics", name, "--dialect", "duckdb"],
+        ["dosi", "query", "--mapping", str(MAPPING), "--metrics", name, "--dialect", "duckdb"],
         capture_output=True, text=True, check=True,
     )
     return one(result.stdout.strip().splitlines()[-1])

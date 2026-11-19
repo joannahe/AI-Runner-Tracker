@@ -45,7 +45,7 @@ python3 -m venv .venv
 python3 -m http.server 8000
 ```
 
-Visit `http://127.0.0.1:8000/dashboard/personal-preview.html` and select **Alerts / 关注点**. Stop the server with Ctrl+C. The dashboard is a static snapshot; the rebuild reads only the included DuckDB file and does not fetch live COROS data. The requirements install a DuckDB 1.5.6-compatible reader for the bundled snapshot and DOSI CLI. The owner dataset omits the date of birth while retaining the running metrics.
+Visit `http://127.0.0.1:8000/dashboard/personal-preview.html` and select **Alerts / 关注点**. Stop the server with Ctrl+C. The dashboard is a static snapshot; the rebuild reads only the included DuckDB file and does not fetch live COROS data. The Python requirements install DuckDB 1.5.6 for the dashboard and fixture builder; install the DOSI CLI separately for semantic queries. The fixture builder writes a database with DuckDB v1.5 storage compatibility for DOSI 0.2.2. The owner dataset omits the date of birth while retaining the running metrics.
 
 **Optional: reproduce the fictional test case.** This needs Python 3 with `venv` and `pip`. It creates a separate database with three synthetic athletes and an offline dashboard:
 
@@ -60,18 +60,18 @@ Open [dashboard/index.html](dashboard/index.html) to switch among the fictional 
 
 ### Optional: try the DOSI semantic model
 
-Install the [DOSI CLI](https://dosi.datus.ai/) if you want to validate or query the semantic model; this project was checked with `dosi 0.1.11`. After building the fictional database above, validate the model and run its fixture checks:
+Install [DOSI CLI 0.2.2](https://dosi.datus.ai/install/) if you want to validate or query the semantic model. The DuckDB ontology, semantic model, and mapping are separate files under `subject/`; the optional StarRocks project has its own three-file bundle. After building the fictional database above, validate the mapping and run its fixture checks:
 
 ```sh
 dosi --version
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
+dosi validate --mapping subject/ontology/fitness.mapping.yaml
 .venv/bin/python warehouse/verify_duckdb.py
 ```
 
 Then try a DOSI query:
 
 ```sh
-dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_run_distance_km --dialect duckdb
 ```
 
 This prints generated SQL. To execute against the local fixture, use `--execute --db warehouse/running_demo.duckdb`. Without a filter, the metric covers all three fictional athletes; `warehouse/verify_duckdb.py` checks the expected result.
@@ -129,7 +129,7 @@ The code is open source. The separately licensed personal dataset is available f
 This optional technical tour follows **warehouse tables → DOSI datasets and metrics → ontology concepts and mappings → Agent review → dashboard evidence**. The dashboard and importer also work as a running-data exploration path on their own.
 
 1. Open [the DuckDB semantic model](fitness_analysis.yaml). Find `running_observation` and `measured_run_distance_km`; the metric aggregates measured running distance with a consistent definition. The StarRocks equivalent is [here](fitness_analysis.starrocks.yaml).
-2. Open [the ontology](fitness_ontology.yaml) and [its binding audit](ontology_bindings.yaml). Follow `Athlete → TrainingSession → SourceActivity` and `RecoveryState → OvernightHRV` to see how business concepts connect to datasets and evidence. `dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession` inspects a mapped concept.
+2. Open [the ontology](subject/ontology/fitness.ontology.yaml), its [DOSI mapping](subject/ontology/fitness.mapping.yaml), and the [binding audit](ontology_bindings.yaml). Follow `Athlete → TrainingSession → SourceActivity` and `RecoveryState → OvernightHRV` to see how business concepts connect to datasets and evidence. `dosi describe TrainingSession --mapping subject/ontology/fitness.mapping.yaml` inspects a mapped concept.
 3. Read [the rule catalog](fitness_ontology.yaml) and [coach contract](TRAINING_COACH_AGENT.md). They define how an Agent should interpret metrics and check evidence; DOSI does **not** automatically execute these coaching rules or edit approved plans.
 4. Open [the fictional dashboard](dashboard/index.html) or [the owner's local preview](dashboard/personal-preview.html). Use **Alerts / 关注点** to expand concept-level observations and inspect the metric evidence. The personal half-marathon goal and draft training week are a demo of a history-based Agent workflow, not a saved approved plan or a live DOSI query.
 
@@ -172,7 +172,7 @@ The owner's included HTML dashboard is ready to inspect as described in [Quickst
 
 ```sh
 .venv/bin/python warehouse/build_personal_overlay.py
-dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb
 ```
 
 Open `dashboard/personal-preview.html` for the ready-made dashboard. It embeds personal observations. Use the reader from `warehouse/requirements.txt` to rebuild against the included database; the bundled snapshot uses a DuckDB 1.5-compatible storage version. `node dashboard/rebuild_from_snapshot.mjs` remains an optional way to refresh the HTML from its bundled export.
@@ -184,7 +184,8 @@ English is the default language for the project and its local UIs. The COROS con
 ## Contents
 
 - `fitness_analysis.yaml` and `fitness_ontology.yaml`: **default local DuckDB pair**. The ontology embeds the DuckDB semantic model. The model includes versioned `athlete_goal` and `action_plan`, version-scoped `planned_action` and `goal_criterion`, criterion-specific `goal_progress_assessment` with `goal_progress_evidence`, saved daily `recovery_state` with `recovery_evidence`, dated `capability_assessment` with `capability_evidence`, and the static `recovery_rule` knowledge table; existing metric formulas are unchanged.
-- `fitness_analysis.starrocks.yaml` and `fitness_ontology.starrocks.yaml`: optional **StarRocks pair**, with the same concepts and fixture data for a separately configured warehouse.
+- `subject/ontology/fitness.mapping.yaml`: the default **DuckDB** mapping, with its ontology and semantic model in `subject/`.
+- `starrocks_project/subject/ontology/fitness.mapping.yaml`: optional **StarRocks** mapping in a separate project tree, with the same concepts and fixture data for a separately configured warehouse.
 - `ONTOLOGY_ARCHITECTURE.md`, `ontology_bindings.yaml`, `fitness_ontology.yaml`, and `RECOVERY_RULES.md`: the three-layer concept map, a per-concept audit, and reviewable recovery rules. The rule catalog guides an agent; it is not an executable SWRL/OWL reasoner.
 - `QUESTION_CATALOG_AND_ONBOARDING.md`: reusable English/Chinese athlete questions, their ontology and evidence paths, answer limits, and first-run information needed for the future open-source setup.
 - `TRAINING_COACH_AGENT.md`: proposed Agent review cycle, rule-triggered reminder contract, evidence and duplicate-alert handling, human approval boundary, and work required before proactive coaching is enabled.
@@ -196,7 +197,7 @@ English is the default language for the project and its local UIs. The COROS con
 - `personal_duckdb/joanna_fitness.duckdb`: local analytical snapshot of the owner's StarRocks data, refreshed on 2026-11-17, with 22 base tables and 7 materialized view results in the `fitness_demo` schema. It includes 166 COROS overnight HRV assessments. The views are static in this file.
 - `personal_starrocks/schema.sql`, `seed.sql`, `verify.sql`, `manifest.json`: a local StarRocks rebuild package for an empty `joanna_fitness` database, refreshed from the same snapshot. `personal_starrocks.zip` contains the same files. StarRocks view definitions are live views. See [personal dataset instructions](personal_starrocks/README.md).
 - `warehouse/build_personal_overlay.py`: builds `warehouse/running_demo_personal.duckdb` from the fictional fixture and tracked personal snapshot. The resulting separate database is compatible with the default DuckDB DOSI model and installed DOSI engine. It retains the fictional athletes, so filter queries by athlete when analyzing one person. No calculated personal `RecoveryState` is fabricated.
-- `warehouse/build.py`: single source of fictional rows; writes two matching SQL schema/seed pairs, synchronizes both YAML dialect pairs, and builds `warehouse/running_demo.duckdb` locally.
+- `warehouse/build.py`: single source of fictional rows; writes two matching SQL schema/seed pairs, synchronizes both standalone semantic models with their project trees, and builds a DOSI-compatible `warehouse/running_demo.duckdb` locally.
 - `warehouse/starrocks_schema.sql`, `warehouse/starrocks_seed.sql`: StarRocks DDL and synthetic rows.
 - `warehouse/export_personal_starrocks_seed.py`, `warehouse/starrocks_personal_seed.sql`: reproducible additive personal rows for the same `fitness_demo` StarRocks schema. Load the personal seed once after the fictional seed into a new database. It contains identifying health data. The live remote `joanna_fitness` database already contains the owner's current data; this additive seed has not been loaded into a separate local StarRocks server.
 - `warehouse/duckdb_schema.sql`, `warehouse/duckdb_seed.sql`: DuckDB DDL and the same synthetic rows.
@@ -221,17 +222,17 @@ For a StarRocks database, run `warehouse/starrocks_schema.sql` then `warehouse/s
 ## DOSI commands
 
 ```sh
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession
-dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
-dosi --model fitness_analysis.starrocks.yaml --ontology fitness_ontology.starrocks.yaml validate
-dosi --model fitness_analysis.starrocks.yaml query --metrics run_session_count --dialect starrocks
+dosi validate --mapping subject/ontology/fitness.mapping.yaml
+dosi describe TrainingSession --mapping subject/ontology/fitness.mapping.yaml
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_run_distance_km --dialect duckdb
+dosi validate --mapping starrocks_project/subject/ontology/fitness.mapping.yaml
+dosi query --mapping starrocks_project/subject/ontology/fitness.mapping.yaml --metrics run_session_count --dialect starrocks
 ```
 
 On the fictional fixtures, `measured_run_distance_km` = **41** across all athletes, `run_session_count` = **5**, canonical `coros_training_load` = **868** despite one duplicate activity record, and the fictional official 10K time = **3190 seconds**. The fictional dashboard defaults to `demo_01` (33 km over four runs). `verify_duckdb.py` executes DOSI-generated SQL against DuckDB. The fictional StarRocks DDL has not been executed against a live local StarRocks instance.
 
 The refreshed personal snapshot contains 82 activities, 111 running observation rows, and 166 overnight HRV assessments from 2026-05-21 through 2026-11-17. The personal StarRocks package was exported from a live StarRocks source and cross-checked against the DuckDB snapshot. It has **not** been loaded into a separate local StarRocks server. Review personal files before publishing this repository; base64 encoding inside the SQL is not a privacy measure.
 
-The default `fitness_analysis*.yaml` models target the `fitness_demo` fixture schema and include fictional goal/rule tables. `warehouse/running_demo_personal.duckdb` adds the owner's mapped source records to that schema and can be queried with the default DuckDB model. For example: `dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`. The personal StarRocks rebuild uses the original `joanna_fitness` database and does not add those fictional tables; using DOSI against it requires a matching personal model, not a simple database-name substitution.
+The default `fitness_analysis*.yaml` models target the `fitness_demo` fixture schema and include fictional goal/rule tables. `warehouse/running_demo_personal.duckdb` adds the owner's mapped source records to that schema and can be queried with the default DuckDB mapping. For example: `dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`. The personal StarRocks rebuild uses the original `joanna_fitness` database and does not add those fictional tables; using DOSI against it requires a matching personal model, not a simple database-name substitution.
 
 The local [COROS and Garmin importer](coros_import/README.md) writes consented watch data into a separate private DuckDB with the same `fitness_demo` schema. It never adds personal records to public fixtures.

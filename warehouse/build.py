@@ -14,11 +14,11 @@ import duckdb
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "warehouse"
 MODEL = yaml.safe_load((ROOT / "fitness_analysis.starrocks.yaml").read_text())
-DATASETS = MODEL["semantic_model"][0]["datasets"]
+DATASETS = MODEL["datasets"]
 TABLES = {d["name"]: d for d in DATASETS if not str(d.get("source", "")).lstrip().upper().startswith("SELECT")}
 
 # The duplicate source record below must not double count the same training load.
-for metric in MODEL["semantic_model"][0]["metrics"]:
+for metric in MODEL["metrics"]:
     if metric["name"] == "coros_training_load":
         metric["expression"]["dialects"][0]["expression"] = "SUM(CASE WHEN activity.source = 'coros' AND activity.dedup_status = 'canonical' THEN activity.training_load END)"
         break
@@ -280,22 +280,22 @@ def emit(dialect):
 emit("starrocks")
 emit("duckdb")
 duck = copy.deepcopy(MODEL)
-for d in duck["semantic_model"][0]["datasets"]:
+for d in duck["datasets"]:
     for f in d.get("fields", []):
         for x in f.get("expression", {}).get("dialects", []): x["dialect"] = "DUCKDB"
-for m in duck["semantic_model"][0]["metrics"]:
+for m in duck["metrics"]:
     for x in m.get("expression", {}).get("dialects", []): x["dialect"] = "DUCKDB"
 (ROOT / "fitness_analysis.yaml").write_text(yaml.safe_dump(duck, allow_unicode=True, sort_keys=False, width=110))
-starrocks_ontology = yaml.safe_load((ROOT / "fitness_ontology.starrocks.yaml").read_text())
-starrocks_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(MODEL["semantic_model"][0])
-(ROOT / "fitness_ontology.starrocks.yaml").write_text(yaml.safe_dump(starrocks_ontology, allow_unicode=True, sort_keys=False, width=110))
-duckdb_ontology = copy.deepcopy(starrocks_ontology)
-duckdb_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(duck["semantic_model"][0])
-(ROOT / "fitness_ontology.yaml").write_text(yaml.safe_dump(duckdb_ontology, allow_unicode=True, sort_keys=False, width=110))
+# Keep the standalone DOSI projects synchronized with the generated models and
+# the editable root ontology. Mappings remain separate, hand-reviewed files.
+shutil.copyfile(ROOT / "fitness_analysis.yaml", ROOT / "subject/semantic_models/duckdb/fitness_analysis.yaml")
+shutil.copyfile(ROOT / "fitness_analysis.starrocks.yaml", ROOT / "starrocks_project/subject/semantic_models/starrocks/fitness_analysis.yaml")
+shutil.copyfile(ROOT / "fitness_ontology.yaml", ROOT / "subject/ontology/fitness.ontology.yaml")
+shutil.copyfile(ROOT / "fitness_ontology.starrocks.yaml", ROOT / "starrocks_project/subject/ontology/fitness.ontology.yaml")
 lineage_page = ROOT / "lineage.html"
 if lineage_page.exists() and shutil.which("dosi"):
     result = subprocess.run(
-        ["dosi", "--model", str(ROOT / "fitness_analysis.yaml"), "--ontology", str(ROOT / "fitness_ontology.yaml"), "lineage", "dump", "--format", "json"],
+        ["dosi", "lineage", "dump", "--mapping", str(ROOT / "subject/ontology/fitness.mapping.yaml"), "--format", "json"],
         capture_output=True, text=True, check=True,
     )
     graph = json.dumps(json.loads(result.stdout), ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
@@ -306,7 +306,7 @@ if lineage_page.exists() and shutil.which("dosi"):
     lineage_page.write_text(page[:start] + graph + page[end:])
 db_path = OUT / "running_demo.duckdb"
 db_path.unlink(missing_ok=True)
-with duckdb.connect(str(db_path)) as connection:
+with duckdb.connect(str(db_path), config={"storage_compatibility_version": "v1.5.0"}) as connection:
     connection.execute((OUT / "duckdb_schema.sql").read_text())
     connection.execute((OUT / "duckdb_seed.sql").read_text())
 print("Generated two warehouse schemas, identical synthetic rows, a DuckDB model, and the local DuckDB database.")
