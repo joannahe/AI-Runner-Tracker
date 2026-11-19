@@ -38,6 +38,27 @@ flowchart BT
   RE --> PW
 ```
 
+## Queryable derived concepts
+
+`HighLoadDay` and `LowLoadDay` extend `DailyTrainingLoad`. They inherit its athlete/source/date identity and mapped properties. Their Ossie `derived_by` rules select COROS rows with `load_ratio > 1.5` or `< 0.8`, respectively. `CorosHighFocusRunActivity` extends `SourceActivity` and selects COROS running source records whose primary Training Focus is Threshold, VO2 Max or Anaerobic. These are classifications of observations, not diagnoses or recommendations. The literal load cutoffs represent the project defaults; an athlete-specific override must be checked separately. A high-focus source record is not yet a deduplicated completed workout, so the weekly 20% review still checks canonical sessions, full-week coverage and the denominator outside the subtype.
+
+For a question such as “Was my training load high recently?”, follow this path:
+
+1. Resolve the authorized athlete and local date window; request missing context rather than guessing a calendar period.
+2. Discover `HighLoadDay` in the ontology. Its `derived_by` rule references the parent's `source` and `load_ratio` properties. The adjacent mapping binds these properties to `daily_training_load.source` and `daily_training_load.load_ratio` in the semantic model.
+3. Ask DOSI to `select --from HighLoadDay` with the inherited date and ratio fields. DOSI compiles the subtype to a filter on `fitness_demo.athlete_daily_training_load`, including `COALESCE(source = 'coros' AND load_ratio > 1.5, FALSE)`; DuckDB executes the generated SQL. In a multi-athlete service, include an authorized athlete filter.
+4. Return matching dates, observed ratios, source and missing-data coverage. Read the coaching review guidance before interpreting fatigue or suggesting a plan change. A matching subtype alone is not an `OvertrainingRisk` diagnosis or an approved adjustment.
+
+On the bundled single-athlete DuckDB snapshot, the query can be reproduced with:
+
+```sh
+dosi select --mapping subject/ontology/fitness.mapping.yaml \
+  --from HighLoadDay --fields DailyTrainingLoad.id,DailyTrainingLoad.load_ratio \
+  --execute --db personal_duckdb/joanna_fitness.duckdb
+```
+
+The StarRocks project uses the same ontology concepts with its own semantic model and mapping. The dashboard alert evaluator still implements the broader review rules in JavaScript; DOSI executes these three `derived_by` subtype filters only.
+
 ## How to read it
 
 - `GoalReviewWorkflow` remains a workflow-only concept. Its `targets → Goal` and `uses_plan → ActionPlan` arrows describe the Agent's procedure, not materialized DOSI joins or saved workflow runs. The ordered read/check steps are in `fitness_ontology.yaml`: resolve athlete and goal version, inspect each criterion's saved progress review and evidence, review capability and recovery context, inspect the matching plan and action statuses, then propose a human-reviewed next step. The warehouse does not gain a workflow table.

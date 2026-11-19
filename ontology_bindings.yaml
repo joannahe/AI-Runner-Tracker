@@ -37,6 +37,8 @@ concepts:
   metric_refs:
   - coros_training_load
   fields:
+  - activity.source
+  - activity.sport_code
   - activity.training_focus
   note: Deduplicate before aggregating activity records. COROS training_focus is a provider-generated primary label for one activity; it is mapped as a SourceActivity property and linked to TrainingSession through records, not a measured time-in-zone value.
 - concept: RunningObservation
@@ -81,6 +83,21 @@ concepts:
   - excessive_load_days
   note: Device-estimated training stress is a proxy for exercise-related fatigue, not a direct fatigue
     measurement. Preserve provider short/long load and source ratio; do not declare a fixed ACWR formula.
+- concept: HighLoadDay
+  binding: derived_subtype
+  extends: DailyTrainingLoad
+  required_filter: source = coros AND load_ratio > 1.5
+  note: Queryable default threshold; check athlete-specific overrides separately. This is a review signal, not a diagnosis.
+- concept: LowLoadDay
+  binding: derived_subtype
+  extends: DailyTrainingLoad
+  required_filter: source = coros AND load_ratio < 0.8
+  note: Queryable default threshold; assess context before recommending more training.
+- concept: CorosHighFocusRunActivity
+  binding: derived_subtype
+  extends: SourceActivity
+  required_filter: source = coros AND sport_code = running AND training_focus IN (Threshold, VO2 Max, Anaerobic)
+  note: Queryable source-activity label; deduplicate completed workouts before applying the weekly intensity distribution rule.
 - concept: OvernightHRV
   binding: direct
   datasets:

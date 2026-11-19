@@ -152,7 +152,7 @@ The bundled personal snapshot has observations, but no saved personal goal, date
 
 ### Approve a suggested action locally
 
-The quantitative review rules and their `recommendation_options` live in `ai_context.x_coaching_knowledge` inside [the DuckDB ontology](fitness_ontology.yaml); the StarRocks ontology carries the same catalog. Both ontology/model/mapping triples were checked against the [Apache Ossie 0.2 schemas](https://github.com/apache/ossie/tree/5ebe400b393b837b3a8c8b2f22738b5e30eb05e5/ontology), matching DOSI 0.2.2's `osi spec 0.2.0.dev0`. The dashboard builder reads the catalog for alert thresholds and focus-label groups. These AI-context rules are project guidance, **not** native executable Ossie `requires` or `derived_by` rules; DOSI does not run them.
+The quantitative review rules and their `recommendation_options` live in `ai_context.x_coaching_knowledge` inside [the DuckDB ontology](fitness_ontology.yaml); the StarRocks ontology carries the same catalog. Both ontology/model/mapping triples were checked against the [Apache Ossie 0.2 schemas](https://github.com/apache/ossie/tree/5ebe400b393b837b3a8c8b2f22738b5e30eb05e5/ontology), matching DOSI 0.2.2's `osi spec 0.2.0.dev0`. DOSI executes the ontology's `derived_by` filters for `HighLoadDay`, `LowLoadDay` and `CorosHighFocusRunActivity`; see the [query walkthrough](ONTOLOGY_ARCHITECTURE.md#queryable-derived-concepts). The dashboard builder reads the AI-context catalog for broader alert reviews. DOSI does not execute those multi-record coaching rules.
 
 To enable the alert buttons, start the loopback-only action service after installing `warehouse/requirements.txt`:
 

@@ -89,6 +89,14 @@ concept_mappings:
       object_mapping:
         concept: String
         expression: activity.training_focus
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: activity.source
+    - relationship: sport
+      object_mapping:
+        concept: String
+        expression: activity.sport_code
     - relationship: records
       object_mapping:
         concept: TrainingSession
