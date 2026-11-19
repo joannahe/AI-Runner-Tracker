@@ -22,8 +22,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "dashboard" / "private_data"
 QUEUE = DATA_DIR / "approved_actions.jsonl"
 RESULTS = DATA_DIR / "agent_results.jsonl"
-RULES = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))["x_coaching_knowledge"]
-ALLOWED_ACTIONS = {r["code"]: set(r.get("recommendation_options", [])) for r in RULES["inference_states"]}
+def current_rules() -> dict:
+    return yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))["x_coaching_knowledge"]
 HOST = "127.0.0.1"
 PORT = 8768
 SESSION = secrets.token_urlsafe(32)
@@ -53,6 +53,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = urlsplit(self.path).path
+        if path == "/api/ontology-rules" and self.authorized():
+            self.send_json(HTTPStatus.OK, current_rules())
+            return
         if path in ("/", "/dashboard", "/demo"):
             file = ROOT / "dashboard" / ("index.html" if path == "/demo" else "personal-preview.html")
             body = file.read_bytes()
@@ -102,7 +105,8 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("Invalid fields")
             if not isinstance(proposed_change, str) or len(proposed_change) > 1000:
                 raise ValueError("Invalid proposed change")
-            if action not in ALLOWED_ACTIONS.get(rule, set()):
+            allowed_actions = {r["code"]: set(r.get("recommendation_options", [])) for r in current_rules()["inference_states"]}
+            if action not in allowed_actions.get(rule, set()):
                 raise ValueError("Action is not defined for that ontology rule")
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             self.send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})

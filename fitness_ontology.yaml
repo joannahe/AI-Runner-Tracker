@@ -6327,6 +6327,11 @@ x_coaching_knowledge:
       high_intensity_session_fraction: 0.20
       resting_hr_above_7d_baseline_bpm: 5
       sleep_score_below_42d_baseline_fraction: 0.10
+      low_load_ratio: 0.8
+      sleep_duration_change_fraction: 0.10
+      sleep_duration_drop_fraction: 0.10
+      resting_hr_rise_fraction: 0.10
+      resting_hr_week_change_fraction: 0.10
     comparison: Strictly greater than the configured threshold; equality does not trigger the review flag.
   recommendation_policy:
     persistence: none
@@ -6478,6 +6483,65 @@ x_coaching_knowledge:
       proposed_min_valid_days_7: 5
       proposed_min_valid_days_42: 28
       missing_data: insufficient_evidence
+    dashboard_signals:
+    - code: low_recent_load
+      label_en: Low recent training load
+      label_zh: 近期训练负荷较低
+      action_en: Review your goal, planned recovery, and recent consistency before increasing load.
+      action_zh: 结合目标、计划休息和近期训练连续性，决定是否需要逐步增加负荷。
+      source: load
+      field: ratio
+      comparison: below
+      threshold: low_load_ratio
+      baseline: none
+    - code: sleep_duration_42d_outlier
+      label_en: Sleep duration differs from your longer baseline
+      label_zh: 睡眠时长偏离长期基线
+      action_en: Check the direction and recent nights; longer sleep is not automatically poor sleep.
+      action_zh: 核对变化方向和近几晚情况；睡得更久不自动代表睡眠差。
+      source: sleep
+      field: main_min
+      comparison: absolute_fraction_change_above
+      threshold: sleep_duration_change_fraction
+      baseline: prior_valid_days
+      baseline_days: 42
+      min_valid_days: 28
+    - code: sleep_drop_7d
+      label_en: Sleep duration is below your recent baseline
+      label_zh: 睡眠时长低于近期基线
+      action_en: Review recent nights and the next key workout before proposing a lighter day.
+      action_zh: 结合近几晚睡眠与下一次重点训练，复核是否需要轻松日。
+      source: sleep
+      field: main_min
+      comparison: fraction_below_baseline
+      threshold: sleep_duration_drop_fraction
+      baseline: prior_valid_days
+      baseline_days: 7
+      min_valid_days: 5
+    - code: resting_hr_rise_7d
+      label_en: Resting heart rate rose against your recent baseline
+      label_zh: 静息心率高于近期基线
+      action_en: Compare sleep, load, and other context; do not attribute a rise to training alone.
+      action_zh: 结合睡眠、负荷等情况复核，不能只归因于训练。
+      source: rhr
+      field: bpm
+      comparison: fraction_above_baseline
+      threshold: resting_hr_rise_fraction
+      baseline: prior_valid_days
+      baseline_days: 7
+      min_valid_days: 5
+    - code: resting_hr_week_change
+      label_en: Resting heart rate changed between weeks
+      label_zh: 静息心率周间变化
+      action_en: Check whether the change is upward; a downward change is context, not a fatigue signal.
+      action_zh: 先看变化方向；下降是观察信息，不作为疲劳信号。
+      source: rhr
+      field: bpm
+      comparison: consecutive_window_mean_change_above
+      threshold: resting_hr_week_change_fraction
+      baseline: prior_valid_days
+      baseline_days: 7
+      min_valid_days: 5
     inputs:
     - concept: DailyTrainingLoad
       dataset: daily_training_load

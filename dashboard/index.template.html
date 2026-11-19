@@ -38,7 +38,7 @@
 <body><div class="shell">
   <aside class="side"><div class="brand"><span class="mark">D</span><span>DOSI <span style="font-weight:400;color:#85adb1">/ Fitness</span></span></div><small id="navLabel">WORKSPACE</small><nav id="nav"></nav><div class="side-note"><strong id="sideTitle">Local demo</strong><br><span id="sideText">Fictional data · DuckDB<br>Rebuild with dashboard/build.py</span></div></aside>
   <main class="main"><div class="athlete-switch"><label id="athleteLabel" for="athlete">Athlete</label><select class="control" id="athlete" aria-label="Athlete"></select><span class="switch-note" id="switchNote"></span></div><header class="top"><div><h1 id="title"></h1><p class="sub" id="subtitle"></p></div><div class="controls"><div class="language-toggle"><button id="languageZh" type="button">中文</button><button id="languageEn" type="button">EN</button></div><div class="stamp" id="stamp"></div></div></header><nav class="mobile-tabs" id="mobileNav"></nav><section class="filters" id="filters"></section><section class="content" id="content"></section><footer class="footer" id="footer"></footer></main>
-</div><div class="chart-tooltip" id="chartTooltip" role="tooltip"></div><script>const DATA=/* __DATA__ */;const RULES=/* __RULES__ */;
+</div><div class="chart-tooltip" id="chartTooltip" role="tooltip"></div><script>const DATA=/* __DATA__ */;let RULES=/* __RULES__ */;
 const TEXT={en:{tabs:['Daily','Perf','Form','Recovery','Base'],title:'Running capability',subtitle:'Running, performance, form, recovery, and long-term capacity across the selected athlete’s data.',workspace:'WORKSPACE',local:'Local demo',fiction:'Fictional data · DuckDB',personal:'Local athlete data · DuckDB',personalSource:'Source: the bundled local fitness snapshot. All figures are filtered to the selected athlete. Rebuild this page after importing new athlete data.',athlete:'Athlete',switchNote:'Choose whose data to view',from:'From',to:'To',period:'Group by',week:'Week',month:'Month',insight:'INSIGHTS',all:'All available dates',empty:'No observations in this range',source:'Source: local DuckDB synthetic fixture. Numbers are recalculated from the selected athlete and date range. No personal workout data are included.',single:'One device estimate; no trend can be inferred.',days:'days',sessions:'sessions',run:'run',avg:'weighted average',official:'official net time',devices:'device estimate',snapshot:'single snapshot',labelDate:'Date',recorded:'Recorded',noGait:'Raw lap metadata contains ground-time and stride-height fields in some records; units and zero-value meaning are unverified, so they are not plotted.',gaitNote:'Stride length = speed ÷ cadence. Each run has one canonical lap here, so a box plot would not be meaningful.',paceRule:'Lower pace in sec/km means faster. Measured running pace is kept separate from HYROX rule-reference pace.',loadRule:'Daily load is a provider estimate; it is not summed with activity-level training load.',recoveryRule:'Sleep and resting HR are independent review context, not inputs to the COROS Recovery estimate.',foundationRule:'VO₂max and thresholds are device estimates. The observed date records when data were fetched, not when the device calculated them. One snapshot cannot show monthly change.',zoneRule:'Training-zone boundaries are reference settings, not time spent in zones.',noTrend:'More dated observations are needed for a reliable trend.'},zh:{tabs:['日常看板','表现与能力','跑姿与输出','恢复状态','长期基础能力'],title:'整体跑步能力',subtitle:'查看所选运动员的训练量、表现、跑姿、恢复和长期基础能力。',workspace:'工作区',local:'本地演示',fiction:'虚构数据 · DuckDB',personal:'本地运动员数据 · DuckDB',personalSource:'来源：本地运动数据快照。所有数字均按所选运动员筛选。导入新运动员数据后请重新生成页面。',athlete:'运动员',switchNote:'选择要查看的运动员',from:'开始日期',to:'结束日期',period:'时间粒度',week:'周',month:'月',insight:'洞察分析',all:'所有可用日期',empty:'所选范围内暂无记录',source:'来源：本地 DuckDB 虚构示例。数字按选定运动员和日期重新计算，不包含真实个人运动数据。',single:'只有一次设备估计，不能据此判断趋势。',days:'天',sessions:'次',run:'跑步',avg:'加权平均',official:'官方净成绩',devices:'设备估计',snapshot:'单次快照',labelDate:'日期',recorded:'记录时间',noGait:'部分圈段原始扩展字段含触地时间与跑步高度；单位和 0 值含义尚未验证，因此暂不绘图。',gaitNote:'步幅＝速度÷步频。此处每次跑步仅有一个有效圈段，不适合绘制箱线图。',paceRule:'秒/公里越小代表越快。实测跑步配速与 HYROX 规则参考配速分开。',loadRule:'每日负荷是设备估计，不与活动级训练负荷直接相加。',recoveryRule:'睡眠和静息心率是独立的恢复复核信息，并非 COROS Recovery 数值的输入。',foundationRule:'最大摄氧量和阈值为设备估计；读取日期不是设备计算日期。每项只有一次快照，不能计算月度变化。',zoneRule:'训练区间的边界仅供解释使用，不代表在各区间停留的时间。',noTrend:'需要更多不同时期的记录才能判断趋势。'}};
 TEXT.en.tabs.push('Alerts');TEXT.zh.tabs.push('关注点');
 let state={tab:0,lang:'en',athlete:DATA.athletes[0]?.athlete_id||'',dates:{},alertFilter:'all'};
@@ -46,6 +46,13 @@ const $=id=>document.getElementById(id),t=()=>TEXT[state.lang],esc=s=>String(s??
 const own=arr=>arr.filter(x=>x.athlete_id===state.athlete),fmt=(v,d=1)=>v==null||!Number.isFinite(+v)?'—':Number(v).toFixed(d),dur=s=>s==null?'—':`${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,'0')}`,raceTime=s=>s==null?'—':`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`,pace=s=>s==null||!Number.isFinite(+s)?'—':`${Math.floor(Math.round(s)/60)}:${String(Math.round(s)%60).padStart(2,'0')}/km`;
 const dateOf=x=>x.date||x.observed?.slice(0,10)||x.effective?.slice(0,10)||'',inRange=x=>{let d=dateOf(x),f=state.dates[state.tab];return d&&(!f?.start||d>=f.start)&&(!f?.end||d<=f.end)};
 const source=(key,filter=true)=>own(DATA[key]).filter(x=>!filter||inRange(x));
+let ontologyLive=false;
+async function refreshOntologyRules(){
+  try{const response=await fetch('/api/ontology-rules',{cache:'no-store',credentials:'same-origin'});if(!response.ok)throw Error('unavailable');
+    const next=await response.json();if(!next.rule_thresholds?.defaults||!Array.isArray(next.recovery_rules?.dashboard_signals))throw Error('invalid ontology');
+    RULES=next;ontologyLive=true;
+  }catch{ontologyLive=false}
+}
 const sum=(a,k)=>a.reduce((n,x)=>n+(Number(x[k])||0),0),mean=(a,k)=>a.length?sum(a,k)/a.length:null;
 const weighted=(a,n,d)=>sum(a,d)>0?sum(a,n)/sum(a,d):null;
 function group(rows,grain){let m=new Map;for(let r of rows){let d=new Date(r.date+'T12:00:00'),k;if(grain==='month')k=r.date.slice(0,7);else{let monday=new Date(d);monday.setDate(d.getDate()-(d.getDay()+6)%7);k=monday.toISOString().slice(0,10)}(m.get(k)||m.set(k,[]).get(k)).push(r)}return [...m].sort((a,b)=>a[0].localeCompare(b[0]))}
@@ -154,6 +161,41 @@ function alerts(){
     say(`${count} valid prior scores; wake date ${row.date}. This is sleep score, not duration.`,`此前 42 天有 ${count} 个有效评分；醒来日期 ${row.date}。这是睡眠评分，不是时长。`),
     say(low?'Review with other recovery evidence before changing a key workout.':'Continue observing the trend rather than judging recovery from one score.',low?'结合其他恢复证据复核关键训练。':'继续观察趋势，不凭一个评分判断整体恢复。'))}
   else add('CompromisedRecovery · Sleep','missing',asOf,say('Sleep-score baseline is incomplete','睡眠评分基线不足'),say(`Need at least ${baseline.proposed_min_valid_days_42} valid scores in the previous ${baseline.long_sleep_window_days} wake dates.`,`此前 ${baseline.long_sleep_window_days} 个醒来日期需要至少 ${baseline.proposed_min_valid_days_42} 个有效评分。`),'',say('Do not label missing scores as poor sleep.','不要把缺失评分视为睡眠差。'));
+  const signalResults={};
+  for(const spec of RULES.recovery_rules.dashboard_signals||[]){
+    const threshold=Number(limits[spec.threshold]);
+    if(!['load','sleep','rhr'].includes(spec.source)||!['ratio','main_min','bpm'].includes(spec.field)||!Number.isFinite(threshold))continue;
+    let result=null;
+    for(const row of relevant(spec.source).filter(x=>x[spec.field]!=null&&Number.isFinite(+x[spec.field]))){
+      let prior=[],value=+row[spec.field],reference=null,triggered;
+      if(spec.baseline==='prior_valid_days'){
+        const days=Number(spec.baseline_days),minimum=Number(spec.min_valid_days);
+        if(!Number.isInteger(days)||!Number.isInteger(minimum)||days<1||minimum<1)continue;
+        prior=own(DATA[spec.source]).filter(x=>x.date>=shift(row.date,-days)&&x.date<row.date&&x[spec.field]!=null&&Number.isFinite(+x[spec.field]));
+        if(prior.length<minimum)continue;
+        reference=mean(prior,spec.field);
+        if(spec.comparison==='consecutive_window_mean_change_above'){
+          const older=own(DATA[spec.source]).filter(x=>x.date>=shift(row.date,-2*days)&&x.date<shift(row.date,-days)&&x[spec.field]!=null&&Number.isFinite(+x[spec.field]));
+          if(older.length<minimum)continue;
+          value=reference;reference=mean(older,spec.field);
+        }
+        if(!(reference>0))continue;
+      }
+      if(spec.comparison==='below')triggered=value<threshold;
+      else if(spec.comparison==='absolute_fraction_change_above'||spec.comparison==='consecutive_window_mean_change_above')triggered=Math.abs(value/reference-1)>threshold;
+      else if(spec.comparison==='fraction_below_baseline')triggered=value/reference<1-threshold;
+      else if(spec.comparison==='fraction_above_baseline')triggered=value/reference>1+threshold;
+      else continue;
+      result={row,value,reference,priorCount:prior.length,triggered};break;
+    }
+    signalResults[spec.code]=result;
+    const label=say(spec.label_en||spec.code,spec.label_zh||spec.code),action=say(spec.action_en||'',spec.action_zh||'');
+    const unit=spec.source==='sleep'?say(' min',' 分钟'):spec.source==='rhr'?' bpm':'';
+    const thresholdText=spec.baseline==='none'?`<${fmt(threshold,2)}`:`${fmt(threshold*100,0)}%`;
+    const summary=result?say(`${fmt(result.value,spec.source==='load'?2:0)}${unit}${result.reference!=null?` · personal baseline ${fmt(result.reference,1)}${unit}`:''} · review setting ${thresholdText}`,`${fmt(result.value,spec.source==='load'?2:0)}${unit}${result.reference!=null?` · 个人基线 ${fmt(result.reference,1)}${unit}`:''} · 提醒设置 ${thresholdText}`):say('Recent observation or personal baseline unavailable.','近期读数或个人基线不足。');
+    const evidence=result?say(`Reading on ${result.row.date}${result.reference!=null?`; ${result.priorCount} valid baseline days`:''}. Compare with your own history and training context.`,`读数日期 ${result.row.date}${result.reference!=null?`；基线包含 ${result.priorCount} 个有效日`:''}。需结合个人历史和训练情况解读。`):say(`Needs a recent reading${spec.min_valid_days?` and at least ${spec.min_valid_days} valid prior days`:''}.`,`需要近期读数${spec.min_valid_days?`，此前至少 ${spec.min_valid_days} 个有效日`:''}。`);
+    add('RecoveryRule · '+spec.code,result?(result.triggered?'attention':'clear'):'missing',result?.row.date||asOf,label,summary,evidence,action);
+  }
   const weekStart=d=>shift(d,-(new Date(d+'T12:00:00Z').getUTCDay()+6)%7),currentMonday=weekStart(asOf),lastMonday=shift(currentMonday,-7),priorMonday=shift(lastMonday,-7);
   const measured=own(DATA.runs).filter(x=>x.run_context==='standalone'&&x.measured_distance_m>0),wk=(lo,hi)=>sum(measured.filter(x=>x.date>=lo&&x.date<hi),'measured_distance_m')/1000,previous=wk(priorMonday,lastMonday),last=wk(lastMonday,currentMonday);
   if(previous>0){let change=last/previous-1,high=change>limits.completed_week_distance_growth_fraction;add('WeeklyMileageIncreaseReview',high?'attention':'clear',shift(currentMonday,-1),
@@ -178,12 +220,12 @@ function alerts(){
   else add('PolarizedHighIntensityReview','missing',asOf,say('Training-focus coverage is incomplete','训练强度标签覆盖不足'),say(`Low ${focusCounts.low} · moderate ${focusCounts.moderate} · high ${focusCounts.high} · unknown ${focusCounts.unknown}`,`低强度 ${focusCounts.low} · 中等 ${focusCounts.moderate} · 高强度 ${focusCounts.high} · 未知 ${focusCounts.unknown}`),
     say('Need one canonical COROS primary focus for every completed standalone run in the last full week.','上个完整周的每次独立跑都需要一条 COROS 主要训练标签。'),
     say('Do not infer a time-in-zone distribution from a primary label.','不要用主要标签推断各区间停留时间。'));
-  const signals=[load&&+load.ratio>limits.coros_load_ratio_high,rhrResult&&+rhrResult.row.bpm>rhrResult.base+limits.resting_hr_above_7d_baseline_bpm,sleepResult&&+sleepResult.row.sleep_score<sleepResult.base*(1-limits.sleep_score_below_42d_baseline_fraction)];
+  const signals=[load?+load.ratio>limits.coros_load_ratio_high:null,signalResults.resting_hr_rise_7d?.triggered??null,signalResults.sleep_drop_7d?.triggered??null];
   const known=signals.filter(x=>x!==null&&x!==undefined).length,hit=signals.filter(Boolean).length;
   add('PossibleExerciseRelatedFatigueReview',hit>=compositeMin?'attention':known<signals.length?'missing':'context',asOf,
     say(hit>=compositeMin?'Multiple recovery signals need review':'Recovery signals considered together',hit>=compositeMin?'多项恢复信号需要复核':'综合查看恢复信号'),
     say(`${hit} of ${known} available signals crossed their review thresholds`,`${known} 项可用信号中有 ${hit} 项越过复核阈值`),
-    say('Checks COROS load ratio, resting HR versus the prior seven days, and sleep score versus the prior 42 days. HRV is shown separately and is not an extra vote.','检查 COROS 负荷比、静息心率与前 7 天均值、睡眠评分与前 42 天均值。HRV 单独展示，不额外计票。'),
+    say('Checks COROS load ratio, resting HR and sleep duration versus their prior seven days. HRV is shown separately and is not an extra vote.','检查 COROS 负荷比、静息心率和睡眠时长相对各自前 7 天的变化。HRV 单独展示，不额外计票。'),
     say(hit>=compositeMin?'Discuss a lighter draft week; this is not a fatigue diagnosis.':known<signals.length?'Wait for missing baseline evidence before clearing this composite review.':'Keep monitoring; no composite review signal on these observations.',hit>=compositeMin?'讨论减量草案；这不是疲劳诊断。':known<signals.length?'补齐缺失基线后才能排除这项综合复核。':'继续观察；当前数据未触发综合复核。'));
   const goal=DATA.meta.goal?.athlete_id===state.athlete?DATA.meta.goal:null;
   if(goal){const race=own(DATA.runs).filter(x=>x.is_official_race&&x.official_finish_s>0).sort((a,b)=>b.date.localeCompare(a.date))[0];
@@ -209,6 +251,9 @@ function alerts(){
   const recoveryName=code=>({HRV:say('overnight HRV','夜间 HRV'),RHR:say('resting heart rate','静息心率'),Sleep:say('sleep score','睡眠评分')})[code]||code;
   const recoveryFlags=recoveryChecks.filter(x=>x.status==='attention').map(x=>recoveryName(x.rule.split(' · ')[1]));
   const recoveryMissing=recoveryChecks.filter(x=>x.status==='missing').map(x=>recoveryName(x.rule.split(' · ')[1]));
+  const addedChecks=items.filter(x=>x.rule.startsWith('RecoveryRule · '));
+  const addedFlags=addedChecks.filter(x=>x.status==='attention');
+  const coachingAdded=addedFlags.length?say(`Other ontology checks to review: ${addedFlags.map(x=>x.title).join(', ')}. I would check their dates and personal baselines before adjusting your plan.`,`本体的其他检查点提示关注：${addedFlags.map(x=>x.title).join('、')}。我会先核对日期和个人基线，再讨论是否调整计划。`):say('The additional load, sleep-duration and resting-HR checks have no confirmed new alert; any missing baselines remain open in the details.','其余负荷、睡眠时长和静息心率检查暂无确认的新增提醒；基线不足的项目仍在下方标为待确认。');
   const coachingVolume=last>0?say(
     `In the last completed week I see ${fmt(last,1)} km across ${completedRuns} recorded runs${previous>0?`, compared with ${fmt(previous,1)} km the week before`:''}. ${mileageReview?'The change deserves a closer look, especially because the earlier week was low.':'I would keep watching the trend rather than make a decision from one week.'}`,
     `上个完整周记录了 ${fmt(last,1)} 公里、${completedRuns} 次跑步${previous>0?`，前一周是 ${fmt(previous,1)} 公里`:''}。${mileageReview?'这次变化值得仔细看，尤其是前一周的跑量较低。':'我会继续看几周的变化，不凭单周数字调整训练。'}`):say('I need a complete week of runs before I can review your training volume.','先有完整一周的跑步记录，我才能帮你判断跑量变化。');
@@ -219,7 +264,7 @@ function alerts(){
   const coachingCapability=capabilityReadings.length?say(`For longer-term progress, I have ${capabilityReadings.join(' and ')} as current reference points. I would compare later readings and similar runs before calling this a change in fitness.`,`长期能力方面，目前可参考${capabilityReadings.join('、')}。我会结合后续读数和相似条件的跑步，再判断能力是否有变化。`):'';
   const goalFrame=goal?say(`With your ${goal.target_date} goal in mind, `,`考虑到你 ${goal.target_date} 的目标，`):'';
   const coachingNext=goalFrame+(mileageReview&&adjustedKm!=null?say(`let’s confirm your available days and recent recovery first. Then we can review the ${fmt(initialKm,1)} km example week against a lighter ${fmt(adjustedKm,1)} km draft. The 10% guide is a prompt to discuss the plan, not a fixed cap.`,`我会先确认你下周哪几天能跑，以及最近的恢复情况，再一起比较 ${fmt(initialKm,1)} 公里的示例初稿和约 ${fmt(adjustedKm,1)} 公里的减量草案。10% 是复核提醒，不是硬性上限。`):recoveryFlags.length?say('I would compare the recovery signals before the next key workout and decide whether an easier draft is appropriate.','我会在下次重点训练前核对恢复信号，再决定是否改为轻松训练。'):say('I would keep logging comparable runs and recovery data, then revisit the plan after the next full week.','我会继续看可比的跑步和恢复数据，下个完整周再一起复核计划。'));
-  const coachSummary=`<section class="coach-summary"><div><span class="coach-kicker">${esc(say('AI COACH · WEEKLY VIEW','AI 教练 · 本周回顾'))}</span><h2>${esc(say('What I see in your training','我怎么看你最近的训练'))}</h2><p>${esc(coachingVolume)}</p><p>${esc(coachingLoad+' '+coachingRecovery)}</p><p>${esc(coachingIntensity)}</p>${coachingCapability?`<p>${esc(coachingCapability)}</p>`:''}</div><aside class="coach-next"><strong>${esc(say('MY NEXT FOCUS','我建议先做'))}</strong><p>${esc(coachingNext)}</p></aside></section>`;
+  const coachSummary=`<section class="coach-summary"><div><span class="coach-kicker">${esc(say('AI COACH · WEEKLY VIEW','AI 教练 · 本周回顾'))}</span><h2>${esc(say('What I see in your training','我怎么看你最近的训练'))}</h2><p>${esc(coachingVolume)}</p><p>${esc(coachingLoad+' '+coachingRecovery)}</p><p>${esc(coachingAdded)}</p><p>${esc(coachingIntensity)}</p>${coachingCapability?`<p>${esc(coachingCapability)}</p>`:''}</div><aside class="coach-next"><strong>${esc(say('MY NEXT FOCUS','我建议先做'))}</strong><p>${esc(coachingNext)}</p></aside></section>`;
   const actionLabels={ScaleBackVolume:say('Review a lower-volume draft','复核减量草案'),InsertRestDay:say('Review adding a rest day','复核增加休息日'),DraftActiveRecoveryOrRest:say('Draft recovery or rest','拟定恢复训练或休息'),ReviewNextInterval:say('Review the next interval','复核下一次间歇课')};
   const actionGuidance=(code,action)=>{
     if(code==='WeeklyMileageIncreaseReview'&&action==='ScaleBackVolume'&&initialKm!=null)return say(
@@ -233,6 +278,7 @@ function alerts(){
   const actionButtons=x=>{if(x.status!=='attention')return '';let code=x.rule.split(' · ')[0],entry=RULES.inference_states.find(r=>r.code===code),options=entry?.recommendation_options||[];if(!options.length)return '';
     return `<div class="alert-actions">${options.map(a=>`<div class="action-option"><p>${esc(actionGuidance(code,a))}</p><button type="button" data-approve-action="${esc(a)}" data-rule="${esc(code)}" data-date="${esc(x.date)}" data-proposal="${esc(actionGuidance(code,a))}">${esc(actionLabels[a]||a)} → Agent</button></div>`).join('')}</div><small class="action-status">${esc(say('Confirm to ask your local Agent for a new draft. Your current plan stays as it is.','确认后请本地 Agent 生成新草案；当前计划不会直接改变。'))}</small>`};
   const coachTake=x=>{
+    if(x.rule.startsWith('RecoveryRule · '))return x.status==='missing'?say('I need a recent reading and enough personal history before I can judge this check.','近期读数或个人历史不足，我暂时不能判断这项检查。'):x.status==='attention'?say('This check crossed the setting in your ontology. I would read the direction and other training context before proposing a change.','这项检查越过了本体中的设置。我会先看变化方向和其他训练情况，再提出调整建议。'):say('This check did not cross its ontology setting. I will keep it in the weekly context.','这项检查未越过本体中的设置，我会继续结合整周情况观察。');
     if(x.rule==='WeeklyMileageIncreaseReview')return x.status==='attention'?say(`I see a sharp week-to-week rise, but the earlier week was only ${fmt(previous,1)} km. I would review the planned week and recovery before treating this as a problem.`,`我看到周跑量明显上升，但前一周只有 ${fmt(previous,1)} 公里。我会先核对计划和恢复情况，再判断是否需要减量。`):say('This comparison does not prompt a mileage adjustment on its own; I will keep tracking your next week.','这次比较本身不要求调整跑量，我会继续看下周变化。');
     if(x.rule==='OvertrainingRisk')return x.status==='attention'?say('Your device load ratio is above your review setting. I would check recent sleep and the next planned workout before suggesting a lighter day.','手表负荷比高于你的提醒线。我会先看近期睡眠和下一次训练，再建议是否安排轻松日。'):x.status==='clear'?say('This load ratio has not crossed your setting. I would still look at other recovery signals before a hard session.','这次负荷比没有越过提醒线；安排强度课前，我仍会看其他恢复信号。'):say('I need a recent device load ratio before I can use this check.','我需要近期的手表负荷比，才能做这项检查。');
     if(x.rule.startsWith('CompromisedRecovery'))return x.status==='attention'?say('This reading stands out against your own reference range. I would compare it with the other recovery signals before changing a workout.','这项读数偏离了你的个人参考范围。我会结合其他恢复信号，再决定是否建议调整训练。'):x.status==='missing'?say('I do not have enough of your own baseline data to judge this signal yet.','这项指标还缺少足够的个人基线，我暂时不能据此判断。'):say('This reading has not crossed its review setting; one reading still does not describe your whole recovery.','这项读数未越过提醒线；单次读数仍不能代表整体恢复。');
@@ -244,7 +290,7 @@ function alerts(){
   };
   const message=x=>`<details class="alert-message ${x.status}"><summary><span class="alert-icon" aria-hidden="true">${x.status==='attention'?'!':x.status==='clear'?'✓':x.status==='context'?'i':'·'}</span><span class="alert-main"><strong>${esc(x.title)}</strong><small>${esc(x.summary)}</small></span><span class="alert-badge">${esc(x.date)}</span></summary><div class="alert-detail"><p class="coach-detail"><b>${esc(say('My take','教练怎么看'))}:</b> ${esc(coachTake(x))}</p><p><b>${esc(say('What I checked','我看的数据'))}:</b> ${esc(x.evidence||x.summary)}</p><p><b>${esc(say('Next step','下一步'))}:</b> ${esc(x.action)}</p>${actionButtons(x)}</div></details>`;
   const concepts=[
-    {name:say('Recovery & readiness','恢复与准备度'),rules:['CompromisedRecovery','PossibleExerciseRelatedFatigueReview']},
+    {name:say('Recovery & readiness','恢复与准备度'),rules:['CompromisedRecovery','RecoveryRule','PossibleExerciseRelatedFatigueReview']},
     {name:say('Training load & volume','训练负荷与跑量'),rules:['OvertrainingRisk','WeeklyMileageIncreaseReview']},
     {name:say('Intensity balance','训练强度结构'),rules:['PolarizedHighIntensityReview']},
     {name:say('Goal & capability','目标与运动能力'),rules:['GoalProgressReview','CapabilityReview']},
@@ -264,7 +310,7 @@ function alerts(){
   return coachSummary+goalCard+planCard+`<section class="alerts-head"><div><h2>${esc(say('Training attention','训练关注点'))}</h2><p>${esc(say(`As of ${asOf} · Details behind my weekly review.`,`截至 ${asOf} · 以下是本周回顾所依据的训练检查。`))}</p></div><div class="alerts-count" aria-label="${esc(say(`${n} ${n===1?'item needs':'items need'} review`,n+' 项需关注'))}">${n}</div></section>`+
     `<div class="alert-controls" role="group" aria-label="${esc(say('Filter messages','筛选消息'))}">${filter('all',say('All','全部'))}${filter('attention',say('Needs review','需关注'))}${filter('context',say('Coach notes','教练观察'))}${filter('missing',say('Needs data','待补数据'))}${filter('clear',say('Below threshold','未触发'))}</div>`+
     (visible.length?`<div class="alert-list">${grouped}</div>`:`<div class="alert-empty">${esc(say('Nothing to show here. Choose All to see the full training picture.','当前筛选下没有内容。选择“全部”查看整体训练情况。'))}</div>`)+
-    `<p class="alert-footnote">${esc(say('These are planning review signals, not medical diagnoses or automated plan changes. The page is a snapshot: rebuild it after importing new watch data.','这些是训练计划复核信号，不是医学诊断，也不会自动修改计划。页面是数据快照；导入新手表数据后需重新生成。'))}</p>`;
+    `<p class="alert-footnote">${esc(say(ontologyLive?'Rules loaded from the local ontology for this review.':'Using the ontology snapshot bundled when this page was built.',ontologyLive?'本次复核已从本地本体读取规则。':'当前使用页面生成时打包的本体规则快照。'))} ${esc(say('These are planning review signals, not medical diagnoses or automated plan changes. The workout data is a snapshot: rebuild it after importing new watch data.','这些是训练计划复核信号，不是医学诊断，也不会自动修改计划。运动数据是快照；导入新手表数据后需重新生成。'))}</p>`;
 }
 function daily(){
   let a=source('runs'),load=source('load'),d=state.dates[0],i=state.lang==='zh';
@@ -313,7 +359,7 @@ function render(){
   $('filters').innerHTML=start+end+choices+shortcuts+`<span class="pill">${esc(DATA.meta.personal?t().personal:t().fiction)}</span>`;
   $('content').innerHTML=[daily,performance,gait,recovery,foundation,alerts][state.tab]();
   $('footer').textContent=DATA.meta.personal?t().personalSource:t().source;
-  document.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>{state.tab=+el.dataset.tab;render()});
+  document.querySelectorAll('[data-tab]').forEach(el=>el.onclick=async()=>{state.tab=+el.dataset.tab;if(state.tab===5)await refreshOntologyRules();render()});
   for(let k of ['start','end','grain']){let el=$(k);if(el)el.onchange=()=>{if(k==='grain')d.grain=el.value;else for(let j=0;j<6;j++)state.dates[j][k]=el.value;render()}}
   document.querySelectorAll('[data-days]').forEach(el=>el.onclick=()=>{let n=+el.dataset.days,from=gran?daysAgo(n):(n===30?monthsAgo(1):n===60?monthsAgo(2):monthsAgo(6));for(let j=0;j<6;j++){state.dates[j].start=from;state.dates[j].end=todayISO()}render()});
   document.querySelectorAll('[data-alert-filter]').forEach(el=>el.onclick=()=>{state.alertFilter=el.dataset.alertFilter;render()});
