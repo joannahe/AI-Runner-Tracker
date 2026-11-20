@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--personal", action="store_true", help="Read the bundled personal dataset and write personal-preview.html")
 parser.add_argument("--db", type=Path, help="Primary local DuckDB source (used with --personal for a separate preview)")
 parser.add_argument("--additional-db", type=Path, action="append", default=[], help="Additional athlete DuckDB source; repeat for multiple imports")
+parser.add_argument("--coverage-file", type=Path, help="JSON manifest of verified complete activity-import dates by athlete_id")
 args = parser.parse_args()
 if args.personal:
     DB = PERSONAL_DB
@@ -132,10 +133,23 @@ def merge_databases(paths):
 
 
 payload = merge_databases([DB, *[path.expanduser().resolve() for path in args.additional_db]])
+payload["meta"]["activity_coverage"] = {}
+if args.coverage_file:
+    coverage = json.loads(args.coverage_file.read_text(encoding="utf-8"))
+    if not isinstance(coverage, dict):
+        raise ValueError("Coverage manifest must map athlete IDs to verified YYYY-MM-DD dates")
+    known = {row["athlete_id"] for row in payload["athletes"]}
+    for athlete_id, dates in coverage.items():
+        if athlete_id not in known or not isinstance(dates, list):
+            raise ValueError("Coverage manifest has an unknown athlete or invalid date list")
+        for day in dates:
+            if not isinstance(day, str) or date.fromisoformat(day).isoformat() != day:
+                raise ValueError("Coverage dates must use YYYY-MM-DD")
+        payload["meta"]["activity_coverage"][athlete_id] = sorted(set(dates))
 
 encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
 ontology = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))
-rules = ontology["x_coaching_knowledge"]
+rules = ontology["ai_context"]["x_coaching_knowledge"]
 rule_codes = {item["code"] for item in rules["rule_bindings"]}
 required = {"OvertrainingRisk", "WeeklyMileageIncreaseReview", "PolarizedHighIntensityReview", "CompromisedRecovery", "PossibleExerciseRelatedFatigueReview", "PostRaceRecoveryReview", "HardEasySequenceReview"}
 if not required <= rule_codes:
