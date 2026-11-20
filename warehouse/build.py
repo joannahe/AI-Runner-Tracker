@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "warehouse"
 MODEL = yaml.safe_load((ROOT / "fitness_analysis.starrocks.yaml").read_text())
 DATASETS = MODEL["datasets"]
-TABLES = {d["name"]: d for d in DATASETS if not str(d.get("source", "")).lstrip().upper().startswith("SELECT")}
+TABLES = {d["name"]: d for d in DATASETS if d["name"] != "weekly_running_distance" and not str(d.get("source", "")).lstrip().upper().startswith("SELECT")}
 
 # The duplicate source record below must not double count the same training load.
 for metric in MODEL["metrics"]:
@@ -273,6 +273,39 @@ def emit(dialect):
             insert_cols = [c for c in cols if any(c in r for r in rows)]
             vals = ",\n  ".join("(" + ", ".join(literal(r.get(c)) for c in insert_cols) + ")" for r in rows)
             inserts.append(f"INSERT INTO {table} ({', '.join(insert_cols)}) VALUES\n  {vals};")
+    if dialect == "starrocks":
+        ddl.append("CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32)) ENGINE=OLAP DUPLICATE KEY(athlete_id, local_date) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');")
+        prior_date = "DATE_SUB(cur.week_start, INTERVAL 7 DAY)"
+    else:
+        ddl.append("CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32));")
+        prior_date = "cur.week_start - INTERVAL 7 DAY"
+    ddl.append(f"""CREATE VIEW v_weekly_running_distance AS
+WITH complete_weeks AS (
+  SELECT athlete_id, DATE_TRUNC('week', local_date) AS week_start
+  FROM activity_import_coverage WHERE status = 'verified_complete'
+  GROUP BY athlete_id, DATE_TRUNC('week', local_date)
+  HAVING COUNT(DISTINCT local_date) = 7
+), current_segments AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY athlete_id, workout_event_id, segment_ordinal ORDER BY analysis_revision DESC) AS revision_rank
+  FROM v_running_observation
+), weekly_runs AS (
+  SELECT athlete_id, DATE_TRUNC('week', event_date) AS week_start,
+    SUM(measured_distance_m) / 1000.0 AS distance_km
+  FROM current_segments
+  WHERE revision_rank = 1 AND segment_kind = 'run' AND distance_status = 'measured' AND measured_distance_m > 0
+  GROUP BY athlete_id, DATE_TRUNC('week', event_date)
+), complete_distance AS (
+  SELECT w.athlete_id, w.week_start, COALESCE(r.distance_km, 0) AS distance_km
+  FROM complete_weeks w LEFT JOIN weekly_runs r ON w.athlete_id = r.athlete_id AND w.week_start = r.week_start
+)
+SELECT cur.athlete_id, cur.week_start, cur.distance_km, prior.distance_km AS prior_distance_km,
+  cur.distance_km / NULLIF(prior.distance_km, 0) - 1 AS growth_ratio
+FROM complete_distance cur JOIN complete_distance prior
+  ON cur.athlete_id = prior.athlete_id AND prior.week_start = {prior_date}
+WHERE prior.distance_km > 0;""")
+    # Fictional seed explicitly covers two complete weeks; real imports must supply their own verified dates.
+    inserts.append("INSERT INTO activity_import_coverage (athlete_id, local_date, status) VALUES " + ", ".join(
+        f"('demo_01', '{(Date(2026, 4, 6) + timedelta(days=i)).isoformat()}', 'verified_complete')" for i in range(14)) + ";")
     (OUT / f"{dialect}_schema.sql").write_text("\n\n".join(ddl)+"\n")
     (OUT / f"{dialect}_seed.sql").write_text("\n\n".join(inserts)+"\n")
 

@@ -40,6 +40,17 @@ flowchart BT
 
 ## Queryable derived concepts
 
+`HighMileageGrowthWeek` extends `WeeklyRunningDistance` using standard Ossie `derived_by: WeeklyRunningDistance.growth_ratio > 0.1`. The mapped warehouse view aggregates all measured running segments, including hybrid workout runs, into local Monday-to-Sunday weeks, keeps the latest analysis revision, and only emits pairs of consecutive weeks whose seven activity-import dates are independently marked `verified_complete`. DOSI compiles a `select --from HighMileageGrowthWeek` query to SQL; the database executes both the weekly aggregation and the subtype filter. Personal thresholds other than 10 percent use the parent's `growth_ratio` field with an explicit query filter. The match is a planning review signal, not an injury prediction.
+
+```sh
+dosi select --mapping subject/ontology/fitness.mapping.yaml \
+  --from HighMileageGrowthWeek \
+  --fields WeeklyRunningDistance.id,WeeklyRunningDistance.distance_km,WeeklyRunningDistance.prior_distance_km,WeeklyRunningDistance.growth_ratio \
+  --execute --db warehouse/running_demo.duckdb
+```
+
+The fictional fixture returns the week of 2026-04-13: 20 km versus 13 km, growth ratio 0.53846. The personal DuckDB copy has the view but no verified coverage dates, so it deliberately returns no classified weeks until its import history is verified. `python scripts/validate_ossie.py` checks every bundled YAML against pinned Apache Ossie 0.2 schemas before DOSI validation.
+
 `HighLoadDay` and `LowLoadDay` extend `DailyTrainingLoad`. They inherit its athlete/source/date identity and mapped properties. Their Ossie `derived_by` rules select COROS rows with `load_ratio > 1.5` or `< 0.8`, respectively. `CorosHighFocusRunActivity` extends `SourceActivity` and selects COROS running source records whose primary Training Focus is Threshold, VO2 Max or Anaerobic. These are classifications of observations, not diagnoses or recommendations. The literal load cutoffs represent the project defaults; an athlete-specific override must be checked separately. A high-focus source record is not yet a deduplicated completed workout, so the weekly 20% review still checks canonical sessions, full-week coverage and the denominator outside the subtype.
 
 For a question such as “Was my training load high recently?”, follow this path:
@@ -57,7 +68,7 @@ dosi select --mapping subject/ontology/fitness.mapping.yaml \
   --execute --db personal_duckdb/joanna_fitness.duckdb
 ```
 
-The StarRocks project uses the same ontology concepts with its own semantic model and mapping. The dashboard alert evaluator still implements the broader review rules in JavaScript; DOSI executes these three `derived_by` subtype filters only.
+The StarRocks project uses the same ontology concepts with its own semantic model and mapping. The dashboard still calculates its alerts in JavaScript; DOSI executes these four `derived_by` subtype filters, including the weekly mileage classification.
 
 ## How to read it
 

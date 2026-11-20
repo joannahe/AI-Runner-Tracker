@@ -262,6 +262,37 @@ concept_mappings:
       object_mapping:
         concept: String
         expression: latest_fitness_measurement.time_quality
+- concept: WeeklyRunningDistance
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: weekly_running_distance.athlete_id
+    - relationship: id
+      expression: weekly_running_distance.week_start
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: weekly_running_distance.athlete_id
+      - relationship: id
+        expression: weekly_running_distance.week_start
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: weekly_running_distance.athlete_id
+    - relationship: distance_km
+      object_mapping:
+        concept: Decimal
+        expression: weekly_running_distance.distance_km
+    - relationship: prior_distance_km
+      object_mapping:
+        concept: Decimal
+        expression: weekly_running_distance.prior_distance_km
+    - relationship: growth_ratio
+      object_mapping:
+        concept: Decimal
+        expression: weekly_running_distance.growth_ratio
 - concept: DailyTrainingLoad
   object_mappings:
   - referent_mappings:

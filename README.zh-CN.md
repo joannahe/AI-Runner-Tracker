@@ -239,3 +239,5 @@ dosi query --mapping starrocks_project/subject/ontology/fitness.mapping.yaml --m
 # 周跑量核验
 
 周跑量包含独立跑及混合训练中有实测距离的跑段，不把 HYROX 规则参考距离当作实测。看板只有在连续两个完整自然周的运动导入日期均经过核验后才给出增幅判断。可用 `python3 dashboard/build.py --personal --coverage-file path/to/coverage.json` 提供 JSON 文件：键是看板中的运动员 ID，值是已经独立核验完整导入的 `YYYY-MM-DD` 日期数组。没有覆盖证据时只显示已记录距离和“数据不足”，不生成减量判断；有训练记录不代表当天数据已完整导入。
+
+DOSI 还可查询 Apache Ossie 标准 `derived_by` 定义的 `HighMileageGrowthWeek`，执行默认超过 10% 的周跑量复核。底层 `v_weekly_running_distance` 视图计算连续完整周；两个周的每一天都要在 `activity_import_coverage` 中标记为 `verified_complete` 才会返回。虚构示例已提供两周核验数据，个人 DuckDB 的覆盖表默认留空。运行 `python scripts/validate_ossie.py` 可校验所有本体、映射及语义模型 YAML。

@@ -67,6 +67,7 @@ checks = {
     "capability_evidence_rows": ("SELECT COUNT(*) FROM fitness_demo.capability_evidence", 26),
     "capability_evidence_has_review": ("SELECT COUNT(*) FROM fitness_demo.capability_evidence e LEFT JOIN fitness_demo.capability_assessment a ON e.athlete_id=a.athlete_id AND e.assessment_id=a.assessment_id AND e.assessment_version=a.assessment_version WHERE a.assessment_id IS NULL", 0),
     "single_pace_profile_is_baseline": ("SELECT COUNT(*) FROM fitness_demo.capability_assessment WHERE capability_type='running_pace_capacity' AND status='baseline_only'", 1),
+    "verified_weekly_mileage_growth": ("SELECT COUNT(*) FROM fitness_demo.v_weekly_running_distance WHERE athlete_id='demo_01' AND distance_km=20 AND prior_distance_km=13 AND growth_ratio>0.1", 1),
 }
 for label, (sql, expected) in checks.items():
     actual = one(sql)

@@ -2556,6 +2556,41 @@ datasets:
       dialects:
       - dialect: STARROCKS
         expression: source
+- name: weekly_running_distance
+  source: fitness_demo.v_weekly_running_distance
+  description: Verified complete consecutive Monday-to-Sunday weeks of measured running, including hybrid run segments.
+    Source copies and superseded revisions are excluded in the warehouse view.
+  primary_key:
+  - athlete_id
+  - week_start
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: week_start
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: week_start
+  - name: distance_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: distance_km
+  - name: prior_distance_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: prior_distance_km
+  - name: growth_ratio
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: growth_ratio
 relationships:
 - name: workout_event_to_athlete
   from: workout_event

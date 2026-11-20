@@ -98,6 +98,16 @@ concepts:
   extends: SourceActivity
   required_filter: source = coros AND sport_code = running AND training_focus IN (Threshold, VO2 Max, Anaerobic)
   note: Queryable source-activity label; deduplicate completed workouts before applying the weekly intensity distribution rule.
+- concept: WeeklyRunningDistance
+  binding: direct
+  datasets: [weekly_running_distance]
+  key: [weekly_running_distance.athlete_id, weekly_running_distance.week_start]
+  note: Warehouse view of consecutive complete weeks with independently verified activity-import coverage; includes measured hybrid running segments and excludes rule-reference distance.
+- concept: HighMileageGrowthWeek
+  binding: derived_subtype
+  extends: WeeklyRunningDistance
+  required_filter: growth_ratio > 0.1
+  note: DOSI executes the default 10 percent classification. Athlete-specific thresholds filter the mapped parent value.
 - concept: OvernightHRV
   binding: direct
   datasets:
@@ -279,8 +289,7 @@ concepts:
     state or executable OWL/SWRL classification is present. Read the already saved GoalProgressAssessment
     and RecoveryState rather than creating duplicate conclusions; unsupported flags remain disabled.
     OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
-    while WeeklyMileageIncreaseReview compares two complete weeks of measured running, including hybrid run segments, via
-    running_observation. PolarizedHighIntensityReview reads COROS activity.training_focus through
+    while WeeklyMileageIncreaseReview queries the executable HighMileageGrowthWeek subtype over a verified weekly view of measured running, including hybrid run segments. PolarizedHighIntensityReview reads COROS activity.training_focus through
     SourceActivity, deduplicates by TrainingSession, and compares high-focus run count to all classified
     runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
 - concept: Recommendation

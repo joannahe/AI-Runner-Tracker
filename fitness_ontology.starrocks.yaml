@@ -375,6 +375,50 @@ ontology:
     multiplicity: ManyToOne
     verbalizes:
     - A goal review workflow uses a action plan.
+- concept: WeeklyRunningDistance
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - id
+  description: A verified complete calendar week and its immediately preceding verified complete week; includes measured hybrid run segments and excludes missing or rule-reference distance.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: OneToOne
+    verbalizes:
+    - WeeklyRunningDistance athlete_id String.
+  - name: id
+    roles:
+    - concept: Date
+    multiplicity: OneToOne
+    verbalizes:
+    - WeeklyRunningDistance id Date.
+  - name: distance_km
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - WeeklyRunningDistance distance_km Decimal.
+  - name: prior_distance_km
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - WeeklyRunningDistance prior_distance_km Decimal.
+  - name: growth_ratio
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - WeeklyRunningDistance growth_ratio Decimal.
+- concept: HighMileageGrowthWeek
+  type: EntityType
+  extends:
+  - WeeklyRunningDistance
+  derived_by:
+  - "WeeklyRunningDistance.growth_ratio > 0.1"
+  description: A verified week exceeding the default 10 percent growth review threshold. This is a planning signal, not an injury diagnosis; user-specific overrides require a separate query.
 - concept: DailyTrainingLoad
   type: EntityType
   identify_by:
@@ -1910,6 +1954,8 @@ ai_context:
       concept_path:
       - Athlete
       - RunningObservation
+      - WeeklyRunningDistance
+      - HighMileageGrowthWeek
       - InferredState
       - Recommendation
       source_metric: measured_run_distance_km
@@ -2385,12 +2431,13 @@ ai_context:
       status: review_only
       evidence:
       - completed_week_distance_growth
+      default_query_concept: HighMileageGrowthWeek
       recommendation_options:
       - ScaleBackVolume
-      rule: When two complete, comparable calendar weeks of measured running exist, including measured run segments within hybrid workouts, flag current-week
-        kilometers strictly above prior-week kilometers multiplied by 1 plus the configured growth fraction
-        (default 0.10). Review the planned increase with the runner. This is a planning heuristic, not
-        an injury-risk diagnosis or universal safe limit.
+      rule: Query the standard Ossie HighMileageGrowthWeek derived subtype for the default 10 percent condition;
+        the mapped weekly view requires two consecutive verified complete weeks and includes measured hybrid
+        running segments. Apply user-specific threshold overrides by querying WeeklyRunningDistance.growth_ratio.
+        Review the planned increase with the runner; this is not an injury-risk diagnosis or universal safe limit.
     - code: PolarizedHighIntensityReview
       status: review_only_when_focus_coverage_complete
       evidence:
@@ -2623,7 +2670,7 @@ ai_context:
           deduplicate source copies and use the current analysis revision only.
         periods: Two completed, consecutive local Monday-to-Sunday calendar weeks; never compare a partial
           current week with a full prior week.
-        rule: current_week_measured_km > prior_week_measured_km * (1 + configured completed_week_distance_growth_fraction)
+        rule: HighMileageGrowthWeek is the executable default classification; query WeeklyRunningDistance.growth_ratio for an athlete-specific threshold.
         default_growth_fraction: 0.1
         evidence_gate: Prior week distance > 0 and both weeks have verified import coverage and comparable
           source/dedup rules; otherwise insufficient_evidence.

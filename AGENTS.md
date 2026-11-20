@@ -22,11 +22,13 @@ Local DuckDB is the default storage and dashboard source. StarRocks is an option
 
 ## Model and rule semantics
 
+- Treat Apache Ossie 0.2.0.dev0 schema compliance as a required gate for every bundled ontology, mapping and semantic model YAML. Run `python scripts/validate_ossie.py` and both DOSI mapping validations before committing. Use standard `extends` and `derived_by` for queryable classifications; AI-context guidance alone is not an executable rule.
+
 - Preserve the distinction between an actual workout, its source-platform records, and a proposed plan action. Deduplicate source activities before totals.
 - Keep measured running distance separate from HYROX rule-reference distance; keep official race time separate from watch time. Missing values are not zero.
 - COROS `activity.training_focus` is a completed session's primary focus label. It is not measured time in a heart-rate zone and cannot classify the intensity of a future planned action.
 - Metrics live in the semantic model. Concepts and relationships live in the ontology; their executable bindings live in a standalone `*.mapping.yaml`. Configurable review conditions and evidence gates live in the ontology's `ai_context.x_coaching_knowledge`. The markdown guides explain those choices.
-- DOSI validates and queries the semantic model, maps ontology concepts, and executes the three `derived_by` observation subtypes. The AI-context coaching catalog does not run automatically in DOSI. Do not describe an Agent workflow, reminder, draft generator, or plan approval as implemented unless there is a tested evaluator and persistence path.
+- DOSI validates and queries the semantic model, maps ontology concepts, and executes the four `derived_by` subtypes, including `HighMileageGrowthWeek` on the verified weekly warehouse view. Other AI-context coaching guidance does not run automatically in DOSI. Do not describe an Agent workflow, reminder, draft generator, or plan approval as implemented unless there is a tested evaluator and persistence path.
 - A review signal is not a diagnosis. Present values, personal baseline or provider range, observation date, source, effective rule version, and missing evidence. Never infer rest from an empty calendar date or a verified race distance from watch GPS distance.
 - The athlete approves any proposed plan change. Preserve the approved plan and do not write a draft to COROS or Garmin automatically.
 
