@@ -2387,7 +2387,7 @@ ai_context:
       - completed_week_distance_growth
       recommendation_options:
       - ScaleBackVolume
-      rule: When two complete, comparable calendar weeks of measured standalone running exist, flag current-week
+      rule: When two complete, comparable calendar weeks of measured running exist, including measured run segments within hybrid workouts, flag current-week
         kilometers strictly above prior-week kilometers multiplied by 1 plus the configured growth fraction
         (default 0.10). Review the planned increase with the runner. This is a planning heuristic, not
         an injury-risk diagnosis or universal safe limit.
@@ -2618,8 +2618,9 @@ ai_context:
         concept: RunningObservation
         dataset: running_observation
         semantic_metric: measured_run_distance_km
-        scope: Same athlete, standalone running, measured distance only; exclude hybrid segments without
-          measured distance and HYROX rule-reference kilometers.
+        scope: Same athlete, all running observations with measured distance, including run segments within
+          hybrid workouts. Exclude segments without measured distance and HYROX rule-reference kilometers;
+          deduplicate source copies and use the current analysis revision only.
         periods: Two completed, consecutive local Monday-to-Sunday calendar weeks; never compare a partial
           current week with a full prior week.
         rule: current_week_measured_km > prior_week_measured_km * (1 + configured completed_week_distance_growth_fraction)

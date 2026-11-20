@@ -236,3 +236,6 @@ dosi query --mapping starrocks_project/subject/ontology/fitness.mapping.yaml --m
 默认的 `fitness_analysis*.yaml` 模型面向 `fitness_demo` 测试 schema，包含虚构目标和规则表。`warehouse/running_demo_personal.duckdb` 会把作者已映射的源记录加入该 schema，可供默认 DuckDB 映射查询。例如：`dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`。个人 StarRocks 重建包使用原始 `joanna_fitness` 数据库，并不包含这些虚构表；若用 DOSI 查询它，需要匹配的个人模型，不能只替换数据库名。
 
 本地 [COROS / Garmin 导入器](coros_import/README.md)会把用户同意导入的数据写入单独的私有 DuckDB，使用相同的 `fitness_demo` schema；不会把个人记录加入公开的虚构测试数据。
+# 周跑量核验
+
+周跑量包含独立跑及混合训练中有实测距离的跑段，不把 HYROX 规则参考距离当作实测。看板只有在连续两个完整自然周的运动导入日期均经过核验后才给出增幅判断。可用 `python3 dashboard/build.py --personal --coverage-file path/to/coverage.json` 提供 JSON 文件：键是看板中的运动员 ID，值是已经独立核验完整导入的 `YYYY-MM-DD` 日期数组。没有覆盖证据时只显示已记录距离和“数据不足”，不生成减量判断；有训练记录不代表当天数据已完整导入。

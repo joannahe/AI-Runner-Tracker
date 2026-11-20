@@ -53,7 +53,7 @@ concepts:
   - identified_run_time_s
   - run_session_count
   - run_day_count
-  note: Filter standalone runs for the running-only goal; mixed workout legs are separate context.
+  note: Running-only goal criteria may filter standalone runs. Weekly mileage growth includes all measured run observations, including hybrid run segments, while excluding missing or rule-reference distance.
 - concept: SleepObservation
   binding: direct
   datasets:
@@ -279,7 +279,7 @@ concepts:
     state or executable OWL/SWRL classification is present. Read the already saved GoalProgressAssessment
     and RecoveryState rather than creating duplicate conclusions; unsupported flags remain disabled.
     OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
-    while WeeklyMileageIncreaseReview compares two complete weeks of measured standalone running via
+    while WeeklyMileageIncreaseReview compares two complete weeks of measured running, including hybrid run segments, via
     running_observation. PolarizedHighIntensityReview reads COROS activity.training_focus through
     SourceActivity, deduplicates by TrainingSession, and compares high-focus run count to all classified
     runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
