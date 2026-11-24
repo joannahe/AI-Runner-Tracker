@@ -306,7 +306,7 @@ concepts:
     OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
     while WeeklyMileageIncreaseReview queries the executable HighMileageGrowthWeek subtype over a verified weekly view of measured running, including hybrid run segments. PolarizedHighIntensityReview reads COROS activity.training_focus through
     SourceActivity, deduplicates by TrainingSession, and compares high-focus run count to all classified
-    runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
+    runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Planned intensity is mapped; the race review still needs verified course distance and an athlete setting, and both reviews need an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
 - concept: Recommendation
   binding: rule_catalog_only
   note: Agent suggestion rules remain in x_coaching_knowledge in this ontology, without a persisted recommendation or

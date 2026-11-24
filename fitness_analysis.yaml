@@ -61,6 +61,8 @@ datasets:
         expression: started_at_local
     label: Started at local
     name: started_at_local
+    dimension:
+      is_time: true
   - expression:
       dialects:
       - dialect: DUCKDB
@@ -327,6 +329,8 @@ datasets:
         expression: observation_date
     label: Observation date
     name: observation_date
+    dimension:
+      is_time: true
   - expression:
       dialects:
       - dialect: DUCKDB

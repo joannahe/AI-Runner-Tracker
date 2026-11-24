@@ -2950,8 +2950,8 @@ ai_context:
       action: Propose an easier or rest action in a new draft plan version. Ask the athlete to approve. For an existing
         approved plan, flag the conflict and leave that plan intact.
       missing_model: RaceEvent is a filtered conceptual view of TrainingSession, not yet a DOSI-mapped table. The
-        warehouse has no verified course-distance field; PlannedAction has no structured planned_intensity field.
-        No automated evaluator or schedule block exists.
+        warehouse has no verified course-distance field or athlete-specific recovery setting. PlannedAction.planned_intensity
+        is mapped, but no automated evaluator or schedule block exists.
       sources:
       - https://worldathletics.org/personal-best/performance/recovery-after-road-races-marathon
       - https://stillmed.olympics.com/media/Documents/Athletes/Medical-Scientific/Consensus-Statements/2016_How-much-is-too-much-load-sport-risk-illness-part-2.pdf
@@ -2975,7 +2975,7 @@ ai_context:
         contain no easy run or rest.
       action: Suggest moving or downgrading the later session in a new draft plan version; athlete approval required
         before changing an approved plan.
-      missing_model: planned_action has no structured planned_intensity field; the ontology property is conceptual
-        and unmapped. A deterministic evaluator and reminder channel are not implemented.
+      missing_model: planned_action.planned_intensity is mapped. A deterministic evaluator and reminder channel are
+        not implemented; missing plan entries still cannot be assumed to be rest.
       sources:
       - https://worldathletics.org/personal-best/performance/speed-training-endurance-runners-benefits-limits

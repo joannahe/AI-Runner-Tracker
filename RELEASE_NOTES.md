@@ -1,6 +1,14 @@
 # Release notes
 
-## Unreleased — [PR #2: Running plan and coaching dashboard](https://github.com/joannahe/AI-Runner-Tracker/pull/2)
+## Unreleased — Semantic field roles and ontology audit
+
+- Marked workout start time and running observation date as time dimensions in both DuckDB and StarRocks models.
+- Recorded the 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`.
+- Corrected outdated coaching notes: planned intensity is mapped, while race evidence and external plan evaluators remain incomplete.
+- Verification: pinned Apache Ossie schema checks passed for all ten bundled YAML files; DOSI 0.2.2 reported no issues or compile errors in either standalone mapping project. Field hints fell from 86 to 84 per project.
+- Limit: other field hints and deliberately conceptual edges remain for separate review.
+
+## 2026-11-24 — [PR #2: Running plan and coaching dashboard](https://github.com/joannahe/AI-Runner-Tracker/pull/2) (merged)
 
 ### Running plan
 
