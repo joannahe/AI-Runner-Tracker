@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased — Semantic field roles and ontology audit
+## Unreleased — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3)
 
 - Marked workout start time and running observation date as time dimensions in both DuckDB and StarRocks models.
 - Recorded the 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`.
