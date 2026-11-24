@@ -58,7 +58,7 @@ python3 -m venv .venv
 
 ### 可选：试用 DOSI 语义模型
 
-如需验证或查询语义模型，请安装 [DOSI CLI](https://dosi.datus.ai/)。本项目使用 `dosi 0.1.11` 验证。构建上述虚构数据库后：
+如需验证或查询语义模型，请安装 [DOSI CLI](https://dosi.datus.ai/)。本项目使用 `dosi 0.2.2` 验证。构建上述虚构数据库后执行以下命令。内嵌式本体映射仍可被 0.2.2 读取，但会提示已弃用；参见 [release notes](RELEASE_NOTES.md#dosi-compatibility)：
 
 ```sh
 dosi --version

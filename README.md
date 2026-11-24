@@ -59,7 +59,7 @@ Open [dashboard/index.html](dashboard/index.html) to switch among the fictional 
 
 ### Optional: try the DOSI semantic model
 
-Install the [DOSI CLI](https://dosi.datus.ai/) if you want to validate or query the semantic model; this project was checked with `dosi 0.1.11`. After building the fictional database above, validate the model and run its fixture checks:
+Install the [DOSI CLI](https://dosi.datus.ai/) if you want to validate or query the semantic model; this project was checked with `dosi 0.2.2`. After building the fictional database above, validate the model and run its fixture checks. The embedded ontology mapping remains accepted by 0.2.2 with a deprecation notice; see [release notes](RELEASE_NOTES.md#dosi-compatibility):
 
 ```sh
 dosi --version

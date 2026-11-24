@@ -19,11 +19,30 @@
 ### Semantic layer and warehouse
 
 - Added planned action distance fields, segment records, relationships, and weekly planned-distance metrics to both DuckDB and StarRocks model definitions. Updated the ontology mapping for planned segments and intensity.
+- Added `PlannedSegment` as an ontology concept linked to `PlannedAction`, with ordered warm-up, main-set, and cool-down targets. `PlannedAction` now exposes structured intensity, bilingual titles, and planned distance/range fields. Both ontology files embed the corresponding updated semantic model and concept mappings.
 - Updated local DuckDB and StarRocks DDL templates. The repository does **not** migrate an existing remote StarRocks database.
+
+### DOSI compatibility
+
+- Validated both DuckDB and StarRocks semantic-model/ontology pairs with **DOSI CLI 0.2.2**. The YAML model version remains `0.2.0.dev0`; this is the model format declaration, not the installed CLI version.
+- DOSI 0.2.2 accepts the embedded `ontology_mappings`, but reports that this legacy form is deprecated in favor of a separate mapping document. `ontology_bindings.yaml` is a project mapping audit, not that new DOSI mapping document. This release does not claim migration to the separate format.
 
 ### Verification and limits
 
-- DOSI validated the DuckDB model and ontology without issues or compile errors. Queries returned the saved personal threshold target and version 3 weekly planned mileage.
+- DOSI validated both model/ontology pairs without issues or compile errors; advisory warnings remain. Queries returned the saved personal threshold target and version 3 weekly planned mileage.
 - Rebuilt the fictional DuckDB fixture with a compatible DuckDB version; `warehouse/verify_duckdb.py` passed all fixture and DOSI metric checks.
 - Local dashboard rendering, bilingual tab switching, and reading changed DuckDB data on a new page render were checked. The local service returned HTTP 200.
 - Refreshing `/dashboard` does not fetch new COROS data. Import watch data into the local database first. The coaching rule catalog is evaluated by the dashboard and Agent workflow; DOSI does not automatically execute or approve coaching actions.
+
+## 2026-11-18–19 — Coaching rule and alert updates already on `main`
+
+- Consolidated configurable coaching review conditions, thresholds, evidence requirements, and suggested actions in the ontology rule catalog. These cover load ratio, weekly running-distance growth, training-intensity distribution, recovery signals, and plan-spacing reviews.
+- Connected the local Attention page to that catalog and added human-approved proposed actions. Recovery checks gained combined assessment and dated evidence handling.
+- These commits preceded the current PR and are already in `main`; their ontology changes will not appear in this PR's file diff. DOSI does not itself execute the coaching catalog as a rule engine.
+
+## 2026-11-18 — Initial public release
+
+- Published the English-first AI Runner Tracker with optional Chinese UI, a local DuckDB running dashboard, and separate fictional and owner-authorized personal data examples.
+- Included guided COROS import through its MCP connection and a Garmin personal developer-credential path, with local storage as the default. StarRocks schema and seed packages were provided as an optional warehouse path.
+- Published DuckDB and StarRocks DOSI semantic models and ontologies, lineage and concept views, metric verification scripts, and example questions for exploring running performance, training, recovery, capabilities, and goals.
+- Added Agent setup guidance, architecture and onboarding documents, and separate licenses/notices for source code, documentation, personal data, and third-party components. Credentials were excluded from the published project.
