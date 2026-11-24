@@ -14,11 +14,12 @@ import duckdb
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "warehouse"
 MODEL = yaml.safe_load((ROOT / "fitness_analysis.starrocks.yaml").read_text())
-DATASETS = MODEL["semantic_model"][0]["datasets"]
+MODEL_BODY = MODEL["semantic_model"][0] if "semantic_model" in MODEL else MODEL
+DATASETS = MODEL_BODY["datasets"]
 TABLES = {d["name"]: d for d in DATASETS if not str(d.get("source", "")).lstrip().upper().startswith("SELECT")}
 
 # The duplicate source record below must not double count the same training load.
-for metric in MODEL["semantic_model"][0]["metrics"]:
+for metric in MODEL_BODY["metrics"]:
     if metric["name"] == "coros_training_load":
         metric["expression"]["dialects"][0]["expression"] = "SUM(CASE WHEN activity.source = 'coros' AND activity.dedup_status = 'canonical' THEN activity.training_load END)"
         break
@@ -27,7 +28,7 @@ for metric in MODEL["semantic_model"][0]["metrics"]:
 DATE_COLS = {"event_date", "activity_date", "observation_date", "local_date", "wake_date", "target_date", "scheduled_date", "review_date", "window_start_date", "window_end_date", "load_date", "sleep_wake_date", "hrv_wake_date", "rhr_date", "source_date"}
 TIME_COLS = {"started_at_local", "observed_at_utc", "valid_from_utc", "valid_to_utc", "measured_at_utc", "effective_from_utc", "main_start_local", "main_end_local", "created_at_utc", "evaluated_at_utc", "approved_at_utc", "match_reviewed_at_utc"}
 BOOL_COLS = {"is_official_race", "comparison_conditions_verified", "event_rule_season_verified", "is_canonical", "lower_inclusive", "upper_inclusive"}
-INT_COLS = {"goal_version", "plan_version", "target_duration_min", "assessment_version", "valid_prior_days", "sleep_valid_days_7", "rhr_valid_days_7", "sleep_valid_days_42", "baseline_days", "min_valid_days", "analysis_revision", "segment_ordinal", "run_index", "station_index", "lap_ordinal", "zone_index", "watch_elapsed_s", "official_finish_s", "official_penalty_s", "workout_duration_s", "elapsed_duration_s", "distance_m", "duration_s", "measured_distance_m", "planned_distance_m", "pace_time_s", "pace_distance_m", "training_load", "calories_kcal", "short_term_load", "long_term_load", "daily_sleep_min", "main_sleep_min", "main_period_min", "nap_sleep_min", "awake_min", "awake_count", "rhr_bpm", "avg_hr_bpm", "avg_cadence_spm", "avg_power_w", "avg_pace_s_per_km", "reported_pace_s_per_km", "measured_pace_s_per_km", "rule_reference_pace_s_per_km", "reference_distance_m", "watch_station_time_s", "official_station_finish_s", "repetitions", "prescribed_repetitions", "lower_inclusive_bpm", "upper_exclusive_bpm", "fast_boundary_s_per_km", "slow_boundary_s_per_km", "estimated_full_recovery_h", "hr_weight_s", "hr_sample_coverage_s", "cadence_weight_s", "cadence_sample_coverage_s"}
+INT_COLS = {"goal_version", "plan_version", "target_duration_min", "target_pace_fast_s_per_km", "target_pace_slow_s_per_km", "target_hr_low_bpm", "target_hr_high_bpm", "assessment_version", "valid_prior_days", "sleep_valid_days_7", "rhr_valid_days_7", "sleep_valid_days_42", "baseline_days", "min_valid_days", "analysis_revision", "segment_ordinal", "run_index", "station_index", "lap_ordinal", "zone_index", "watch_elapsed_s", "official_finish_s", "official_penalty_s", "workout_duration_s", "elapsed_duration_s", "distance_m", "duration_s", "measured_distance_m", "planned_distance_m", "pace_time_s", "pace_distance_m", "training_load", "calories_kcal", "short_term_load", "long_term_load", "daily_sleep_min", "main_sleep_min", "main_period_min", "nap_sleep_min", "awake_min", "awake_count", "rhr_bpm", "avg_hr_bpm", "avg_cadence_spm", "avg_power_w", "avg_pace_s_per_km", "reported_pace_s_per_km", "measured_pace_s_per_km", "rule_reference_pace_s_per_km", "reference_distance_m", "watch_station_time_s", "official_station_finish_s", "repetitions", "prescribed_repetitions", "lower_inclusive_bpm", "upper_exclusive_bpm", "fast_boundary_s_per_km", "slow_boundary_s_per_km", "estimated_full_recovery_h", "hr_weight_s", "hr_sample_coverage_s", "cadence_weight_s", "cadence_sample_coverage_s"}
 
 
 def row(**values):
@@ -224,7 +225,7 @@ def sqltype(name: str, dialect: str) -> str:
     if name in DATE_COLS: return "DATE"
     if name in TIME_COLS: return "DATETIME" if dialect == "starrocks" else "TIMESTAMP"
     if name in INT_COLS or name.endswith("_sum_bpm_s") or name.endswith("_sum_spm_s"): return "BIGINT"
-    if name in {"hrv_avg_ms", "normal_low_ms", "normal_high_ms", "baseline_ms", "load_ratio", "lower_bound", "upper_bound", "sleep_score", "data_source_raw", "deep_pct", "light_pct", "rem_pct", "awake_pct", "recovery_pct", "metric_value", "target_value", "observed_value", "difference_value", "load_total_kg", "load_per_hand_kg"}: return "DECIMAL(18,3)"
+    if name in {"hrv_avg_ms", "normal_low_ms", "normal_high_ms", "baseline_ms", "load_ratio", "lower_bound", "upper_bound", "sleep_score", "data_source_raw", "deep_pct", "light_pct", "rem_pct", "awake_pct", "recovery_pct", "metric_value", "target_value", "observed_value", "difference_value", "load_total_kg", "load_per_hand_kg", "target_distance_km", "target_distance_min_km", "target_distance_max_km"}: return "DECIMAL(18,3)"
     return "VARCHAR(255)"
 
 
@@ -280,17 +281,17 @@ def emit(dialect):
 emit("starrocks")
 emit("duckdb")
 duck = copy.deepcopy(MODEL)
-for d in duck["semantic_model"][0]["datasets"]:
+for d in duck["semantic_model"][0]["datasets"] if "semantic_model" in duck else duck["datasets"]:
     for f in d.get("fields", []):
         for x in f.get("expression", {}).get("dialects", []): x["dialect"] = "DUCKDB"
-for m in duck["semantic_model"][0]["metrics"]:
+for m in duck["semantic_model"][0]["metrics"] if "semantic_model" in duck else duck["metrics"]:
     for x in m.get("expression", {}).get("dialects", []): x["dialect"] = "DUCKDB"
 (ROOT / "fitness_analysis.yaml").write_text(yaml.safe_dump(duck, allow_unicode=True, sort_keys=False, width=110))
 starrocks_ontology = yaml.safe_load((ROOT / "fitness_ontology.starrocks.yaml").read_text())
-starrocks_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(MODEL["semantic_model"][0])
+starrocks_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(MODEL_BODY)
 (ROOT / "fitness_ontology.starrocks.yaml").write_text(yaml.safe_dump(starrocks_ontology, allow_unicode=True, sort_keys=False, width=110))
 duckdb_ontology = copy.deepcopy(starrocks_ontology)
-duckdb_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(duck["semantic_model"][0])
+duckdb_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(duck["semantic_model"][0] if "semantic_model" in duck else duck)
 (ROOT / "fitness_ontology.yaml").write_text(yaml.safe_dump(duckdb_ontology, allow_unicode=True, sort_keys=False, width=110))
 lineage_page = ROOT / "lineage.html"
 if lineage_page.exists() and shutil.which("dosi"):

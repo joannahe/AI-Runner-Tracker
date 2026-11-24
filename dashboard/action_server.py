@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 import yaml
+from build import render_dashboard
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "dashboard" / "private_data"
@@ -57,8 +58,16 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(HTTPStatus.OK, current_rules())
             return
         if path in ("/", "/dashboard", "/demo"):
-            file = ROOT / "dashboard" / ("index.html" if path == "/demo" else "personal-preview.html")
-            body = file.read_bytes()
+            try:
+                if path == "/demo":
+                    body = (ROOT / "dashboard" / "index.html").read_bytes()
+                else:
+                    # A refresh re-reads the latest DuckDB rows and ontology rules.
+                    body = render_dashboard(personal=True)[0].encode("utf-8")
+            except Exception as exc:
+                print(f"dashboard: refresh failed: {type(exc).__name__}: {exc}")
+                self.send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "Dashboard data unavailable"})
+                return
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Cache-Control", "no-store")

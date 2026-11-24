@@ -452,8 +452,14 @@ CREATE TABLE IF NOT EXISTS planned_action (
   action_id VARCHAR(255),
   scheduled_date DATE,
   action_kind VARCHAR(255),
+  planned_intensity VARCHAR(255),
   title VARCHAR(255),
+  title_zh VARCHAR(255),
   target_duration_min BIGINT,
+  target_distance_km DECIMAL(8,2),
+  target_distance_min_km DECIMAL(8,2),
+  target_distance_max_km DECIMAL(8,2),
+  distance_basis VARCHAR(255),
   planning_status VARCHAR(255),
   completion_status VARCHAR(255),
   candidate_event_id VARCHAR(255),
@@ -461,4 +467,21 @@ CREATE TABLE IF NOT EXISTS planned_action (
   match_method VARCHAR(255),
   match_reviewed_at_utc TIMESTAMP,
   source VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS planned_action_segment (
+  athlete_id VARCHAR(255),
+  plan_id VARCHAR(255),
+  plan_version BIGINT,
+  action_id VARCHAR(255),
+  segment_ordinal BIGINT,
+  segment_type VARCHAR(255),
+  title_en VARCHAR(255),
+  title_zh VARCHAR(255),
+  target_duration_min BIGINT,
+  target_distance_km DECIMAL(8,2),
+  target_pace_fast_s_per_km BIGINT,
+  target_pace_slow_s_per_km BIGINT,
+  target_hr_low_bpm BIGINT,
+  target_hr_high_bpm BIGINT
 );

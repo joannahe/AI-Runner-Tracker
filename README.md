@@ -1,6 +1,6 @@
 # AI Runner Tracker
 
-**Documentation:** English (default) · [简体中文](README.zh-CN.md)
+**Documentation:** English (default) · [简体中文](README.zh-CN.md) · [Release notes](RELEASE_NOTES.md)
 
 Explore running history, training load, recovery signals, and goals in a local dashboard. Start with the owner's openly shared running snapshot, use a separate fictional test case, or import your own COROS or Garmin activity data. The UI starts in English and can switch to Chinese.
 
@@ -8,7 +8,7 @@ You can use AI Runner Tracker simply to inspect your data. If you want to unders
 
 ## Project overview
 
-**Local DuckDB is the default storage for running data.** The local importer writes selected watch data to a private DuckDB file; a separate fictional database powers the first-run example. The dashboard builder reads DuckDB directly and writes an offline HTML view. StarRocks is an optional warehouse for DOSI queries, with a matching model and SQL package. The current importer writes to DuckDB, and the dashboard requires a DuckDB snapshot if its source data lives in StarRocks. Coaching rules are documented guidance for an Agent or person to review, not an automatically running service. See the [component map and storage details](ARCHITECTURE.md) or give [the user-facing Agent guide](agent.md) to an assistant helping with setup.
+**Local DuckDB is the default storage for running data.** The local importer writes selected watch data to a private DuckDB file; a separate fictional database powers the first-run example. The local dashboard service reads DuckDB on every refresh; the builder can also export offline HTML. StarRocks is an optional warehouse for DOSI queries, with a matching model and SQL package. The current importer writes to DuckDB, and the dashboard requires a DuckDB snapshot if its source data lives in StarRocks. Coaching rules are evaluated by the dashboard and described for an Agent or person to review; DOSI does not automatically execute them. See the [component map and storage details](ARCHITECTURE.md) or give [the user-facing Agent guide](agent.md) to an assistant helping with setup.
 
 ![Datus VI architecture diagram with COROS and Garmin as watch inputs, the DOSI semantic model and ontology at the center, six dashboard analysis areas, local DuckDB as default storage, and optional StarRocks](assets/architecture.svg)
 
@@ -23,29 +23,28 @@ Set up https://github.com/joannahe/AI-Runner-Tracker on my computer.
 Read README.md and agent.md before changing anything. Use the bundled,
 owner-authorized personal running data; do not connect a watch or ask me for
 credentials. Create a local Python environment, install warehouse/requirements.txt,
-rebuild dashboard/personal-preview.html from personal_duckdb/joanna_fitness.duckdb,
-and open it for me. Show me the athlete selector and the Alerts tab. Explain one
+start dashboard/action_server.py, and open http://127.0.0.1:8768/dashboard for me.
+Show me the athlete selector and the Attention tab. Explain one
 alert using its date, metric value, baseline or rule, and source. Keep all data
 local. Do not publish or upload my data. Tell me exactly what you verified and
 report any setup error rather than claiming success.
 ```
 
-The Agent can fetch the repository into a local folder if it is not present. The first view uses [the bundled personal dashboard](dashboard/personal-preview.html) and the owner's real, separately licensed data. It needs no StarRocks server, COROS login, or DOSI CLI. If you only want to look without rebuilding, open that HTML file directly and select **Alerts / 关注点**.
+The Agent can fetch the repository into a local folder if it is not present. The local service reads the bundled personal DuckDB and ontology on each page refresh. It needs no StarRocks server, COROS login, or DOSI CLI. [The standalone HTML preview](dashboard/personal-preview.html) is an offline snapshot.
 
 ### Manual alternative
 
-Download the repository, create a Python environment, and rebuild the owner's dashboard:
+Download the repository, create a Python environment, and start the local dashboard:
 
 ```sh
 git clone https://github.com/joannahe/AI-Runner-Tracker.git
 cd AI-Runner-Tracker
 python3 -m venv .venv
 .venv/bin/python -m pip install -r warehouse/requirements.txt
-.venv/bin/python dashboard/build.py --personal
-python3 -m http.server 8000
+.venv/bin/python dashboard/action_server.py
 ```
 
-Visit `http://127.0.0.1:8000/dashboard/personal-preview.html` and select **Alerts / 关注点**. Stop the server with Ctrl+C. The dashboard is a static snapshot; the rebuild reads only the included DuckDB file and does not fetch live COROS data. The requirements install a DuckDB 1.5.6-compatible reader for the bundled snapshot and DOSI CLI. The owner dataset omits the date of birth while retaining the running metrics.
+Visit `http://127.0.0.1:8768/dashboard` and select **Attention / 关注点**. Each refresh reads the latest local DuckDB rows and ontology rules, then recalculates the checks in the browser. Import new watch data into the local database separately; page refresh does not contact COROS. Stop the server with Ctrl+C. The requirements install a DuckDB 1.5.6-compatible reader for the bundled snapshot and DOSI CLI. The owner dataset omits the date of birth while retaining the running metrics.
 
 **Optional: reproduce the fictional test case.** This needs Python 3 with `venv` and `pip`. It creates a separate database with three synthetic athletes and an offline dashboard:
 
@@ -99,6 +98,8 @@ Both paths run on your own computer and require a preview and confirmation befor
 
 The local importer does not run a hosted multi-user consent service or background sync. COROS uses its own authorization flow. The Garmin path accepts the holder's Personal API Key or an Activities CSV; the CSV does not contain all health metrics. The dashboard's coach messages are review aids, not medical diagnoses or automatically applied plan changes.
 
+The private DuckDB importer records each saved category and requested date window in `fitness_demo.import_coverage`. A successful save is marked `saved_unverified`: it confirms the response was written, but does not prove that the watch service returned every activity. Mark a window `verified_complete` only after checking the provider's full page or record count, matching imported records, and confirming that no requested dates or categories failed. The weekly mileage review shows recorded totals provisionally until both compared weeks have verified activity coverage. An empty day alone is not proof that no workout occurred.
+
 ## What is in the repository
 
 This project contains a generic DOSI semantic model and ontology with fictional fixtures for StarRocks and DuckDB. It also contains a **separate, real personal fitness dataset** supplied by the project owner for a running dashboard and a local StarRocks rebuild. The personal SQL and DuckDB files include identifying information, workout dates, and health measurements. They are not anonymized. Credentials, source connection records, raw API responses, and synchronization state are excluded.
@@ -131,7 +132,7 @@ This optional technical tour follows **warehouse tables → DOSI datasets and me
 1. Open [the DuckDB semantic model](fitness_analysis.yaml). Find `running_observation` and `measured_run_distance_km`; the metric aggregates measured running distance with a consistent definition. The StarRocks equivalent is [here](fitness_analysis.starrocks.yaml).
 2. Open [the ontology](fitness_ontology.yaml) and [its binding audit](ontology_bindings.yaml). Follow `Athlete → TrainingSession → SourceActivity` and `RecoveryState → OvernightHRV` to see how business concepts connect to datasets and evidence. `dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession` inspects a mapped concept.
 3. Read [the rule catalog](fitness_ontology.yaml) and [coach contract](TRAINING_COACH_AGENT.md). They define how an Agent should interpret metrics and check evidence; DOSI does **not** automatically execute these coaching rules or edit approved plans.
-4. Open [the fictional dashboard](dashboard/index.html) or [the owner's local preview](dashboard/personal-preview.html). Use **Alerts / 关注点** to expand concept-level observations and inspect the metric evidence. The personal half-marathon goal and draft training week are a demo of a history-based Agent workflow, not a saved approved plan or a live DOSI query.
+4. Open [the fictional dashboard](dashboard/index.html) or [the owner's local preview](dashboard/personal-preview.html). **Attention / 关注点** opens first. The owner's local DuckDB includes the approved version 3 four-week plan. Standalone HTML is an offline export; the local service reads current DuckDB data on refresh.
 
 ### Questions to try with an Agent
 
@@ -148,7 +149,7 @@ These everyday questions are designed to test whether an Agent can use the ontol
 | “Am I getting closer to my goal?” | The selected versioned `Goal → GoalCriterion`, matching evidence and assessment; say when a personal goal or comparable result is absent. |
 | “Can I train hard after my race, and is my plan spaced well?” | Verified race distance, athlete-specific recovery policy and dated planned intensity; identify missing plan fields before claiming a conflict or a pass. |
 
-The bundled personal snapshot has observations, but no saved personal goal, dated personal plan or computed personal `RecoveryState`. The fictional fixture has example goals and plans. DOSI maps concepts and queries semantic metrics; the Agent must apply the documented review rules to evidence. It cannot claim that DOSI automatically evaluates coaching rules, changes a plan or sends reminders.
+The bundled personal snapshot has a saved half-marathon goal and a human-approved, dated training plan. It does not yet contain a computed personal `RecoveryState`. The fictional fixture has other example goals and plans. DOSI maps concepts and queries semantic metrics; the dashboard reviews dated plan spacing, while the Agent applies the remaining coaching rules to evidence. DOSI does not automatically change a plan or send reminders.
 
 ### Approve a suggested action locally
 
@@ -160,11 +161,19 @@ To enable the alert buttons, start the loopback-only action service after instal
 .venv/bin/python dashboard/action_server.py
 ```
 
-Open `http://127.0.0.1:8768/dashboard` for the personal snapshot or `/demo` for the fictional one. Expand a triggered alert and confirm one of the ontology-defined suggested actions. The service records an **approved request** in Git-ignored `dashboard/private_data/approved_actions.jsonl`; it does not silently alter an approved plan or call an Agent that is not running. Give [the Agent guide](agent.md) to a local Agent and ask it to process pending requests. The Agent must recheck the source evidence and target plan, create a versioned **draft** under `dashboard/private_data/`, then record its result with `dashboard/agent_actions.py`. The page shows “waiting” until that result exists. If there is no usable goal or scheduled action, the Agent records the missing input instead of claiming a plan change.
+Open `http://127.0.0.1:8768/dashboard` for the live local personal dashboard or `/demo` for the fictional offline example. Expand a triggered alert and confirm one of the ontology-defined suggested actions. The service records an **approved request** in Git-ignored `dashboard/private_data/approved_actions.jsonl`; it does not silently alter an approved plan or call an Agent that is not running. Give [the Agent guide](agent.md) to a local Agent and ask it to process pending requests. The Agent must recheck the source evidence and target plan, create a versioned **draft** under `dashboard/private_data/`, then record its result with `dashboard/agent_actions.py`. The page shows “waiting” until that result exists. If there is no usable goal or scheduled action, the Agent records the missing input instead of claiming a plan change.
 
-Opening Alerts through the local service fetches the current `x_coaching_knowledge` rule catalog from `fitness_ontology.yaml`. The recovery checks read their comparator, threshold and baseline requirements from that catalog. A standalone HTML file uses the ontology snapshot embedded at build time; rebuild it after changing rules. Workout data is also a build-time snapshot. The dashboard evaluates review signals in JavaScript; DOSI does not execute these coaching rules.
+Each request to `/dashboard` reads the current personal DuckDB rows and `x_coaching_knowledge` rule catalog from `fitness_ontology.yaml`. The browser recalculates checks from that fresh response. A standalone HTML file and `/demo` still use offline snapshots. The dashboard evaluates review signals in JavaScript; DOSI does not execute these coaching rules.
 
-The personal Alerts tab shows an example plan-first review using the included data: the two most recent complete weeks are 8.45 km and 26.70 km. An illustrative Agent week of 28.0 km is shown alongside a 24.0 km lighter revision, with dated sessions and each change in distance. This is a scenario for reviewing the rule, not a saved plan or a conclusion that the jump itself was unsafe; the earlier week was unusually low. The action request carries the concrete proposal to the local Agent, which must check the available days, recovery and actual plan before writing a new draft.
+The personal Attention tab compares the latest two completed weeks and shows the approved detailed version 3 plan; version 1 is superseded and version 2 is a withdrawn draft. Each week shows estimated running mileage, including warm-up and cool-down. DEKA FIT doubles has a personal mileage range until the partner split is agreed. Planned segments and distance ranges are mapped into the semantic model and ontology.
+
+### Review an Agent-proposed training plan
+
+Give the Agent your goal, available training days and time limits, and any race dates. The Agent should query recent training through the semantic model, propose dated sessions with `low`, `moderate` or `high` planned intensity, and save its proposal as a JSON draft. A detailed draft may include bilingual session names, running-distance estimates and ordered warm-up, main-set and cool-down segments with provisional pace and heart-rate targets. The athlete reviews the draft before it becomes an approved plan. A race replaces a training session in that week; an explicit rest day is a separate action.
+
+Use `dashboard/plan_import.py DRAFT.json --db personal_duckdb/joanna_fitness.duckdb` to validate a draft without writing it. Add `--apply` to save a pending version. After the athlete explicitly approves that exact version, run `dashboard/plan_approve.py DRAFT.json` to activate it. Neither command sends a plan to a watch. Rebuild with `dashboard/build.py --personal` to see the dated plan and hard/easy spacing review. A post-race review needs a completed race with verified course distance and an athlete recovery-window setting; planned race dates alone do not trigger it.
+
+For an athlete-selected threshold training target, run `.venv/bin/python dashboard/set_training_pace_target.py --fast 5:30 --slow 5:55 --effective-date 2026-11-24` with your own range and date. This writes a versioned `running_pace_zone` record with `scheme_method=user_threshold_target`; it does not change COROS's threshold pace measurement. Ask the Agent to read the latest active target through DOSI, compare it with the device estimate and recent runs, and create a new pending plan version with aligned pace and heart-rate ranges. Existing approved plans stay in effect until approval.
 
 ### Use the owner's real-data snapshot locally
 
@@ -230,7 +239,7 @@ dosi --model fitness_analysis.starrocks.yaml query --metrics run_session_count -
 
 On the fictional fixtures, `measured_run_distance_km` = **41** across all athletes, `run_session_count` = **5**, canonical `coros_training_load` = **868** despite one duplicate activity record, and the fictional official 10K time = **3190 seconds**. The fictional dashboard defaults to `demo_01` (33 km over four runs). `verify_duckdb.py` executes DOSI-generated SQL against DuckDB. The fictional StarRocks DDL has not been executed against a live local StarRocks instance.
 
-The refreshed personal snapshot contains 82 activities, 111 running observation rows, and 166 overnight HRV assessments from 2026-05-21 through 2026-11-17. The personal StarRocks package was exported from a live StarRocks source and cross-checked against the DuckDB snapshot. It has **not** been loaded into a separate local StarRocks server. Review personal files before publishing this repository; base64 encoding inside the SQL is not a privacy measure.
+The local personal DuckDB snapshot contains 88 activities, 115 running observation rows, and 171 overnight HRV assessments through 2026-11-23, plus the approved plan. The bundled personal StarRocks package is an older export and does not include this local plan; it has **not** been loaded into a separate local StarRocks server. Review personal files before publishing this repository; base64 encoding inside the SQL is not a privacy measure.
 
 The default `fitness_analysis*.yaml` models target the `fitness_demo` fixture schema and include fictional goal/rule tables. `warehouse/running_demo_personal.duckdb` adds the owner's mapped source records to that schema and can be queried with the default DuckDB model. For example: `dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`. The personal StarRocks rebuild uses the original `joanna_fitness` database and does not add those fictional tables; using DOSI against it requires a matching personal model, not a simple database-name substitution.
 

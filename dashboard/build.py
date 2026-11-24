@@ -14,18 +14,6 @@ PERSONAL_DB = ROOT / "personal_duckdb" / "joanna_fitness.duckdb"
 TEMPLATE = Path(__file__).with_name("index.template.html")
 OUTPUT = Path(__file__).with_name("index.html")
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--personal", action="store_true", help="Read the bundled personal dataset and write personal-preview.html")
-parser.add_argument("--db", type=Path, help="Primary local DuckDB source (used with --personal for a separate preview)")
-parser.add_argument("--additional-db", type=Path, action="append", default=[], help="Additional athlete DuckDB source; repeat for multiple imports")
-args = parser.parse_args()
-if args.personal:
-    DB = PERSONAL_DB
-    OUTPUT = Path(__file__).with_name("personal-preview.html")
-if args.db:
-    DB = args.db.expanduser().resolve()
-
-
 def normal(value):
     if isinstance(value, (date, datetime)):
         return value.isoformat()
@@ -40,7 +28,7 @@ def rows(connection, sql):
     return [dict(zip(names, map(normal, record))) for record in cursor.fetchall()]
 
 
-def collect_database(path):
+def collect_database(path, personal=False):
     with duckdb.connect(str(path), read_only=True) as conn:
         present = {name for (name,) in conn.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='fitness_demo'").fetchall()}
         athlete_columns = {column for (column,) in conn.execute("SELECT column_name FROM information_schema.columns WHERE table_schema='fitness_demo' AND table_name='athlete'").fetchall()}
@@ -72,8 +60,16 @@ def collect_database(path):
             athlete_id: ("canonical_laps" if athlete_id in lap_athletes else "activity_summary")
             for (athlete_id,) in conn.execute("SELECT athlete_id FROM fitness_demo.athlete").fetchall()
         }
+        action_columns = {column for (column,) in conn.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema='fitness_demo' AND table_name='planned_action'"
+        ).fetchall()}
+        intensity_field = 'planned_intensity' if 'planned_intensity' in action_columns else 'NULL AS planned_intensity'
+        detail_fields = ', '.join(name if name in action_columns else f'NULL AS {name}' for name in (
+            'title_zh', 'target_distance_km', 'target_distance_min_km',
+            'target_distance_max_km', 'distance_basis'))
         payload = {
-            "meta": {"personal": args.personal, "gait_source_by_athlete": gait_source_by_athlete},
+            "meta": {"personal": personal, "gait_source_by_athlete": gait_source_by_athlete},
             "athletes": rows(conn, f"SELECT athlete_id, {display_name}, gender_code FROM fitness_demo.athlete ORDER BY athlete_id"),
             "runs": rows(conn, """
                 SELECT r.athlete_id, CAST(r.event_date AS VARCHAR) AS date, r.workout_event_id AS id,
@@ -100,24 +96,35 @@ def collect_database(path):
             "recovery": optional("athlete_recovery_observation", "SELECT athlete_id, CAST(observed_at_utc AS VARCHAR) AS observed, recovery_pct AS pct, recovery_level AS level FROM fitness_demo.athlete_recovery_observation ORDER BY observed_at_utc"),
             "fitness": optional("v_latest_body_measurement", "SELECT athlete_id, metric_code AS code, metric_value AS value, unit, CAST(effective_from_utc AS VARCHAR) AS effective, CAST(observed_at_utc AS VARCHAR) AS observed FROM fitness_demo.v_latest_body_measurement ORDER BY observed_at_utc"),
             "hr_zones": optional("athlete_hr_zone", "SELECT athlete_id, zone_index AS zone, lower_inclusive_bpm AS low, upper_exclusive_bpm AS high FROM fitness_demo.athlete_hr_zone ORDER BY zone_index"),
-            "pace_zones": optional("athlete_pace_zone", "SELECT athlete_id, zone_index AS zone, fast_boundary_s_per_km AS fast, slow_boundary_s_per_km AS slow FROM fitness_demo.athlete_pace_zone ORDER BY zone_index"),
+            "pace_zones": optional("athlete_pace_zone", "SELECT athlete_id, zone_index AS zone, scheme_method AS method, valid_from_utc AS valid_from, fast_boundary_s_per_km AS fast, slow_boundary_s_per_km AS slow FROM fitness_demo.athlete_pace_zone WHERE valid_to_utc IS NULL ORDER BY zone_index"),
+            "import_coverage": optional("import_coverage", "SELECT athlete_id, source, category, CAST(window_start AS VARCHAR) AS start, CAST(window_end AS VARCHAR) AS end, coverage_status AS status, source_record_count AS source_count, imported_record_count AS imported_count FROM fitness_demo.import_coverage ORDER BY imported_at_utc"),
+            "goals": optional("athlete_goal", "SELECT athlete_id, goal_id, goal_version, goal_type, title, status FROM fitness_demo.athlete_goal ORDER BY goal_id, goal_version"),
+            "goal_criteria": optional("goal_criterion", "SELECT athlete_id, goal_id, goal_version, criterion_id, metric_name, comparison_operator, target_value, target_unit, CAST(target_date AS VARCHAR) AS target_date FROM fitness_demo.goal_criterion ORDER BY goal_id, goal_version, criterion_id"),
+            "plans": optional("action_plan", "SELECT athlete_id, plan_id, plan_version, goal_id, goal_version, title, status, approval_status FROM fitness_demo.action_plan ORDER BY plan_id, plan_version"),
+            "planned_actions": optional("planned_action", f"SELECT athlete_id, plan_id, plan_version, action_id, CAST(scheduled_date AS VARCHAR) AS date, action_kind, {intensity_field}, title, target_duration_min, {detail_fields}, planning_status, completion_status FROM fitness_demo.planned_action ORDER BY scheduled_date, action_id"),
+            "planned_segments": optional("planned_action_segment", "SELECT athlete_id, plan_id, plan_version, action_id, segment_ordinal, segment_type, title_en, title_zh, target_duration_min, target_distance_km, target_pace_fast_s_per_km, target_pace_slow_s_per_km, target_hr_low_bpm, target_hr_high_bpm FROM fitness_demo.planned_action_segment ORDER BY plan_id, plan_version, action_id, segment_ordinal"),
         }
     return payload
 
-DATA_KEYS = ("athletes", "runs", "laps", "load", "sleep", "rhr", "hrv", "activity_focus", "recovery", "fitness", "hr_zones", "pace_zones")
+DATA_KEYS = ("athletes", "runs", "laps", "load", "sleep", "rhr", "hrv", "activity_focus", "recovery", "fitness", "hr_zones", "pace_zones", "import_coverage", "goals", "goal_criteria", "plans", "planned_actions", "planned_segments")
 
 
-def merge_databases(paths):
+def merge_databases(paths, personal=False):
     merged = {key: [] for key in DATA_KEYS}
-    merged["meta"] = {"personal": args.personal, "gait_source_by_athlete": {}}
+    merged["meta"] = {"personal": personal, "gait_source_by_athlete": {}}
     multi = len(paths) > 1
     for source_index, path in enumerate(paths):
-        source = collect_database(path)
-        if args.personal and source_index == 0:
+        source = collect_database(path, personal)
+        if personal and source_index == 0:
             owner_id = source["athletes"][0]["athlete_id"] if source["athletes"] else None
+            saved_goal = next((g for g in reversed(source["goals"]) if g["athlete_id"] == owner_id and g["goal_type"] == "half_marathon"), None)
+            criterion = next((c for c in source["goal_criteria"] if saved_goal and
+                c["athlete_id"] == owner_id and c["goal_id"] == saved_goal["goal_id"] and
+                c["goal_version"] == saved_goal["goal_version"] and c["metric_name"] == "official_finish_s"), None)
             merged["meta"]["goal"] = {"athlete_id": f"0:{owner_id}" if multi else owner_id,
-                "type": "half_marathon", "target_date": "2027-03-21",
-                "target_time_s": 7800, "distance_km": 21.0975, "status": "demo_goal"}
+                "type": "half_marathon", "target_date": criterion["target_date"] if criterion else "2027-03-21",
+                "target_time_s": criterion["target_value"] if criterion else 7800,
+                "distance_km": 21.0975, "status": saved_goal["status"] if saved_goal else "demo_goal"}
         athlete_ids = {row["athlete_id"] for row in source["athletes"]}
         for key in DATA_KEYS:
             for row in source[key]:
@@ -131,15 +138,34 @@ def merge_databases(paths):
     return merged
 
 
-payload = merge_databases([DB, *[path.expanduser().resolve() for path in args.additional_db]])
+def render_dashboard(personal=False, db=None, additional_dbs=()):
+    """Read the warehouse and ontology now, returning a fresh HTML page."""
+    primary = Path(db or (PERSONAL_DB if personal else DB)).expanduser().resolve()
+    paths = [primary, *[Path(path).expanduser().resolve() for path in additional_dbs]]
+    payload = merge_databases(paths, personal)
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    ontology = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))
+    rules = ontology["x_coaching_knowledge"]
+    rule_codes = {item["code"] for item in rules["rule_bindings"]}
+    required = {"OvertrainingRisk", "WeeklyMileageIncreaseReview", "PolarizedHighIntensityReview", "CompromisedRecovery", "PossibleExerciseRelatedFatigueReview", "PostRaceRecoveryReview", "HardEasySequenceReview"}
+    if not required <= rule_codes:
+        raise ValueError(f"Ontology coaching bindings missing: {required - rule_codes}")
+    encoded_rules = json.dumps(rules, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    html = TEMPLATE.read_text(encoding="utf-8").replace("/* __DATA__ */", encoded).replace("/* __RULES__ */", encoded_rules)
+    return html, payload
 
-encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-ontology = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))
-rules = ontology["x_coaching_knowledge"]
-rule_codes = {item["code"] for item in rules["rule_bindings"]}
-required = {"OvertrainingRisk", "WeeklyMileageIncreaseReview", "PolarizedHighIntensityReview", "CompromisedRecovery", "PossibleExerciseRelatedFatigueReview", "PostRaceRecoveryReview", "HardEasySequenceReview"}
-if not required <= rule_codes:
-    raise ValueError(f"Ontology coaching bindings missing: {required - rule_codes}")
-encoded_rules = json.dumps(rules, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-OUTPUT.write_text(TEMPLATE.read_text().replace("/* __DATA__ */", encoded).replace("/* __RULES__ */", encoded_rules), encoding="utf-8")
-print(f"Built {OUTPUT} from {1 + len(args.additional_db)} DuckDB source(s); {len(payload['athletes'])} athletes, {len(payload['runs'])} running sessions")
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--personal", action="store_true", help="Read the bundled personal dataset and write personal-preview.html")
+    parser.add_argument("--db", type=Path, help="Primary local DuckDB source")
+    parser.add_argument("--additional-db", type=Path, action="append", default=[], help="Additional athlete DuckDB source; repeat for multiple imports")
+    args = parser.parse_args()
+    output = Path(__file__).with_name("personal-preview.html" if args.personal else "index.html")
+    html, payload = render_dashboard(args.personal, args.db, args.additional_db)
+    output.write_text(html, encoding="utf-8")
+    print(f"Built {output} from {1 + len(args.additional_db)} DuckDB source(s); {len(payload['athletes'])} athletes, {len(payload['runs'])} running sessions")
+
+
+if __name__ == "__main__":
+    main()

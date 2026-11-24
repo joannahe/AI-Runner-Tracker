@@ -67,7 +67,7 @@
   <rect x="1020" y="311" width="348" height="344" rx="5" fill="#F7F7F2" stroke="#DCDED4"/>
   <text x="1046" y="346" class="eyebrow">DIRECT DUCKDB SQL</text>
   <text x="1046" y="385" class="heading">Running dashboard</text>
-  <text x="1046" y="415" class="small">Bilingual · athlete selector · offline HTML</text>
+  <text x="1046" y="415" class="small">Bilingual · live local · offline export</text>
   <path d="M1046 434H1342" stroke="#DCDED4"/>
   <circle cx="1054" cy="452" r="4" fill="#402DF3"/><text x="1070" y="458" class="row">Daily training</text>
   <circle cx="1054" cy="487" r="4" fill="#402DF3"/><text x="1070" y="493" class="row">Pace &amp; performance</text>

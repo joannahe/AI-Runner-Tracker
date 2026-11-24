@@ -388,6 +388,19 @@ async def save(request: Request):
                     conn.execute("DELETE FROM coros_observations WHERE participant_id=? AND category=?", [participant_id, category])
                     conn.execute("INSERT INTO coros_observations VALUES (?, ?, ?, ?)", [participant_id, category, now, json.dumps(payload, ensure_ascii=False)])
             imported = import_payloads(conn, participant_id, v.source, v.preview, now)
+            # A successful save proves that these responses were stored, not that the
+            # provider returned every activity in the requested window.
+            for category in v.categories:
+                if category not in v.preview:
+                    continue
+                conn.execute("""INSERT INTO fitness_demo.import_coverage
+                    (athlete_id, source, category, window_start, window_end,
+                     imported_at_utc, source_record_count, imported_record_count,
+                     coverage_status, notes)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    [participant_id, v.source, category, v.start_date, v.end_date,
+                     now, None, imported.get(category, imported.get('activities') if category == 'activities' else None),
+                     'saved_unverified', 'Response saved; provider window completeness not verified'])
             conn.execute("COMMIT")
         except Exception:
             conn.execute("ROLLBACK")

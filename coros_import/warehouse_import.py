@@ -31,6 +31,10 @@ def ensure_schema(conn) -> None:
     if has_review:
         conn.execute("ALTER TABLE fitness_demo.recovery_state ADD COLUMN IF NOT EXISTS hrv_source VARCHAR")
         conn.execute("ALTER TABLE fitness_demo.recovery_state ADD COLUMN IF NOT EXISTS hrv_wake_date DATE")
+    conn.execute("""CREATE TABLE IF NOT EXISTS fitness_demo.import_coverage (
+        athlete_id VARCHAR, source VARCHAR, category VARCHAR, window_start DATE,
+        window_end DATE, imported_at_utc TIMESTAMP, source_record_count BIGINT,
+        imported_record_count BIGINT, coverage_status VARCHAR, notes VARCHAR)""")
 
 
 def put(conn, table: str, values: dict[str, Any]) -> None:

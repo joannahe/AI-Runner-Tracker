@@ -34,6 +34,6 @@ Local DuckDB is the default storage and dashboard source. StarRocks is an option
 
 - Keep English as the default UI and documentation language; preserve the English/Chinese UI toggle. Model names, SQL fields, and concept identifiers remain in English.
 - `warehouse/build.py` regenerates schema, seeds, and dialect model files. Check edits to generated files before running it.
-- `dashboard/build.py` generates standalone HTML snapshots. Rebuild after changing data or the template. `dashboard/rebuild_from_snapshot.mjs` is a fallback for the bundled personal preview when the local DuckDB reader cannot open that snapshot.
+- `dashboard/action_server.py` serves the current personal DuckDB and ontology rules on each page refresh. `dashboard/build.py` generates standalone HTML snapshots; rebuild those exports after changing data or the template. `dashboard/rebuild_from_snapshot.mjs` is a fallback for the bundled personal preview when the local DuckDB reader cannot open that snapshot.
 - Run `dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate` and `.venv/bin/python warehouse/verify_duckdb.py` after changing the model or fixture. For StarRocks changes, also validate the StarRocks pair and review the acceptance SQL.
 - When adding a rule, add its concept path, inputs, evidence gate, missing-data behavior, suggested human-reviewed action, and an acceptance question in `QUESTION_CATALOG_AND_ONBOARDING.md`. Keep the rule's implemented status accurate.
