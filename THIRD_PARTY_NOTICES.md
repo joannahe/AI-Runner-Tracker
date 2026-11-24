@@ -5,3 +5,5 @@ AI Runner Tracker uses or references DOSI, DuckDB, StarRocks, COROS, Garmin, Pyt
 The repository includes project-authored DOSI-compatible semantic-model and ontology definitions, not a copy of the DOSI engine. Install DOSI separately if you want to run its validation or query commands. Dependencies installed from `warehouse/requirements.txt` or `coros_import/requirements.txt` retain their upstream licenses. Check each dependency's distributed license when redistributing a packaged build.
 
 Watch-provider authorization is an optional user-operated integration. This repository does not include provider credentials or grant access to anyone else's watch data.
+
+The three JSON Schema files under `schemas/ossie-0.2.0.dev0/` are copied from [Apache Ossie](https://github.com/apache/ossie) at commit `5ebe400b393b837b3a8c8b2f22738b5e30eb05e5` (`core-spec/ossie-schema.json`, `ontology/ontology.json`, `ontology/mapping.json`). They remain under the Apache Ossie project's original license; this repository's validation script uses them as pinned format checks.

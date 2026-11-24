@@ -14,11 +14,11 @@ import duckdb
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "warehouse"
 MODEL = yaml.safe_load((ROOT / "fitness_analysis.starrocks.yaml").read_text())
-DATASETS = MODEL["semantic_model"][0]["datasets"]
-TABLES = {d["name"]: d for d in DATASETS if not str(d.get("source", "")).lstrip().upper().startswith("SELECT")}
+DATASETS = MODEL["datasets"]
+TABLES = {d["name"]: d for d in DATASETS if d["name"] != "weekly_running_distance" and not str(d.get("source", "")).lstrip().upper().startswith("SELECT")}
 
 # The duplicate source record below must not double count the same training load.
-for metric in MODEL["semantic_model"][0]["metrics"]:
+for metric in MODEL["metrics"]:
     if metric["name"] == "coros_training_load":
         metric["expression"]["dialects"][0]["expression"] = "SUM(CASE WHEN activity.source = 'coros' AND activity.dedup_status = 'canonical' THEN activity.training_load END)"
         break
@@ -273,6 +273,39 @@ def emit(dialect):
             insert_cols = [c for c in cols if any(c in r for r in rows)]
             vals = ",\n  ".join("(" + ", ".join(literal(r.get(c)) for c in insert_cols) + ")" for r in rows)
             inserts.append(f"INSERT INTO {table} ({', '.join(insert_cols)}) VALUES\n  {vals};")
+    if dialect == "starrocks":
+        ddl.append("CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32)) ENGINE=OLAP DUPLICATE KEY(athlete_id, local_date) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');")
+        prior_date = "DATE_SUB(cur.week_start, INTERVAL 7 DAY)"
+    else:
+        ddl.append("CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32));")
+        prior_date = "cur.week_start - INTERVAL 7 DAY"
+    ddl.append(f"""CREATE VIEW v_weekly_running_distance AS
+WITH complete_weeks AS (
+  SELECT athlete_id, DATE_TRUNC('week', local_date) AS week_start
+  FROM activity_import_coverage WHERE status = 'verified_complete'
+  GROUP BY athlete_id, DATE_TRUNC('week', local_date)
+  HAVING COUNT(DISTINCT local_date) = 7
+), current_segments AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY athlete_id, workout_event_id, segment_ordinal ORDER BY analysis_revision DESC) AS revision_rank
+  FROM v_running_observation
+), weekly_runs AS (
+  SELECT athlete_id, DATE_TRUNC('week', event_date) AS week_start,
+    SUM(measured_distance_m) / 1000.0 AS distance_km
+  FROM current_segments
+  WHERE revision_rank = 1 AND segment_kind = 'run' AND distance_status = 'measured' AND measured_distance_m > 0
+  GROUP BY athlete_id, DATE_TRUNC('week', event_date)
+), complete_distance AS (
+  SELECT w.athlete_id, w.week_start, COALESCE(r.distance_km, 0) AS distance_km
+  FROM complete_weeks w LEFT JOIN weekly_runs r ON w.athlete_id = r.athlete_id AND w.week_start = r.week_start
+)
+SELECT cur.athlete_id, cur.week_start, cur.distance_km, prior.distance_km AS prior_distance_km,
+  cur.distance_km / NULLIF(prior.distance_km, 0) - 1 AS growth_ratio
+FROM complete_distance cur JOIN complete_distance prior
+  ON cur.athlete_id = prior.athlete_id AND prior.week_start = {prior_date}
+WHERE prior.distance_km > 0;""")
+    # Fictional seed explicitly covers two complete weeks; real imports must supply their own verified dates.
+    inserts.append("INSERT INTO activity_import_coverage (athlete_id, local_date, status) VALUES " + ", ".join(
+        f"('demo_01', '{(Date(2026, 4, 6) + timedelta(days=i)).isoformat()}', 'verified_complete')" for i in range(14)) + ";")
     (OUT / f"{dialect}_schema.sql").write_text("\n\n".join(ddl)+"\n")
     (OUT / f"{dialect}_seed.sql").write_text("\n\n".join(inserts)+"\n")
 
@@ -280,22 +313,22 @@ def emit(dialect):
 emit("starrocks")
 emit("duckdb")
 duck = copy.deepcopy(MODEL)
-for d in duck["semantic_model"][0]["datasets"]:
+for d in duck["datasets"]:
     for f in d.get("fields", []):
         for x in f.get("expression", {}).get("dialects", []): x["dialect"] = "DUCKDB"
-for m in duck["semantic_model"][0]["metrics"]:
+for m in duck["metrics"]:
     for x in m.get("expression", {}).get("dialects", []): x["dialect"] = "DUCKDB"
 (ROOT / "fitness_analysis.yaml").write_text(yaml.safe_dump(duck, allow_unicode=True, sort_keys=False, width=110))
-starrocks_ontology = yaml.safe_load((ROOT / "fitness_ontology.starrocks.yaml").read_text())
-starrocks_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(MODEL["semantic_model"][0])
-(ROOT / "fitness_ontology.starrocks.yaml").write_text(yaml.safe_dump(starrocks_ontology, allow_unicode=True, sort_keys=False, width=110))
-duckdb_ontology = copy.deepcopy(starrocks_ontology)
-duckdb_ontology["ontology_mappings"][0]["semantic_model"] = copy.deepcopy(duck["semantic_model"][0])
-(ROOT / "fitness_ontology.yaml").write_text(yaml.safe_dump(duckdb_ontology, allow_unicode=True, sort_keys=False, width=110))
+# Keep the standalone DOSI projects synchronized with the generated models and
+# the editable root ontology. Mappings remain separate, hand-reviewed files.
+shutil.copyfile(ROOT / "fitness_analysis.yaml", ROOT / "subject/semantic_models/duckdb/fitness_analysis.yaml")
+shutil.copyfile(ROOT / "fitness_analysis.starrocks.yaml", ROOT / "starrocks_project/subject/semantic_models/starrocks/fitness_analysis.yaml")
+shutil.copyfile(ROOT / "fitness_ontology.yaml", ROOT / "subject/ontology/fitness.ontology.yaml")
+shutil.copyfile(ROOT / "fitness_ontology.starrocks.yaml", ROOT / "starrocks_project/subject/ontology/fitness.ontology.yaml")
 lineage_page = ROOT / "lineage.html"
 if lineage_page.exists() and shutil.which("dosi"):
     result = subprocess.run(
-        ["dosi", "--model", str(ROOT / "fitness_analysis.yaml"), "--ontology", str(ROOT / "fitness_ontology.yaml"), "lineage", "dump", "--format", "json"],
+        ["dosi", "lineage", "dump", "--mapping", str(ROOT / "subject/ontology/fitness.mapping.yaml"), "--format", "json"],
         capture_output=True, text=True, check=True,
     )
     graph = json.dumps(json.loads(result.stdout), ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
@@ -306,7 +339,7 @@ if lineage_page.exists() and shutil.which("dosi"):
     lineage_page.write_text(page[:start] + graph + page[end:])
 db_path = OUT / "running_demo.duckdb"
 db_path.unlink(missing_ok=True)
-with duckdb.connect(str(db_path)) as connection:
+with duckdb.connect(str(db_path), config={"storage_compatibility_version": "v1.5.0"}) as connection:
     connection.execute((OUT / "duckdb_schema.sql").read_text())
     connection.execute((OUT / "duckdb_seed.sql").read_text())
 print("Generated two warehouse schemas, identical synthetic rows, a DuckDB model, and the local DuckDB database.")

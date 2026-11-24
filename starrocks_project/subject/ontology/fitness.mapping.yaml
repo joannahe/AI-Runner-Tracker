@@ -1,0 +1,1406 @@
+---
+version: 0.2.0.dev0
+name: fitness_analysis_starrocks_mapping
+description: Maps running and coaching concepts to the STARROCKS fitness_analysis
+  semantic model.
+ontology_ref:
+  name: FitnessGoalOntology
+  iri: "./fitness.ontology.yaml"
+semantic_model_ref:
+  name: fitness_analysis
+  iri: "../semantic_models/starrocks/fitness_analysis.yaml"
+concept_mappings:
+- concept: Athlete
+  object_mappings:
+  - referent_mappings:
+    - relationship: id
+      expression: athlete.athlete_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: id
+        expression: athlete.athlete_id
+    children: []
+- concept: TrainingSession
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: workout_event.athlete_id
+    - relationship: id
+      expression: workout_event.workout_event_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: workout_event.athlete_id
+      - relationship: id
+        expression: workout_event.workout_event_id
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: workout_event.athlete_id
+    - relationship: date
+      object_mapping:
+        concept: Date
+        expression: workout_event.event_date
+    - relationship: intent
+      object_mapping:
+        concept: String
+        expression: workout_event.session_intent
+    - relationship: sport
+      object_mapping:
+        concept: String
+        expression: workout_event.sport_code
+    - relationship: is_official_race
+      object_mapping:
+        concept: Boolean
+        expression: workout_event.is_official_race
+    - relationship: race_format
+      object_mapping:
+        concept: String
+        expression: workout_event.race_format_code
+    - relationship: performed_by
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: workout_event.athlete_id
+- concept: SourceActivity
+  object_mappings:
+  - referent_mappings:
+    - relationship: id
+      expression: activity.activity_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: id
+        expression: activity.activity_id
+    children:
+    - relationship: distance_m
+      object_mapping:
+        concept: Decimal
+        expression: activity.distance_m
+    - relationship: training_load
+      object_mapping:
+        concept: Decimal
+        expression: activity.training_load
+    - relationship: training_focus
+      object_mapping:
+        concept: String
+        expression: activity.training_focus
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: activity.source
+    - relationship: sport
+      object_mapping:
+        concept: String
+        expression: activity.sport_code
+    - relationship: records
+      object_mapping:
+        concept: TrainingSession
+        referent_mappings:
+        - relationship: athlete_id
+          expression: activity.athlete_id
+        - relationship: id
+          expression: activity.workout_event_id
+- concept: RunningObservation
+  object_mappings:
+  - referent_mappings:
+    - relationship: segment_ordinal
+      expression: running_observation.segment_ordinal
+    - relationship: analysis_revision
+      expression: running_observation.analysis_revision
+    - relationship: athlete_id
+      expression: running_observation.athlete_id
+    - relationship: id
+      expression: running_observation.workout_event_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: segment_ordinal
+        expression: running_observation.segment_ordinal
+      - relationship: analysis_revision
+        expression: running_observation.analysis_revision
+      - relationship: athlete_id
+        expression: running_observation.athlete_id
+      - relationship: id
+        expression: running_observation.workout_event_id
+    children:
+    - relationship: segment_ordinal
+      object_mapping:
+        concept: Integer
+        expression: running_observation.segment_ordinal
+    - relationship: analysis_revision
+      object_mapping:
+        concept: Integer
+        expression: running_observation.analysis_revision
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: running_observation.athlete_id
+    - relationship: date
+      object_mapping:
+        concept: Date
+        expression: running_observation.event_date
+    - relationship: measured_distance_m
+      object_mapping:
+        concept: Decimal
+        expression: running_observation.measured_distance_m
+    - relationship: duration_s
+      object_mapping:
+        concept: Decimal
+        expression: running_observation.duration_s
+    - relationship: heart_rate_bpm
+      object_mapping:
+        concept: Decimal
+        expression: running_observation.avg_hr_bpm
+    - relationship: cadence_spm
+      object_mapping:
+        concept: Decimal
+        expression: running_observation.avg_cadence_spm
+    - relationship: part_of
+      object_mapping:
+        concept: TrainingSession
+        referent_mappings:
+        - relationship: athlete_id
+          expression: running_observation.athlete_id
+        - relationship: id
+          expression: running_observation.workout_event_id
+- concept: SleepObservation
+  object_mappings:
+  - referent_mappings:
+    - relationship: source
+      expression: daily_sleep.source
+    - relationship: athlete_id
+      expression: daily_sleep.athlete_id
+    - relationship: id
+      expression: daily_sleep.wake_date
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: source
+        expression: daily_sleep.source
+      - relationship: athlete_id
+        expression: daily_sleep.athlete_id
+      - relationship: id
+        expression: daily_sleep.wake_date
+    children:
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: daily_sleep.source
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: daily_sleep.athlete_id
+    - relationship: wake_date
+      object_mapping:
+        concept: Date
+        expression: daily_sleep.wake_date
+    - relationship: sleep_minutes
+      object_mapping:
+        concept: Integer
+        expression: daily_sleep.main_sleep_min
+    - relationship: score
+      object_mapping:
+        concept: Integer
+        expression: daily_sleep.sleep_score
+    - relationship: observed_for
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: daily_sleep.athlete_id
+- concept: FitnessAssessment
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: latest_fitness_measurement.athlete_id
+    - relationship: id
+      expression: latest_fitness_measurement.metric_code
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: latest_fitness_measurement.athlete_id
+      - relationship: id
+        expression: latest_fitness_measurement.metric_code
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: latest_fitness_measurement.athlete_id
+    - relationship: metric_code
+      object_mapping:
+        concept: String
+        expression: latest_fitness_measurement.metric_code
+    - relationship: value
+      object_mapping:
+        concept: Decimal
+        expression: latest_fitness_measurement.metric_value
+    - relationship: observed_at
+      object_mapping:
+        concept: Date
+        expression: latest_fitness_measurement.observed_at_utc
+    - relationship: assesses
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: latest_fitness_measurement.athlete_id
+    - relationship: unit
+      object_mapping:
+        concept: String
+        expression: latest_fitness_measurement.unit
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: latest_fitness_measurement.source
+    - relationship: time_quality
+      object_mapping:
+        concept: String
+        expression: latest_fitness_measurement.time_quality
+- concept: WeeklyRunningDistance
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: weekly_running_distance.athlete_id
+    - relationship: id
+      expression: weekly_running_distance.week_start
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: weekly_running_distance.athlete_id
+      - relationship: id
+        expression: weekly_running_distance.week_start
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: weekly_running_distance.athlete_id
+    - relationship: distance_km
+      object_mapping:
+        concept: Decimal
+        expression: weekly_running_distance.distance_km
+    - relationship: prior_distance_km
+      object_mapping:
+        concept: Decimal
+        expression: weekly_running_distance.prior_distance_km
+    - relationship: growth_ratio
+      object_mapping:
+        concept: Decimal
+        expression: weekly_running_distance.growth_ratio
+- concept: DailyTrainingLoad
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: daily_training_load.athlete_id
+    - relationship: source
+      expression: daily_training_load.source
+    - relationship: id
+      expression: daily_training_load.local_date
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: daily_training_load.athlete_id
+      - relationship: source
+        expression: daily_training_load.source
+      - relationship: id
+        expression: daily_training_load.local_date
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: daily_training_load.athlete_id
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: daily_training_load.source
+    - relationship: short_term_load
+      object_mapping:
+        concept: Decimal
+        expression: daily_training_load.short_term_load
+    - relationship: long_term_load
+      object_mapping:
+        concept: Decimal
+        expression: daily_training_load.long_term_load
+    - relationship: load_ratio
+      object_mapping:
+        concept: Decimal
+        expression: daily_training_load.load_ratio
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: daily_training_load.provider_status
+- concept: OvernightHRV
+  object_mappings:
+  - referent_mappings: &1
+    - relationship: athlete_id
+      expression: daily_hrv.athlete_id
+    - relationship: source
+      expression: daily_hrv.source
+    - relationship: id
+      expression: daily_hrv.wake_date
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *1
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: daily_hrv.athlete_id
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: daily_hrv.source
+    - relationship: avg_ms
+      object_mapping:
+        concept: Decimal
+        expression: daily_hrv.hrv_avg_ms
+    - relationship: normal_low_ms
+      object_mapping:
+        concept: Decimal
+        expression: daily_hrv.normal_low_ms
+    - relationship: normal_high_ms
+      object_mapping:
+        concept: Decimal
+        expression: daily_hrv.normal_high_ms
+    - relationship: baseline_ms
+      object_mapping:
+        concept: Decimal
+        expression: daily_hrv.baseline_ms
+    - relationship: provider_evaluation
+      object_mapping:
+        concept: String
+        expression: daily_hrv.provider_evaluation
+    - relationship: observed_for
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: daily_hrv.athlete_id
+- concept: RestingHeartRate
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: daily_resting_hr.athlete_id
+    - relationship: source
+      expression: daily_resting_hr.source
+    - relationship: id
+      expression: daily_resting_hr.local_date
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: daily_resting_hr.athlete_id
+      - relationship: source
+        expression: daily_resting_hr.source
+      - relationship: id
+        expression: daily_resting_hr.local_date
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: daily_resting_hr.athlete_id
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: daily_resting_hr.source
+    - relationship: bpm
+      object_mapping:
+        concept: Decimal
+        expression: daily_resting_hr.rhr_bpm
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: daily_resting_hr.data_status
+- concept: HeartRateZone
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: running_hr_zone.athlete_id
+    - relationship: scheme_id
+      expression: running_hr_zone.zone_scheme_id
+    - relationship: id
+      expression: running_hr_zone.zone_index
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: running_hr_zone.athlete_id
+      - relationship: scheme_id
+        expression: running_hr_zone.zone_scheme_id
+      - relationship: id
+        expression: running_hr_zone.zone_index
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: running_hr_zone.athlete_id
+    - relationship: scheme_id
+      object_mapping:
+        concept: String
+        expression: running_hr_zone.zone_scheme_id
+    - relationship: lower_bpm
+      object_mapping:
+        concept: Decimal
+        expression: running_hr_zone.lower_inclusive_bpm
+    - relationship: upper_bpm
+      object_mapping:
+        concept: Decimal
+        expression: running_hr_zone.upper_exclusive_bpm
+    - relationship: valid_from
+      object_mapping:
+        concept: Date
+        expression: running_hr_zone.valid_from_utc
+    - relationship: valid_to
+      object_mapping:
+        concept: Date
+        expression: running_hr_zone.valid_to_utc
+    - relationship: scheme_method
+      object_mapping:
+        concept: String
+        expression: running_hr_zone.scheme_method
+    - relationship: assigned_to
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: running_hr_zone.athlete_id
+- concept: PaceZone
+  object_mappings:
+  - referent_mappings: &2
+    - relationship: athlete_id
+      expression: running_pace_zone.athlete_id
+    - relationship: scheme_id
+      expression: running_pace_zone.zone_scheme_id
+    - relationship: id
+      expression: running_pace_zone.zone_index
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *2
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: running_pace_zone.athlete_id
+    - relationship: scheme_id
+      object_mapping:
+        concept: String
+        expression: running_pace_zone.zone_scheme_id
+    - relationship: fast_boundary_s_per_km
+      object_mapping:
+        concept: Decimal
+        expression: running_pace_zone.fast_boundary_s_per_km
+    - relationship: slow_boundary_s_per_km
+      object_mapping:
+        concept: Decimal
+        expression: running_pace_zone.slow_boundary_s_per_km
+    - relationship: valid_from
+      object_mapping:
+        concept: Date
+        expression: running_pace_zone.valid_from_utc
+    - relationship: valid_to
+      object_mapping:
+        concept: Date
+        expression: running_pace_zone.valid_to_utc
+    - relationship: assigned_to
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: running_pace_zone.athlete_id
+- concept: ProviderRecoveryEstimate
+  object_mappings:
+  - referent_mappings: &3
+    - relationship: athlete_id
+      expression: recovery_observation.athlete_id
+    - relationship: id
+      expression: recovery_observation.observation_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *3
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: recovery_observation.athlete_id
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: recovery_observation.source
+    - relationship: observed_at
+      object_mapping:
+        concept: Date
+        expression: recovery_observation.observed_at_utc
+    - relationship: recovery_pct
+      object_mapping:
+        concept: Decimal
+        expression: recovery_observation.recovery_pct
+    - relationship: level
+      object_mapping:
+        concept: String
+        expression: recovery_observation.recovery_level
+    - relationship: observed_for
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: recovery_observation.athlete_id
+- concept: Goal
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: athlete_goal.athlete_id
+    - relationship: id
+      expression: athlete_goal.goal_id
+    - relationship: version
+      expression: athlete_goal.goal_version
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: athlete_goal.athlete_id
+      - relationship: id
+        expression: athlete_goal.goal_id
+      - relationship: version
+        expression: athlete_goal.goal_version
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: athlete_goal.athlete_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: athlete_goal.goal_id
+    - relationship: version
+      object_mapping:
+        concept: Integer
+        expression: athlete_goal.goal_version
+    - relationship: kind
+      object_mapping:
+        concept: String
+        expression: athlete_goal.goal_type
+    - relationship: title
+      object_mapping:
+        concept: String
+        expression: athlete_goal.title
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: athlete_goal.status
+    - relationship: created_at
+      object_mapping:
+        concept: Date
+        expression: athlete_goal.created_at_utc
+    - relationship: set_by
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: athlete_goal.athlete_id
+- concept: RecoveryRule
+  object_mappings:
+  - referent_mappings:
+    - relationship: id
+      expression: recovery_rule.rule_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: id
+        expression: recovery_rule.rule_id
+    children:
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: recovery_rule.rule_id
+    - relationship: rule_kind
+      object_mapping:
+        concept: String
+        expression: recovery_rule.rule_kind
+    - relationship: metric_code
+      object_mapping:
+        concept: String
+        expression: recovery_rule.metric_code
+    - relationship: lower_bound
+      object_mapping:
+        concept: Decimal
+        expression: recovery_rule.lower_bound
+    - relationship: upper_bound
+      object_mapping:
+        concept: Decimal
+        expression: recovery_rule.upper_bound
+    - relationship: lower_inclusive
+      object_mapping:
+        concept: Boolean
+        expression: recovery_rule.lower_inclusive
+    - relationship: upper_inclusive
+      object_mapping:
+        concept: Boolean
+        expression: recovery_rule.upper_inclusive
+    - relationship: label
+      object_mapping:
+        concept: String
+        expression: recovery_rule.label
+    - relationship: meaning
+      object_mapping:
+        concept: String
+        expression: recovery_rule.meaning
+    - relationship: rule_origin
+      object_mapping:
+        concept: String
+        expression: recovery_rule.rule_origin
+    - relationship: source_url
+      object_mapping:
+        concept: String
+        expression: recovery_rule.source_url
+    - relationship: baseline_days
+      object_mapping:
+        concept: Integer
+        expression: recovery_rule.baseline_days
+    - relationship: min_valid_days
+      object_mapping:
+        concept: Integer
+        expression: recovery_rule.min_valid_days
+- concept: GoalCriterion
+  object_mappings:
+  - referent_mappings: &4
+    - relationship: athlete_id
+      expression: goal_criterion.athlete_id
+    - relationship: goal_id
+      expression: goal_criterion.goal_id
+    - relationship: goal_version
+      expression: goal_criterion.goal_version
+    - relationship: id
+      expression: goal_criterion.criterion_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *4
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: goal_criterion.athlete_id
+    - relationship: goal_id
+      object_mapping:
+        concept: String
+        expression: goal_criterion.goal_id
+    - relationship: goal_version
+      object_mapping:
+        concept: Integer
+        expression: goal_criterion.goal_version
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: goal_criterion.criterion_id
+    - relationship: criterion_kind
+      object_mapping:
+        concept: String
+        expression: goal_criterion.criterion_kind
+    - relationship: metric_name
+      object_mapping:
+        concept: String
+        expression: goal_criterion.metric_name
+    - relationship: comparison_operator
+      object_mapping:
+        concept: String
+        expression: goal_criterion.comparison_operator
+    - relationship: target_value
+      object_mapping:
+        concept: Decimal
+        expression: goal_criterion.target_value
+    - relationship: target_unit
+      object_mapping:
+        concept: String
+        expression: goal_criterion.target_unit
+    - relationship: aggregation_window
+      object_mapping:
+        concept: String
+        expression: goal_criterion.aggregation_window
+    - relationship: target_date
+      object_mapping:
+        concept: Date
+        expression: goal_criterion.target_date
+    - relationship: evidence_policy
+      object_mapping:
+        concept: String
+        expression: goal_criterion.evidence_policy
+    - relationship: belongs_to
+      object_mapping:
+        concept: Goal
+        referent_mappings:
+        - relationship: athlete_id
+          expression: goal_criterion.athlete_id
+        - relationship: id
+          expression: goal_criterion.goal_id
+        - relationship: version
+          expression: goal_criterion.goal_version
+- concept: RecoveryState
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: recovery_state.athlete_id
+    - relationship: id
+      expression: recovery_state.assessment_id
+    - relationship: assessment_version
+      expression: recovery_state.assessment_version
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: recovery_state.athlete_id
+      - relationship: id
+        expression: recovery_state.assessment_id
+      - relationship: assessment_version
+        expression: recovery_state.assessment_version
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: recovery_state.athlete_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: recovery_state.assessment_id
+    - relationship: assessment_version
+      object_mapping:
+        concept: Integer
+        expression: recovery_state.assessment_version
+    - relationship: review_date
+      object_mapping:
+        concept: Date
+        expression: recovery_state.review_date
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: recovery_state.status
+    - relationship: method_version
+      object_mapping:
+        concept: String
+        expression: recovery_state.method_version
+    - relationship: sleep_valid_days_7
+      object_mapping:
+        concept: Integer
+        expression: recovery_state.sleep_valid_days_7
+    - relationship: rhr_valid_days_7
+      object_mapping:
+        concept: Integer
+        expression: recovery_state.rhr_valid_days_7
+    - relationship: sleep_valid_days_42
+      object_mapping:
+        concept: Integer
+        expression: recovery_state.sleep_valid_days_42
+    - relationship: for_athlete
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: recovery_state.athlete_id
+    - relationship: considers_load
+      object_mapping:
+        concept: DailyTrainingLoad
+        referent_mappings:
+        - relationship: athlete_id
+          expression: recovery_state.athlete_id
+        - relationship: source
+          expression: recovery_state.load_source
+        - relationship: id
+          expression: recovery_state.load_date
+    - relationship: considers_sleep
+      object_mapping:
+        concept: SleepObservation
+        referent_mappings:
+        - relationship: athlete_id
+          expression: recovery_state.athlete_id
+        - relationship: source
+          expression: recovery_state.sleep_source
+        - relationship: id
+          expression: recovery_state.sleep_wake_date
+    - relationship: considers_hrv
+      object_mapping:
+        concept: OvernightHRV
+        referent_mappings:
+        - relationship: athlete_id
+          expression: recovery_state.athlete_id
+        - relationship: source
+          expression: recovery_state.hrv_source
+        - relationship: id
+          expression: recovery_state.hrv_wake_date
+    - relationship: considers_resting_hr
+      object_mapping:
+        concept: RestingHeartRate
+        referent_mappings:
+        - relationship: athlete_id
+          expression: recovery_state.athlete_id
+        - relationship: source
+          expression: recovery_state.rhr_source
+        - relationship: id
+          expression: recovery_state.rhr_date
+    - relationship: considers_provider_estimate
+      object_mapping:
+        concept: ProviderRecoveryEstimate
+        referent_mappings:
+        - relationship: athlete_id
+          expression: recovery_state.athlete_id
+        - relationship: id
+          expression: recovery_state.provider_observation_id
+- concept: RecoveryEvidence
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: recovery_evidence.athlete_id
+    - relationship: assessment_id
+      expression: recovery_evidence.assessment_id
+    - relationship: assessment_version
+      expression: recovery_evidence.assessment_version
+    - relationship: id
+      expression: recovery_evidence.evidence_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: recovery_evidence.athlete_id
+      - relationship: assessment_id
+        expression: recovery_evidence.assessment_id
+      - relationship: assessment_version
+        expression: recovery_evidence.assessment_version
+      - relationship: id
+        expression: recovery_evidence.evidence_id
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.athlete_id
+    - relationship: assessment_id
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.assessment_id
+    - relationship: assessment_version
+      object_mapping:
+        concept: Integer
+        expression: recovery_evidence.assessment_version
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.evidence_id
+    - relationship: source_dataset
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.source_dataset
+    - relationship: source_record_id
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.source_record_id
+    - relationship: source_date
+      object_mapping:
+        concept: Date
+        expression: recovery_evidence.source_date
+    - relationship: metric_code
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.metric_code
+    - relationship: observed_value
+      object_mapping:
+        concept: Decimal
+        expression: recovery_evidence.observed_value
+    - relationship: unit
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.unit
+    - relationship: evaluation_status
+      object_mapping:
+        concept: String
+        expression: recovery_evidence.evaluation_status
+    - relationship: valid_prior_days
+      object_mapping:
+        concept: Integer
+        expression: recovery_evidence.valid_prior_days
+    - relationship: baseline_days
+      object_mapping:
+        concept: Integer
+        expression: recovery_evidence.baseline_days
+    - relationship: belongs_to
+      object_mapping:
+        concept: RecoveryState
+        referent_mappings:
+        - relationship: athlete_id
+          expression: recovery_evidence.athlete_id
+        - relationship: id
+          expression: recovery_evidence.assessment_id
+        - relationship: assessment_version
+          expression: recovery_evidence.assessment_version
+    - relationship: evaluated_with
+      object_mapping:
+        concept: RecoveryRule
+        referent_mappings:
+        - relationship: id
+          expression: recovery_evidence.rule_id
+- concept: Capability
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: capability_assessment.athlete_id
+    - relationship: id
+      expression: capability_assessment.assessment_id
+    - relationship: assessment_version
+      expression: capability_assessment.assessment_version
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: capability_assessment.athlete_id
+      - relationship: id
+        expression: capability_assessment.assessment_id
+      - relationship: assessment_version
+        expression: capability_assessment.assessment_version
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: capability_assessment.athlete_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: capability_assessment.assessment_id
+    - relationship: assessment_version
+      object_mapping:
+        concept: Integer
+        expression: capability_assessment.assessment_version
+    - relationship: kind
+      object_mapping:
+        concept: String
+        expression: capability_assessment.capability_type
+    - relationship: review_date
+      object_mapping:
+        concept: Date
+        expression: capability_assessment.review_date
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: capability_assessment.status
+    - relationship: confidence
+      object_mapping:
+        concept: String
+        expression: capability_assessment.confidence
+    - relationship: method_version
+      object_mapping:
+        concept: String
+        expression: capability_assessment.method_version
+    - relationship: rationale
+      object_mapping:
+        concept: String
+        expression: capability_assessment.rationale
+    - relationship: belongs_to
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: capability_assessment.athlete_id
+- concept: MetricEvidence
+  object_mappings:
+  - referent_mappings:
+    - relationship: athlete_id
+      expression: capability_evidence.athlete_id
+    - relationship: assessment_id
+      expression: capability_evidence.assessment_id
+    - relationship: assessment_version
+      expression: capability_evidence.assessment_version
+    - relationship: id
+      expression: capability_evidence.evidence_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings:
+      - relationship: athlete_id
+        expression: capability_evidence.athlete_id
+      - relationship: assessment_id
+        expression: capability_evidence.assessment_id
+      - relationship: assessment_version
+        expression: capability_evidence.assessment_version
+      - relationship: id
+        expression: capability_evidence.evidence_id
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: capability_evidence.athlete_id
+    - relationship: assessment_id
+      object_mapping:
+        concept: String
+        expression: capability_evidence.assessment_id
+    - relationship: assessment_version
+      object_mapping:
+        concept: Integer
+        expression: capability_evidence.assessment_version
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: capability_evidence.evidence_id
+    - relationship: metric_name
+      object_mapping:
+        concept: String
+        expression: capability_evidence.metric_name
+    - relationship: evidence_kind
+      object_mapping:
+        concept: String
+        expression: capability_evidence.evidence_kind
+    - relationship: observed_on
+      object_mapping:
+        concept: Date
+        expression: capability_evidence.source_date
+    - relationship: source_dataset
+      object_mapping:
+        concept: String
+        expression: capability_evidence.source_dataset
+    - relationship: source_record_id
+      object_mapping:
+        concept: String
+        expression: capability_evidence.source_record_id
+    - relationship: observed_value
+      object_mapping:
+        concept: Decimal
+        expression: capability_evidence.observed_value
+    - relationship: unit
+      object_mapping:
+        concept: String
+        expression: capability_evidence.unit
+    - relationship: comparability_status
+      object_mapping:
+        concept: String
+        expression: capability_evidence.comparability_status
+    - relationship: concerns
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: capability_evidence.athlete_id
+    - relationship: indicates
+      object_mapping:
+        concept: Capability
+        referent_mappings:
+        - relationship: athlete_id
+          expression: capability_evidence.athlete_id
+        - relationship: id
+          expression: capability_evidence.assessment_id
+        - relationship: assessment_version
+          expression: capability_evidence.assessment_version
+    - relationship: confidence
+      object_mapping:
+        concept: String
+        expression: capability_evidence.confidence
+- concept: GoalProgressAssessment
+  object_mappings:
+  - referent_mappings: &5
+    - relationship: athlete_id
+      expression: goal_progress_assessment.athlete_id
+    - relationship: id
+      expression: goal_progress_assessment.assessment_id
+    - relationship: assessment_version
+      expression: goal_progress_assessment.assessment_version
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *5
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.athlete_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.assessment_id
+    - relationship: assessment_version
+      object_mapping:
+        concept: Integer
+        expression: goal_progress_assessment.assessment_version
+    - relationship: reviewed_at
+      object_mapping:
+        concept: Date
+        expression: goal_progress_assessment.review_date
+    - relationship: window_start
+      object_mapping:
+        concept: Date
+        expression: goal_progress_assessment.window_start_date
+    - relationship: window_end
+      object_mapping:
+        concept: Date
+        expression: goal_progress_assessment.window_end_date
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.status
+    - relationship: observed_value
+      object_mapping:
+        concept: Decimal
+        expression: goal_progress_assessment.observed_value
+    - relationship: difference_value
+      object_mapping:
+        concept: Decimal
+        expression: goal_progress_assessment.difference_value
+    - relationship: difference_unit
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.difference_unit
+    - relationship: comparison_basis
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.comparison_basis
+    - relationship: method_version
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.method_version
+    - relationship: rationale
+      object_mapping:
+        concept: String
+        expression: goal_progress_assessment.rationale
+    - relationship: reviews
+      object_mapping:
+        concept: GoalCriterion
+        referent_mappings:
+        - relationship: athlete_id
+          expression: goal_progress_assessment.athlete_id
+        - relationship: goal_id
+          expression: goal_progress_assessment.goal_id
+        - relationship: goal_version
+          expression: goal_progress_assessment.goal_version
+        - relationship: id
+          expression: goal_progress_assessment.criterion_id
+- concept: GoalProgressEvidence
+  object_mappings:
+  - referent_mappings: &6
+    - relationship: athlete_id
+      expression: goal_progress_evidence.athlete_id
+    - relationship: assessment_id
+      expression: goal_progress_evidence.assessment_id
+    - relationship: assessment_version
+      expression: goal_progress_evidence.assessment_version
+    - relationship: id
+      expression: goal_progress_evidence.evidence_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *6
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.athlete_id
+    - relationship: assessment_id
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.assessment_id
+    - relationship: assessment_version
+      object_mapping:
+        concept: Integer
+        expression: goal_progress_evidence.assessment_version
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.evidence_id
+    - relationship: source_dataset
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.source_dataset
+    - relationship: source_record_id
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.source_record_id
+    - relationship: source_date
+      object_mapping:
+        concept: Date
+        expression: goal_progress_evidence.source_date
+    - relationship: metric_name
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.metric_name
+    - relationship: observed_value
+      object_mapping:
+        concept: Decimal
+        expression: goal_progress_evidence.observed_value
+    - relationship: unit
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.unit
+    - relationship: quality_status
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.quality_status
+    - relationship: comparison_basis
+      object_mapping:
+        concept: String
+        expression: goal_progress_evidence.comparison_basis
+    - relationship: supports
+      object_mapping:
+        concept: GoalProgressAssessment
+        referent_mappings:
+        - relationship: athlete_id
+          expression: goal_progress_evidence.athlete_id
+        - relationship: id
+          expression: goal_progress_evidence.assessment_id
+        - relationship: assessment_version
+          expression: goal_progress_evidence.assessment_version
+- concept: ActionPlan
+  object_mappings:
+  - referent_mappings: &7
+    - relationship: athlete_id
+      expression: action_plan.athlete_id
+    - relationship: id
+      expression: action_plan.plan_id
+    - relationship: version
+      expression: action_plan.plan_version
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *7
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: action_plan.athlete_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: action_plan.plan_id
+    - relationship: version
+      object_mapping:
+        concept: Integer
+        expression: action_plan.plan_version
+    - relationship: name
+      object_mapping:
+        concept: String
+        expression: action_plan.title
+    - relationship: summary
+      object_mapping:
+        concept: String
+        expression: action_plan.plan_summary
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: action_plan.status
+    - relationship: approval_status
+      object_mapping:
+        concept: String
+        expression: action_plan.approval_status
+    - relationship: created_at
+      object_mapping:
+        concept: Date
+        expression: action_plan.created_at_utc
+    - relationship: approved_at
+      object_mapping:
+        concept: Date
+        expression: action_plan.approved_at_utc
+    - relationship: revision_reason
+      object_mapping:
+        concept: String
+        expression: action_plan.revision_reason
+    - relationship: for_goal
+      object_mapping:
+        concept: Goal
+        referent_mappings:
+        - relationship: athlete_id
+          expression: action_plan.athlete_id
+        - relationship: id
+          expression: action_plan.goal_id
+        - relationship: version
+          expression: action_plan.goal_version
+    - relationship: owned_by
+      object_mapping:
+        concept: Athlete
+        referent_mappings:
+        - relationship: id
+          expression: action_plan.athlete_id
+- concept: PlannedAction
+  object_mappings:
+  - referent_mappings: &8
+    - relationship: athlete_id
+      expression: planned_action.athlete_id
+    - relationship: plan_id
+      expression: planned_action.plan_id
+    - relationship: plan_version
+      expression: planned_action.plan_version
+    - relationship: id
+      expression: planned_action.action_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *8
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: planned_action.athlete_id
+    - relationship: plan_id
+      object_mapping:
+        concept: String
+        expression: planned_action.plan_id
+    - relationship: plan_version
+      object_mapping:
+        concept: Integer
+        expression: planned_action.plan_version
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: planned_action.action_id
+    - relationship: scheduled_date
+      object_mapping:
+        concept: Date
+        expression: planned_action.scheduled_date
+    - relationship: kind
+      object_mapping:
+        concept: String
+        expression: planned_action.action_kind
+    - relationship: title
+      object_mapping:
+        concept: String
+        expression: planned_action.title
+    - relationship: target_duration_min
+      object_mapping:
+        concept: Integer
+        expression: planned_action.target_duration_min
+    - relationship: planning_status
+      object_mapping:
+        concept: String
+        expression: planned_action.planning_status
+    - relationship: completion_status
+      object_mapping:
+        concept: String
+        expression: planned_action.completion_status
+    - relationship: candidate_event_id
+      object_mapping:
+        concept: String
+        expression: planned_action.candidate_event_id
+    - relationship: verified_event_id
+      object_mapping:
+        concept: String
+        expression: planned_action.verified_event_id
+    - relationship: match_method
+      object_mapping:
+        concept: String
+        expression: planned_action.match_method
+    - relationship: match_reviewed_at
+      object_mapping:
+        concept: Date
+        expression: planned_action.match_reviewed_at_utc
+    - relationship: source
+      object_mapping:
+        concept: String
+        expression: planned_action.source
+    - relationship: in_plan
+      object_mapping:
+        concept: ActionPlan
+        referent_mappings:
+        - relationship: athlete_id
+          expression: planned_action.athlete_id
+        - relationship: id
+          expression: planned_action.plan_id
+        - relationship: version
+          expression: planned_action.plan_version
+    - relationship: fulfilled_by
+      object_mapping:
+        concept: TrainingSession
+        referent_mappings:
+        - relationship: athlete_id
+          expression: planned_action.athlete_id
+        - relationship: id
+          expression: planned_action.verified_event_id
