@@ -5,12 +5,21 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const previous = readFileSync(join(here, 'personal-preview.html'), 'utf8');
 const template = readFileSync(join(here, 'index.template.html'), 'utf8');
-const match = previous.match(/<script>const DATA=([\s\S]*?);\s*const RULES=/);
+if (process.argv.includes('--fixture-only')) {
+  const fixture = readFileSync(join(here, 'index.html'), 'utf8');
+  const fixtureData = fixture.match(/<script>const DATA=([\s\S]*?);\s*(?:let|const) RULES=/);
+  const fixtureRules = fixture.match(/;(?:let|const) RULES=([\s\S]*?);\s*const TEXT=/);
+  if (!fixtureData || !fixtureRules) throw new Error('Existing fictional dashboard payload not found');
+  writeFileSync(join(here, 'index.html'), template.replace('/* __DATA__ */', fixtureData[1]).replace('/* __RULES__ */', fixtureRules[1]));
+  console.log('Rebuilt fictional dashboard from its existing data snapshot');
+  process.exit(0);
+}
+const previous = readFileSync(join(here, 'personal-preview.html'), 'utf8');
+const match = previous.match(/<script>const DATA=([\s\S]*?);\s*(?:let|const) RULES=/);
 if (!match) throw new Error('Existing personal dashboard payload not found');
 const data = JSON.parse(match[1]);
-const previousRules = previous.match(/;const RULES=([\s\S]*?);\s*const TEXT=/);
+const previousRules = previous.match(/;(?:let|const) RULES=([\s\S]*?);\s*const TEXT=/);
 if (!previousRules) throw new Error('Existing ontology rule snapshot not found; rebuild with dashboard/build.py');
 const sql = readFileSync(join(here, '../warehouse/starrocks_personal_seed.sql'), 'utf8');
 const block = sql.match(/INSERT INTO `athlete_daily_hrv`[^;]*;/g) || [];
@@ -51,4 +60,9 @@ data.meta.goal = {
 };
 const encoded = JSON.stringify(data).replaceAll('<', '\\u003c');
 writeFileSync(join(here, 'personal-preview.html'), template.replace('/* __DATA__ */', encoded).replace('/* __RULES__ */', previousRules[1]));
+const fixture = readFileSync(join(here, 'index.html'), 'utf8');
+const fixtureData = fixture.match(/<script>const DATA=([\s\S]*?);\s*(?:let|const) RULES=/);
+const fixtureRules = fixture.match(/;(?:let|const) RULES=([\s\S]*?);\s*const TEXT=/);
+if (!fixtureData || !fixtureRules) throw new Error('Existing fictional dashboard payload not found');
+writeFileSync(join(here, 'index.html'), template.replace('/* __DATA__ */', fixtureData[1]).replace('/* __RULES__ */', fixtureRules[1]));
 console.log(`Rebuilt personal-preview.html with ${rows.length} daily HRV assessments`);

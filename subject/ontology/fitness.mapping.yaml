@@ -1,14 +1,12 @@
----
 version: 0.2.0.dev0
 name: fitness_analysis_duckdb_mapping
-description: Maps running and coaching concepts to the DUCKDB fitness_analysis semantic
-  model.
+description: Maps running and coaching concepts to the DUCKDB fitness_analysis semantic model.
 ontology_ref:
   name: FitnessGoalOntology
-  iri: "./fitness.ontology.yaml"
+  iri: ./fitness.ontology.yaml
 semantic_model_ref:
   name: fitness_analysis
-  iri: "../semantic_models/duckdb/fitness_analysis.yaml"
+  iri: ../semantic_models/duckdb/fitness_analysis.yaml
 concept_mappings:
 - concept: Athlete
   object_mappings:
@@ -338,7 +336,7 @@ concept_mappings:
         expression: daily_training_load.provider_status
 - concept: OvernightHRV
   object_mappings:
-  - referent_mappings: &1
+  - referent_mappings: &id001
     - relationship: athlete_id
       expression: daily_hrv.athlete_id
     - relationship: source
@@ -347,7 +345,7 @@ concept_mappings:
       expression: daily_hrv.wake_date
   link_mappings:
   - object_mapping:
-      referent_mappings: *1
+      referent_mappings: *id001
     children:
     - relationship: athlete_id
       object_mapping:
@@ -473,7 +471,7 @@ concept_mappings:
           expression: running_hr_zone.athlete_id
 - concept: PaceZone
   object_mappings:
-  - referent_mappings: &2
+  - referent_mappings: &id002
     - relationship: athlete_id
       expression: running_pace_zone.athlete_id
     - relationship: scheme_id
@@ -482,7 +480,7 @@ concept_mappings:
       expression: running_pace_zone.zone_index
   link_mappings:
   - object_mapping:
-      referent_mappings: *2
+      referent_mappings: *id002
     children:
     - relationship: athlete_id
       object_mapping:
@@ -516,14 +514,14 @@ concept_mappings:
           expression: running_pace_zone.athlete_id
 - concept: ProviderRecoveryEstimate
   object_mappings:
-  - referent_mappings: &3
+  - referent_mappings: &id003
     - relationship: athlete_id
       expression: recovery_observation.athlete_id
     - relationship: id
       expression: recovery_observation.observation_id
   link_mappings:
   - object_mapping:
-      referent_mappings: *3
+      referent_mappings: *id003
     children:
     - relationship: athlete_id
       object_mapping:
@@ -669,7 +667,7 @@ concept_mappings:
         expression: recovery_rule.min_valid_days
 - concept: GoalCriterion
   object_mappings:
-  - referent_mappings: &4
+  - referent_mappings: &id004
     - relationship: athlete_id
       expression: goal_criterion.athlete_id
     - relationship: goal_id
@@ -680,7 +678,7 @@ concept_mappings:
       expression: goal_criterion.criterion_id
   link_mappings:
   - object_mapping:
-      referent_mappings: *4
+      referent_mappings: *id004
     children:
     - relationship: athlete_id
       object_mapping:
@@ -1094,7 +1092,7 @@ concept_mappings:
         expression: capability_evidence.confidence
 - concept: GoalProgressAssessment
   object_mappings:
-  - referent_mappings: &5
+  - referent_mappings: &id005
     - relationship: athlete_id
       expression: goal_progress_assessment.athlete_id
     - relationship: id
@@ -1103,7 +1101,7 @@ concept_mappings:
       expression: goal_progress_assessment.assessment_version
   link_mappings:
   - object_mapping:
-      referent_mappings: *5
+      referent_mappings: *id005
     children:
     - relationship: athlete_id
       object_mapping:
@@ -1171,7 +1169,7 @@ concept_mappings:
           expression: goal_progress_assessment.criterion_id
 - concept: GoalProgressEvidence
   object_mappings:
-  - referent_mappings: &6
+  - referent_mappings: &id006
     - relationship: athlete_id
       expression: goal_progress_evidence.athlete_id
     - relationship: assessment_id
@@ -1182,7 +1180,7 @@ concept_mappings:
       expression: goal_progress_evidence.evidence_id
   link_mappings:
   - object_mapping:
-      referent_mappings: *6
+      referent_mappings: *id006
     children:
     - relationship: athlete_id
       object_mapping:
@@ -1244,7 +1242,7 @@ concept_mappings:
           expression: goal_progress_evidence.assessment_version
 - concept: ActionPlan
   object_mappings:
-  - referent_mappings: &7
+  - referent_mappings: &id007
     - relationship: athlete_id
       expression: action_plan.athlete_id
     - relationship: id
@@ -1253,7 +1251,7 @@ concept_mappings:
       expression: action_plan.plan_version
   link_mappings:
   - object_mapping:
-      referent_mappings: *7
+      referent_mappings: *id007
     children:
     - relationship: athlete_id
       object_mapping:
@@ -1313,7 +1311,7 @@ concept_mappings:
           expression: action_plan.athlete_id
 - concept: PlannedAction
   object_mappings:
-  - referent_mappings: &8
+  - referent_mappings: &id008
     - relationship: athlete_id
       expression: planned_action.athlete_id
     - relationship: plan_id
@@ -1324,7 +1322,7 @@ concept_mappings:
       expression: planned_action.action_id
   link_mappings:
   - object_mapping:
-      referent_mappings: *8
+      referent_mappings: *id008
     children:
     - relationship: athlete_id
       object_mapping:
@@ -1404,3 +1402,112 @@ concept_mappings:
           expression: planned_action.athlete_id
         - relationship: id
           expression: planned_action.verified_event_id
+    - relationship: planned_intensity
+      object_mapping:
+        concept: String
+        expression: planned_action.planned_intensity
+    - relationship: title_zh
+      object_mapping:
+        concept: String
+        expression: planned_action.title_zh
+    - relationship: target_distance_km
+      object_mapping:
+        concept: Decimal
+        expression: planned_action.target_distance_km
+    - relationship: target_distance_min_km
+      object_mapping:
+        concept: Decimal
+        expression: planned_action.target_distance_min_km
+    - relationship: target_distance_max_km
+      object_mapping:
+        concept: Decimal
+        expression: planned_action.target_distance_max_km
+    - relationship: distance_basis
+      object_mapping:
+        concept: String
+        expression: planned_action.distance_basis
+- concept: PlannedSegment
+  object_mappings:
+  - referent_mappings: &id009
+    - relationship: athlete_id
+      expression: planned_action_segment.athlete_id
+    - relationship: plan_id
+      expression: planned_action_segment.plan_id
+    - relationship: plan_version
+      expression: planned_action_segment.plan_version
+    - relationship: action_id
+      expression: planned_action_segment.action_id
+    - relationship: ordinal
+      expression: planned_action_segment.segment_ordinal
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *id009
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: planned_action_segment.athlete_id
+    - relationship: plan_id
+      object_mapping:
+        concept: String
+        expression: planned_action_segment.plan_id
+    - relationship: plan_version
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.plan_version
+    - relationship: action_id
+      object_mapping:
+        concept: String
+        expression: planned_action_segment.action_id
+    - relationship: ordinal
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.segment_ordinal
+    - relationship: kind
+      object_mapping:
+        concept: String
+        expression: planned_action_segment.segment_type
+    - relationship: title_en
+      object_mapping:
+        concept: String
+        expression: planned_action_segment.title_en
+    - relationship: title_zh
+      object_mapping:
+        concept: String
+        expression: planned_action_segment.title_zh
+    - relationship: target_duration_min
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.target_duration_min
+    - relationship: target_distance_km
+      object_mapping:
+        concept: Decimal
+        expression: planned_action_segment.target_distance_km
+    - relationship: target_pace_fast_s_per_km
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.target_pace_fast_s_per_km
+    - relationship: target_pace_slow_s_per_km
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.target_pace_slow_s_per_km
+    - relationship: target_hr_low_bpm
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.target_hr_low_bpm
+    - relationship: target_hr_high_bpm
+      object_mapping:
+        concept: Integer
+        expression: planned_action_segment.target_hr_high_bpm
+    - relationship: in_action
+      object_mapping:
+        concept: PlannedAction
+        referent_mappings:
+        - relationship: athlete_id
+          expression: planned_action_segment.athlete_id
+        - relationship: plan_id
+          expression: planned_action_segment.plan_id
+        - relationship: plan_version
+          expression: planned_action_segment.plan_version
+        - relationship: id
+          expression: planned_action_segment.action_id

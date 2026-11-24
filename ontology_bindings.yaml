@@ -276,7 +276,22 @@ concepts:
     event IDs are recorded separately and never mapped to fulfilled_by. Only a verified event ID creates
     a TrainingSession edge. The fictional manual verification is an example, not a COROS-supplied match;
     no scheduled COROS plan or completed activity is imported here.
-    planned_intensity is an ontology property only; planned_action currently has no structured intensity column.
+    planned_intensity maps to planned_action.planned_intensity. The dashboard reviews dated plan spacing;
+    the ontology itself does not automatically edit or approve a plan.
+    Planned distance and bilingual title fields map directly; detailed warm-up, main-set and cool-down
+    targets belong to PlannedSegment.
+- concept: PlannedSegment
+  binding: direct
+  datasets:
+  - planned_action_segment
+  key:
+  - planned_action_segment.athlete_id
+  - planned_action_segment.plan_id
+  - planned_action_segment.plan_version
+  - planned_action_segment.action_id
+  - planned_action_segment.segment_ordinal
+  note: Ordered planned targets link to one exact PlannedAction version. These are proposed or approved
+    training targets, not measured workout results.
 - concept: GoalReviewWorkflow
   binding: workflow_only
   note: Reusable Agent procedure defined in x_coaching_knowledge in this ontology. It reads Goal, GoalCriterion,

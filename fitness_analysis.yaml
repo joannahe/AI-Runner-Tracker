@@ -2556,6 +2556,36 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: source
+  - name: planned_intensity
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: planned_intensity
+  - name: title_zh
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: title_zh
+  - name: target_distance_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_km
+  - name: target_distance_min_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_min_km
+  - name: target_distance_max_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_max_km
+  - name: distance_basis
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: distance_basis
 - name: weekly_running_distance
   source: fitness_demo.v_weekly_running_distance
   description: Verified complete consecutive Monday-to-Sunday weeks of measured running, including hybrid run segments.
@@ -2591,6 +2621,87 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: growth_ratio
+- name: planned_action_segment
+  description: Ordered warm-up, main-set and cool-down targets for a versioned planned action. Pace and heart-rate
+    targets are estimates, not achieved measurements.
+  source: fitness_demo.planned_action_segment
+  primary_key:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+  - segment_ordinal
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: athlete_id
+  - name: plan_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: plan_id
+  - name: plan_version
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: plan_version
+  - name: action_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: action_id
+  - name: segment_ordinal
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: segment_ordinal
+  - name: segment_type
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: segment_type
+  - name: title_en
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: title_en
+  - name: title_zh
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: title_zh
+  - name: target_duration_min
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_duration_min
+  - name: target_distance_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_km
+  - name: target_pace_fast_s_per_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_pace_fast_s_per_km
+  - name: target_pace_slow_s_per_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_pace_slow_s_per_km
+  - name: target_hr_low_bpm
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_hr_low_bpm
+  - name: target_hr_high_bpm
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_hr_high_bpm
 relationships:
 - name: workout_event_to_athlete
   from: workout_event
@@ -2860,6 +2971,19 @@ relationships:
   to_columns:
   - athlete_id
   - workout_event_id
+- name: planned_action_segment_to_action
+  from: planned_action_segment
+  to: planned_action
+  from_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+  to_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
 metrics:
 - name: measured_pace_s_per_km
   description: 'Measured pace: 1000 × total pace time / total measured pace distance.'
@@ -3310,3 +3434,33 @@ metrics:
   custom_extensions:
   - vendor_name: DATUS
     data: '{"v":"1.12","subject_path":["fitness","recovery","overnight_hrv"],"unit":"ms"}'
+- name: planned_running_distance_km
+  description: Sum of target_distance_km for a selected plan version; includes running warm-up and cool-down. Filter
+    athlete, plan_id, plan_version and approval status. Team-race distance is a range.
+  expression:
+    dialects:
+    - dialect: DUCKDB
+      expression: SUM(planned_action.target_distance_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","plan"],"unit":"km"}'
+- name: planned_running_distance_min_km
+  description: Sum of target_distance_min_km for a selected plan version; includes running warm-up and cool-down.
+    Filter athlete, plan_id, plan_version and approval status. Team-race distance is a range.
+  expression:
+    dialects:
+    - dialect: DUCKDB
+      expression: SUM(planned_action.target_distance_min_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","plan"],"unit":"km"}'
+- name: planned_running_distance_max_km
+  description: Sum of target_distance_max_km for a selected plan version; includes running warm-up and cool-down.
+    Filter athlete, plan_id, plan_version and approval status. Team-race distance is a range.
+  expression:
+    dialects:
+    - dialect: DUCKDB
+      expression: SUM(planned_action.target_distance_max_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","plan"],"unit":"km"}'

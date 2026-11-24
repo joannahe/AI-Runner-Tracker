@@ -1,6 +1,6 @@
 # AI Runner Tracker
 
-**文档语言：** [English（默认）](README.md) · 简体中文
+**文档语言：** [English（默认）](README.md) · 简体中文 · [更新说明](RELEASE_NOTES.md)
 
 在本地看板中查看跑步历史、训练负荷、恢复信号和目标。你可以先体验项目作者公开提供的真实跑步数据，使用独立的虚构测试数据，或导入自己的 COROS / Garmin 运动记录。界面默认显示英文，可切换为中文。
 
@@ -8,7 +8,7 @@
 
 ## 项目概览
 
-**本地 DuckDB 是默认数据存储。** 导入工具将用户选择的手表数据写入私有 DuckDB 文件；另有一套独立的虚构数据用于首次体验。看板生成器直接查询 DuckDB，生成可离线打开的 HTML。StarRocks 是 DOSI 查询的可选数据仓库，仓库内提供对应的模型和 SQL 包。当前手表导入工具仍写入 DuckDB；如果数据在 StarRocks，看板需要其 DuckDB 快照。教练规则供 Agent 或用户参考，项目没有自动运行的教练服务。另见 [组件与存储架构](ARCHITECTURE.md) 和供助手使用的 [Agent 操作指南](agent.md)。
+**本地 DuckDB 是默认数据存储。** 导入工具将用户选择的手表数据写入私有 DuckDB 文件；另有一套独立的虚构数据用于首次体验。本地看板服务每次刷新读取 DuckDB，也可以导出离线 HTML。StarRocks 是 DOSI 查询的可选数据仓库，仓库内提供对应的模型和 SQL 包。当前手表导入工具仍写入 DuckDB；如果数据在 StarRocks，看板需要其 DuckDB 快照。看板会依据本体规则计算检查点，DOSI 本身不会自动执行教练规则。另见 [组件与存储架构](ARCHITECTURE.md) 和供助手使用的 [Agent 操作指南](agent.md)。
 
 ![架构图：COROS、Garmin、DOSI 语义模型与本体、六类看板分析，以及默认 DuckDB 和可选 StarRocks](assets/architecture.svg)
 
@@ -22,30 +22,30 @@
 请在我的电脑上安装并运行 https://github.com/joannahe/AI-Runner-Tracker 。
 先阅读 README.md 和 agent.md，再进行任何修改。先使用仓库中由作者授权公开的
 个人跑步样例数据；不要连接手表，也不要向我索取登录凭据。请创建本地 Python
-环境，安装 warehouse/requirements.txt，从
-personal_duckdb/joanna_fitness.duckdb 重新生成
-dashboard/personal-preview.html，并为我打开。展示看板顶部的运动员选择器和
-Alerts / 关注点标签页，选一条提示解释它的日期、指标数值、基线或规则及数据来源。
+环境，安装 warehouse/requirements.txt，启动 dashboard/action_server.py，
+为我打开 http://127.0.0.1:8768/dashboard。展示看板顶部的运动员选择器和
+关注点标签页，选一条提示解释它的日期、指标数值、基线或规则及数据来源。
 所有数据留在本地，不要发布或上传我的数据。最后说明你实际验证了哪些步骤；
 如果遇到安装错误，请如实报告，不要声称已经成功。
 ```
 
-如果本地还没有项目，Agent 可以自行获取仓库。首次展示使用[随仓库提供的个人看板](dashboard/personal-preview.html)和单独授权的数据许可；不需要 StarRocks 服务、COROS 登录或 DOSI 命令行。如果只想先看效果，也可以直接打开该 HTML 文件，选择 **Alerts / 关注点**。
+如果本地还没有项目，Agent 可以自行获取仓库。首次展示由本地服务在每次刷新时读取个人 DuckDB 和本体规则；不需要 StarRocks 服务、COROS 登录或 DOSI 命令行。[单独的 HTML 预览](dashboard/personal-preview.html)是离线快照。
+
+请通过 `/dashboard` 或生成好的 `dashboard/personal-preview.html` 打开跑步能力页面。`dashboard/index.template.html` 是页面模板，尚未注入数据，不能直接打开使用。
 
 ### 手动启动（备选）
 
-下载仓库、创建 Python 环境并重新生成个人看板：
+下载仓库、创建 Python 环境并启动本地看板：
 
 ```sh
 git clone https://github.com/joannahe/AI-Runner-Tracker.git
 cd AI-Runner-Tracker
 python3 -m venv .venv
 .venv/bin/python -m pip install -r warehouse/requirements.txt
-.venv/bin/python dashboard/build.py --personal
-python3 -m http.server 8000
+.venv/bin/python dashboard/action_server.py
 ```
 
-访问 `http://127.0.0.1:8000/dashboard/personal-preview.html`，打开 **Alerts / 关注点**。按 Ctrl+C 停止服务。看板是静态快照；重新生成时只读取仓库内的 DuckDB 文件，不会实时获取 COROS 数据。Python 依赖安装 DuckDB 1.5.6，用于看板和测试数据构建；语义查询需单独安装 DOSI CLI。构建脚本生成兼容 DuckDB v1.5 存储格式的数据库，供 DOSI 0.2.2 使用。个人数据已移除出生日期，保留跑步指标。
+访问 `http://127.0.0.1:8768/dashboard`，打开 **关注点**。每次刷新都会读取最新的本地 DuckDB 数据和本体规则，再由页面重新计算检查点；新增手表数据仍需先导入本地数据库，刷新页面不会直接连接 COROS。按 Ctrl+C 停止服务。依赖中指定了兼容随仓库快照和 DOSI CLI 的 DuckDB 1.5.6 系列。个人数据已移除出生日期，保留跑步指标。
 
 **可选：复现虚构测试案例。** 需要带 `venv` 和 `pip` 的 Python 3。以下命令会创建包含三位虚构运动员的独立数据库和离线看板：
 
@@ -106,7 +106,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 | 数据包 | 内容 | 用途 |
 | --- | --- | --- |
 | 虚构测试数据 | 三位虚构运动员；DuckDB / StarRocks 表结构和种子 SQL、目标、计划、指标及验收结果 | 首次运行与可复现验证 |
-| Joanna 的个人快照 | 一位运动员；22 张基础表和 7 份分析视图结果，含 82 条活动、111 条跑步观察、96 天睡眠、93 天静息心率、37 天每日负荷及 166 条夜间 HRV 评估 | 真实本地看板与可选 DOSI 查询 |
+| Joanna 的个人快照 | 一位运动员；22 张基础表和 7 份分析视图结果，含 88 条活动、115 条跑步观察及 171 条夜间 HRV 评估；本地 DuckDB 另有已批准的半马目标与训练计划 | 真实本地看板与可选 DOSI 查询 |
 | 个人 StarRocks 重建包 | 基于同一授权快照的表结构、种子数据、核验 SQL、清单和 ZIP | 在单独的本地 StarRocks 库中重建个人数据 |
 | 看板快照 | 虚构与个人 HTML 看板；个人 HTML 内嵌观察数据 | 无需服务器即可浏览 |
 | 导入器 | COROS 授权及 Garmin Personal API Key / CSV 流程；写入被 Git 忽略的私有 DuckDB | 在本地导入新用户自己的数据 |
@@ -131,7 +131,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 1. 打开 [DuckDB 语义模型](fitness_analysis.yaml)，查看 `running_observation` 与 `measured_run_distance_km`：后者按一致口径汇总实测跑量。[StarRocks 对应模型](fitness_analysis.starrocks.yaml)也在仓库中。
 2. 打开[本体](subject/ontology/fitness.ontology.yaml)、[DOSI 映射文件](subject/ontology/fitness.mapping.yaml)及[映射核查表](ontology_bindings.yaml)，沿 `Athlete → TrainingSession → SourceActivity` 和 `RecoveryState → OvernightHRV` 查看概念如何关联数据集与证据。`dosi describe TrainingSession --mapping subject/ontology/fitness.mapping.yaml` 可检查一个已映射概念。
 3. 阅读[规则目录](fitness_ontology.yaml)和[教练工作约定](TRAINING_COACH_AGENT.md)。它们指导 Agent 如何解释指标和检查证据；DOSI **不会**自动执行这些教练规则或修改已批准的计划。
-4. 打开[虚构数据看板](dashboard/index.html)或[作者个人预览](dashboard/personal-preview.html)。在 **Alerts / 关注点** 中展开按概念整理的观察及指标证据。个人半马目标与训练周草案是基于历史数据的 Agent 工作流示例，并非已批准、已保存的计划或实时 DOSI 查询。
+4. 打开[虚构数据看板](dashboard/index.html)或[作者个人预览](dashboard/personal-preview.html)。「关注点」会默认打开。作者个人 DuckDB 中已生效的是第 3 版详细训练计划；第 1 版保留为旧版，第 2 版已撤回。单独的 HTML 是离线导出；本地服务每次刷新都会重新读取 DuckDB。
 
 ### 可以交给 Agent 测试的问题
 
@@ -148,7 +148,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 | “我离目标更近了吗？” | 当前版本的 `Goal → GoalCriterion`、对应证据和评估；个人目标或可比成绩缺失时明确说明。 |
 | “比赛后能练强度吗？训练安排合理吗？” | 经核实的赛程距离、运动员自己的赛后恢复设置，以及按日期记录的计划强度；计划字段不足时不能断言有冲突或已经安全。 |
 
-随仓库提供的个人快照有观测数据，但没有已保存的个人目标、按日期的个人训练计划或已计算的个人 `RecoveryState`；虚构测试库有示例目标和计划。DOSI 负责概念映射和语义指标查询；Agent 需要依据证据应用文档中的复核规则，不能声称 DOSI 会自动执行教练规则、修改计划或发送提醒。
+当前本地个人 DuckDB 已保存目标、按日期的训练计划及批准状态；尚无已计算的个人 `RecoveryState`。虚构测试库也有示例目标和计划。DOSI 负责概念映射和语义指标查询；Agent 需要依据证据应用本体中的复核规则，不能声称 DOSI 会自动执行教练规则、修改计划或发送提醒。
 
 ### 在本地确认建议行动
 
@@ -160,11 +160,13 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 .venv/bin/python dashboard/action_server.py
 ```
 
-打开 `http://127.0.0.1:8768/dashboard` 查看个人快照，或打开 `/demo` 查看虚构数据。展开触发的告警，确认一项本体中定义的建议行动。服务会把**已批准的请求**写入 Git 忽略的 `dashboard/private_data/approved_actions.jsonl`；它不会私自修改已批准的计划，也不会调用尚未运行的 Agent。将 [Agent 指南](agent.md)交给本地 Agent，请它处理待办请求。Agent 须重新核对数据与目标计划，在 `dashboard/private_data/` 中创建带版本的**草案**，再通过 `dashboard/agent_actions.py` 回写结果。页面在此之前显示“等待中”。如缺少目标或具体训练安排，Agent 应记录缺失项，不得声称已修改计划。
+打开 `http://127.0.0.1:8768/dashboard` 查看实时读取本地数据的个人看板，或打开 `/demo` 查看虚构数据的离线示例。展开触发的告警，确认一项本体中定义的建议行动。服务会把**已批准的请求**写入 Git 忽略的 `dashboard/private_data/approved_actions.jsonl`；它不会私自修改已批准的计划，也不会调用尚未运行的 Agent。将 [Agent 指南](agent.md)交给本地 Agent，请它处理待办请求。Agent 须重新核对数据与目标计划，在 `dashboard/private_data/` 中创建带版本的**草案**，再通过 `dashboard/agent_actions.py` 回写结果。页面在此之前显示“等待中”。如缺少目标或具体训练安排，Agent 应记录缺失项，不得声称已修改计划。
 
-通过本地服务打开「关注点」时，页面会重新读取 `fitness_ontology.yaml` 中当前的 `ai_context.x_coaching_knowledge` 规则目录。恢复检查的比较方式、阈值和基线要求由该目录提供。单独打开 HTML 文件时使用生成页面时嵌入的规则快照；修改规则后需要重新生成。运动数据同样是生成时的快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
+每次打开或刷新本地服务的 `/dashboard` 页面，服务都会重新读取个人 DuckDB 和 `fitness_ontology.yaml` 中的 `ai_context.x_coaching_knowledge` 规则目录，再由页面重新计算关注点。单独打开 HTML 文件或 `/demo` 时仍使用离线快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
 
-个人数据的“关注点”页现在按“先看 Agent 的示例计划，再看规则建议如何调整”展示周跑量场景：最近两个完整周记录为 8.45 公里和 26.70 公里；演示初稿为 28.0 公里，减量建议为 24.0 公里，并列出每天距离。前一周跑量较低，因此增幅本身不能证明训练不安全。此处是待核对的情景草案，并非已经保存的计划；行动请求会把具体建议交给本地 Agent，Agent 仍须确认可跑日期、恢复情况和现有计划后才能写入新草案。
+个人数据的“关注点”页可按周查看已生效的第 3 版详细计划：每次训练含热身、主训练、放松，以及估算跑量、配速和心率；周跑量含热身与放松。DEKA FIT 双人赛在分工确认前显示个人跑量范围。告警依据第 3 版计划检查训练强度间隔、赛后安排及恢复信号。第 3 版将阈值训练目标更新为 5:30–5:55/公里、155–165 bpm；这是一条个人训练目标，不会覆盖 COROS 给出的阈值配速估计。
+
+以后调整这类目标范围，可执行 `.venv/bin/python dashboard/set_training_pace_target.py --fast 5:30 --slow 5:55 --effective-date 2026-11-24`，将速度和生效日期换成自己的数据。脚本会把新的个人目标作为有版本的 `running_pace_zone` 记录保存。然后请 Agent 查询当前目标、设备估计和近期跑步记录，生成新的待确认训练计划版本；已批准计划不会自动更改。
 
 ### 在本地使用作者的真实数据快照
 
@@ -194,7 +196,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnig
 - `lineage.html`：带中英文切换的公共模型与本体离线预览。本地导入器运行时可访问 `http://127.0.0.1:8767/lineage`。
 - `dosi-ontology-view.html`：DOSI 生成的本体查看器，可查看实际映射的概念与连接。
 - `dashboard/index.html`：虚构数据的离线跑步能力看板；`dashboard/personal-preview.html` 使用作者历史数据。看板有默认英文的通用界面、中英文切换、日期筛选和顶部运动员选择器。运行 `python3 dashboard/build.py` 或追加 `--personal` 可重新生成；若要加入其他用户的私有导入数据，给个人构建命令追加 `--additional-db coros_import/private_data/coros_import.duckdb`，多个数据库可重复该参数。界面与图表选择参考了作者的 Datus 导出和入口组件；已实现部分及差异见[复刻说明](dashboard/RECONSTRUCTION.md)。
-- `personal_duckdb/joanna_fitness.duckdb`：2026-11-17 更新的作者 StarRocks 数据本地分析快照，位于 `fitness_demo` schema，含 22 张基础表和 7 份物化视图结果，包含 166 条 COROS 夜间 HRV 评估；此文件中的视图结果是静态的。
+- `personal_duckdb/joanna_fitness.duckdb`：截至 2026-11-23 的作者运动数据本地分析快照，位于 `fitness_demo` schema，含 22 张基础表和 7 份物化视图结果，包含 171 条 COROS 夜间 HRV 评估；本地另存已批准的个人训练计划。此文件中的视图结果是静态的。
 - `personal_starrocks/schema.sql`、`seed.sql`、`verify.sql`、`manifest.json`：从同一快照生成的 StarRocks 本地重建包，目标是空的 `joanna_fitness` 数据库；`personal_starrocks.zip` 包含相同文件。StarRocks 版本使用实时视图。详见[个人数据说明](personal_starrocks/README.md)。
 - `warehouse/build_personal_overlay.py`：合并虚构数据与受追踪的个人快照，生成与默认 DuckDB DOSI 模型和当前 DOSI 引擎兼容的 `warehouse/running_demo_personal.duckdb`。其中仍有虚构运动员，分析单人数据时应按运动员筛选；不会伪造个人 `RecoveryState` 计算结果。
 - `warehouse/build.py`：虚构行数据的唯一来源；生成两套匹配的 SQL 表结构和种子文件，同步独立语义模型到项目目录，并在本地建立 DOSI 可读取的 `warehouse/running_demo.duckdb`。
@@ -231,7 +233,7 @@ dosi query --mapping starrocks_project/subject/ontology/fitness.mapping.yaml --m
 
 在虚构数据上，所有运动员的 `measured_run_distance_km` 合计为 **41**，`run_session_count` 为 **5**，去除一条重复活动记录后的标准 `coros_training_load` 为 **868**，虚构的正式 10K 成绩为 **3190 秒**。虚构看板默认显示 `demo_01`（四次跑步共 33 公里）。`verify_duckdb.py` 会在 DuckDB 中执行 DOSI 生成的 SQL。虚构 StarRocks DDL 尚未在实时的本地 StarRocks 实例中执行。
 
-更新后的个人快照包含 82 条活动、111 条跑步观察，以及 2026-05-21 至 2026-11-17 的 166 条夜间 HRV 评估。个人 StarRocks 包从实际 StarRocks 数据源导出，并与 DuckDB 快照核对；尚未加载到单独的本地 StarRocks 服务。再次发布个人文件前请检查内容；SQL 中的 Base64 编码**不是**隐私保护措施。
+更新后的本地个人快照包含 88 条活动、115 条跑步观察，以及截至 2026-11-23 的 171 条夜间 HRV 评估。随仓库提供的个人 StarRocks 重建包生成时间较早，不含此后同步的运动记录及本地训练计划；使用前应重新导出并核对。再次发布个人文件前请检查内容；SQL 中的 Base64 编码**不是**隐私保护措施。
 
 默认的 `fitness_analysis*.yaml` 模型面向 `fitness_demo` 测试 schema，包含虚构目标和规则表。`warehouse/running_demo_personal.duckdb` 会把作者已映射的源记录加入该 schema，可供默认 DuckDB 映射查询。例如：`dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`。个人 StarRocks 重建包使用原始 `joanna_fitness` 数据库，并不包含这些虚构表；若用 DOSI 查询它，需要匹配的个人模型，不能只替换数据库名。
 

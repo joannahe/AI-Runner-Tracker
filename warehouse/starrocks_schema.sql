@@ -460,7 +460,30 @@ CREATE TABLE IF NOT EXISTS planned_action (
   verified_event_id VARCHAR(255),
   match_method VARCHAR(255),
   match_reviewed_at_utc DATETIME,
-  source VARCHAR(255)
+  source VARCHAR(255),
+  planned_intensity VARCHAR(255),
+  title_zh VARCHAR(255),
+  target_distance_km DECIMAL(18,3),
+  target_distance_min_km DECIMAL(18,3),
+  target_distance_max_km DECIMAL(18,3),
+  distance_basis VARCHAR(255)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS planned_action_segment (
+  athlete_id VARCHAR(255),
+  plan_id VARCHAR(255),
+  plan_version BIGINT,
+  action_id VARCHAR(255),
+  segment_ordinal BIGINT,
+  segment_type VARCHAR(255),
+  title_en VARCHAR(255),
+  title_zh VARCHAR(255),
+  target_duration_min BIGINT,
+  target_distance_km DECIMAL(18,3),
+  target_pace_fast_s_per_km BIGINT,
+  target_pace_slow_s_per_km BIGINT,
+  target_hr_low_bpm BIGINT,
+  target_hr_high_bpm BIGINT
 ) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
 
 CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32)) ENGINE=OLAP DUPLICATE KEY(athlete_id, local_date) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');

@@ -10,9 +10,9 @@ The watch inputs are shown together because COROS and Garmin are two ways to pro
 
 ## How the dashboard relates to DOSI
 
-The dashboard is a local, offline view built with direct SQL over DuckDB. **It does not call DOSI or traverse the ontology when a visitor opens a chart or alert.** Its calculations follow the same modeled distinctions as the DOSI examples: a real workout versus duplicate source activities, measured versus reference distance, official versus watch race time, and missing observations versus zero. This makes the dashboard useful without an engine running in the background, while the DOSI route offers inspectable definitions and generated SQL for model-backed metrics and three derived observation subtypes. The current project does not automatically reconcile every dashboard calculation with DOSI on each build.
+The local dashboard service reads DuckDB and the ontology rule catalog on each page request, then the browser calculates charts and review signals. A standalone HTML export remains available for offline viewing. **The dashboard does not call DOSI for each chart or alert.** Its calculations follow the same modeled distinctions as the DOSI examples: a real workout versus duplicate source activities, measured versus reference distance, official versus watch race time, and missing observations versus zero. The DOSI route offers an inspectable definition and generated SQL for a model-backed metric query. The current project does not automatically reconcile every dashboard calculation with DOSI on each refresh.
 
-The ontology contributes the meaning and evidence path behind broader questions. For example, an Agent reviewing an alert about recovery can trace `RecoveryState` to training load, sleep, HRV, resting heart rate, and provider recovery observations. The alert page implements its own review checks from the available data; the ontology and [coaching rule catalog](fitness_ontology.yaml) explain what to inspect and how to describe it. DOSI does not execute those coaching rules or change a training plan automatically.
+The ontology contributes the meaning and evidence path behind broader questions. For example, an Agent reviewing an alert about recovery can trace `RecoveryState` to training load, sleep, HRV, resting heart rate, and provider recovery observations. The alert page evaluates checks using the current data and [ontology coaching rule catalog](fitness_ontology.yaml). DOSI does not execute those coaching rules or change a training plan automatically.
 
 ## Semantic model and ontology in this project
 
@@ -26,7 +26,7 @@ The [ontology](subject/ontology/fitness.ontology.yaml) defines concepts such as 
 
 ## Storage choice
 
-**Default: DuckDB.** The fictional fixture, confirmed watch imports, and the optional owner snapshot live in separate local database files with a compatible `fitness_demo` schema. The dashboard builder reads one or more DuckDB files and writes an offline HTML snapshot. It does not call DOSI.
+**Default: DuckDB.** The fictional fixture, confirmed watch imports, and the optional owner snapshot live in separate local database files with a compatible `fitness_demo` schema. The local dashboard service reads the personal DuckDB and ontology on every refresh. The builder can also write an offline HTML snapshot. Neither path calls DOSI for chart rendering.
 
 **Optional: StarRocks.** The repository includes schema/seed SQL and a matching DOSI model/ontology pair for queries against a separately configured StarRocks server. Current watch imports write to local DuckDB; the dashboard does not query StarRocks directly. To show StarRocks data in the dashboard, first use `dashboard/sync_starrocks.py` to make a local DuckDB snapshot, then build the dashboard from that snapshot. This is a bridge, not an automatic live sync.
 
