@@ -138,14 +138,37 @@ def merge_databases(paths, personal=False):
     return merged
 
 
-def render_dashboard(personal=False, db=None, additional_dbs=()):
+def render_dashboard(personal=False, db=None, additional_dbs=(), coverage_file=None):
     """Read the warehouse and ontology now, returning a fresh HTML page."""
     primary = Path(db or (PERSONAL_DB if personal else DB)).expanduser().resolve()
     paths = [primary, *[Path(path).expanduser().resolve() for path in additional_dbs]]
     payload = merge_databases(paths, personal)
+    payload["meta"]["activity_coverage"] = {}
+    if coverage_file:
+        coverage = json.loads(Path(coverage_file).read_text(encoding="utf-8"))
+        if not isinstance(coverage, dict):
+            raise ValueError("Coverage manifest must map athlete IDs to verified YYYY-MM-DD dates")
+        known = {row["athlete_id"] for row in payload["athletes"]}
+        for athlete_id, dates in coverage.items():
+            if athlete_id not in known or not isinstance(dates, list):
+                raise ValueError("Coverage manifest has an unknown athlete or invalid date list")
+            for day in dates:
+                if not isinstance(day, str) or date.fromisoformat(day).isoformat() != day:
+                    raise ValueError("Coverage dates must use YYYY-MM-DD")
+            payload["meta"]["activity_coverage"][athlete_id] = sorted(set(dates))
+    else:
+        for path in paths:
+            with duckdb.connect(str(path), read_only=True) as conn:
+                present = conn.execute("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='fitness_demo' AND table_name='activity_import_coverage'").fetchone()[0]
+                if present:
+                    coverage_rows = conn.execute("SELECT athlete_id, CAST(local_date AS VARCHAR) FROM fitness_demo.activity_import_coverage WHERE status='verified_complete'").fetchall()
+                    for athlete_id, day in coverage_rows:
+                        payload["meta"]["activity_coverage"].setdefault(athlete_id, []).append(day)
+        for athlete_id, dates in payload["meta"]["activity_coverage"].items():
+            payload["meta"]["activity_coverage"][athlete_id] = sorted(set(dates))
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     ontology = yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))
-    rules = ontology["x_coaching_knowledge"]
+    rules = ontology["ai_context"]["x_coaching_knowledge"]
     rule_codes = {item["code"] for item in rules["rule_bindings"]}
     required = {"OvertrainingRisk", "WeeklyMileageIncreaseReview", "PolarizedHighIntensityReview", "CompromisedRecovery", "PossibleExerciseRelatedFatigueReview", "PostRaceRecoveryReview", "HardEasySequenceReview"}
     if not required <= rule_codes:
@@ -160,9 +183,10 @@ def main():
     parser.add_argument("--personal", action="store_true", help="Read the bundled personal dataset and write personal-preview.html")
     parser.add_argument("--db", type=Path, help="Primary local DuckDB source")
     parser.add_argument("--additional-db", type=Path, action="append", default=[], help="Additional athlete DuckDB source; repeat for multiple imports")
+    parser.add_argument("--coverage-file", type=Path, help="Verified complete activity-import dates by athlete ID")
     args = parser.parse_args()
     output = Path(__file__).with_name("personal-preview.html" if args.personal else "index.html")
-    html, payload = render_dashboard(args.personal, args.db, args.additional_db)
+    html, payload = render_dashboard(args.personal, args.db, args.additional_db, args.coverage_file)
     output.write_text(html, encoding="utf-8")
     print(f"Built {output} from {1 + len(args.additional_db)} DuckDB source(s); {len(payload['athletes'])} athletes, {len(payload['runs'])} running sessions")
 

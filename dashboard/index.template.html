@@ -236,10 +236,12 @@ function alerts(){
   }
   const weekStart=d=>shift(d,-(new Date(d+'T12:00:00Z').getUTCDay()+6)%7),currentMonday=weekStart(asOf),lastMonday=shift(currentMonday,-7),priorMonday=shift(lastMonday,-7);
   const measured=own(DATA.runs).filter(x=>x.measured_distance_m>0),wk=(lo,hi)=>sum(measured.filter(x=>x.date>=lo&&x.date<hi),'measured_distance_m')/1000,previous=wk(priorMonday,lastMonday),last=wk(lastMonday,currentMonday);
+  const verifiedDays=new Set(DATA.meta.activity_coverage?.[state.athlete]||[]),weekCovered=lo=>Array.from({length:7},(_,i)=>shift(lo,i)).every(day=>verifiedDays.has(day));
   const coverage=own(DATA.import_coverage||[]).filter(x=>x.category==='activities'&&x.status==='verified_complete');
   const covered=(lo,hi)=>coverage.some(x=>x.start<=lo&&x.end>=shift(hi,-1));
-  const mileageVerified=covered(priorMonday,lastMonday)&&covered(lastMonday,currentMonday);
-  if(previous>0){let change=last/previous-1,high=change>limits.completed_week_distance_growth_fraction;add('WeeklyMileageIncreaseReview',high?'attention':'clear',shift(currentMonday,-1),
+  const mileageVerified=(weekCovered(priorMonday)&&weekCovered(lastMonday))||(covered(priorMonday,lastMonday)&&covered(lastMonday,currentMonday));
+  const mileageCoverage=mileageVerified;
+  if(previous>0&&mileageCoverage){let change=last/previous-1,high=change>limits.completed_week_distance_growth_fraction;add('WeeklyMileageIncreaseReview',high?'attention':'clear',shift(currentMonday,-1),
     say(high?'Recorded weekly running distance rose sharply':'Recorded weekly running distance stayed steady',high?'记录到的周跑量增加较快':'记录到的周跑量变化平稳'),
     say(`${fmt(previous,1)} → ${fmt(last,1)} km · ${fmt(change*100,1)}%${mileageVerified?'':' · import coverage unverified'}`,`${fmt(previous,1)} → ${fmt(last,1)} 公里 · ${fmt(change*100,1)}%${mileageVerified?'':' · 导入覆盖尚未核验'}`),
     say(`Measured running distance, including running segments in mixed workouts, from ${priorMonday}–${shift(lastMonday,-1)} and ${lastMonday}–${shift(currentMonday,-1)}. ${mileageVerified?'Both import windows verified.':'These recorded totals may omit unsynced activity or unmeasured mixed-workout distance.'}`,`对比 ${priorMonday}–${shift(lastMonday,-1)} 与 ${lastMonday}–${shift(currentMonday,-1)} 的实测跑步距离，包含混合训练中的跑段。${mileageVerified?'两周导入范围均已核验。':'尚可能漏掉未同步活动或缺少实测距离的混合跑段。'}`),
@@ -316,7 +318,7 @@ function alerts(){
     say('Compare future readings and similar runs before changing a goal or training load.','结合后续读数及可比跑步表现，再调整目标或训练量。'));
   const priority={attention:0,context:1,missing:2,clear:3};
   const filter=(key,label)=>`<button type="button" data-alert-filter="${key}" class="${state.alertFilter===key?'active':''}" aria-pressed="${state.alertFilter===key}">${esc(label)}</button>`;
-  const mileageReview=previous>0&&last/previous-1>limits.completed_week_distance_growth_fraction;
+  const mileageReview=mileageCoverage&&previous>0&&last/previous-1>limits.completed_week_distance_growth_fraction;
   const initialKm=last>0?Math.round(last*1.05*10)/10:null;
   const adjustedKm=last>0?Math.round(last*.9*10)/10:null;
   const nextMonday=shift(currentMonday,7);

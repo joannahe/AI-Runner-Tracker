@@ -452,21 +452,21 @@ CREATE TABLE IF NOT EXISTS planned_action (
   action_id VARCHAR(255),
   scheduled_date DATE,
   action_kind VARCHAR(255),
-  planned_intensity VARCHAR(255),
   title VARCHAR(255),
-  title_zh VARCHAR(255),
   target_duration_min BIGINT,
-  target_distance_km DECIMAL(8,2),
-  target_distance_min_km DECIMAL(8,2),
-  target_distance_max_km DECIMAL(8,2),
-  distance_basis VARCHAR(255),
   planning_status VARCHAR(255),
   completion_status VARCHAR(255),
   candidate_event_id VARCHAR(255),
   verified_event_id VARCHAR(255),
   match_method VARCHAR(255),
   match_reviewed_at_utc DATETIME,
-  source VARCHAR(255)
+  source VARCHAR(255),
+  planned_intensity VARCHAR(255),
+  title_zh VARCHAR(255),
+  target_distance_km DECIMAL(18,3),
+  target_distance_min_km DECIMAL(18,3),
+  target_distance_max_km DECIMAL(18,3),
+  distance_basis VARCHAR(255)
 ) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
 
 CREATE TABLE IF NOT EXISTS planned_action_segment (
@@ -479,9 +479,36 @@ CREATE TABLE IF NOT EXISTS planned_action_segment (
   title_en VARCHAR(255),
   title_zh VARCHAR(255),
   target_duration_min BIGINT,
-  target_distance_km DECIMAL(8,2),
+  target_distance_km DECIMAL(18,3),
   target_pace_fast_s_per_km BIGINT,
   target_pace_slow_s_per_km BIGINT,
   target_hr_low_bpm BIGINT,
   target_hr_high_bpm BIGINT
 ) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32)) ENGINE=OLAP DUPLICATE KEY(athlete_id, local_date) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE VIEW v_weekly_running_distance AS
+WITH complete_weeks AS (
+  SELECT athlete_id, DATE_TRUNC('week', local_date) AS week_start
+  FROM activity_import_coverage WHERE status = 'verified_complete'
+  GROUP BY athlete_id, DATE_TRUNC('week', local_date)
+  HAVING COUNT(DISTINCT local_date) = 7
+), current_segments AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY athlete_id, workout_event_id, segment_ordinal ORDER BY analysis_revision DESC) AS revision_rank
+  FROM v_running_observation
+), weekly_runs AS (
+  SELECT athlete_id, DATE_TRUNC('week', event_date) AS week_start,
+    SUM(measured_distance_m) / 1000.0 AS distance_km
+  FROM current_segments
+  WHERE revision_rank = 1 AND segment_kind = 'run' AND distance_status = 'measured' AND measured_distance_m > 0
+  GROUP BY athlete_id, DATE_TRUNC('week', event_date)
+), complete_distance AS (
+  SELECT w.athlete_id, w.week_start, COALESCE(r.distance_km, 0) AS distance_km
+  FROM complete_weeks w LEFT JOIN weekly_runs r ON w.athlete_id = r.athlete_id AND w.week_start = r.week_start
+)
+SELECT cur.athlete_id, cur.week_start, cur.distance_km, prior.distance_km AS prior_distance_km,
+  cur.distance_km / NULLIF(prior.distance_km, 0) - 1 AS growth_ratio
+FROM complete_distance cur JOIN complete_distance prior
+  ON cur.athlete_id = prior.athlete_id AND prior.week_start = DATE_SUB(cur.week_start, INTERVAL 7 DAY)
+WHERE prior.distance_km > 0;

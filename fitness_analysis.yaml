@@ -2509,11 +2509,6 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: action_kind
-  - name: planned_intensity
-    expression:
-      dialects:
-      - dialect: DUCKDB
-        expression: planned_intensity
   - name: title
     expression:
       dialects:
@@ -2524,31 +2519,6 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: target_duration_min
-  - name: title_zh
-    expression:
-      dialects:
-      - dialect: DUCKDB
-        expression: title_zh
-  - name: target_distance_km
-    expression:
-      dialects:
-      - dialect: DUCKDB
-        expression: target_distance_km
-  - name: target_distance_min_km
-    expression:
-      dialects:
-      - dialect: DUCKDB
-        expression: target_distance_min_km
-  - name: target_distance_max_km
-    expression:
-      dialects:
-      - dialect: DUCKDB
-        expression: target_distance_max_km
-  - name: distance_basis
-    expression:
-      dialects:
-      - dialect: DUCKDB
-        expression: distance_basis
   - name: planning_status
     expression:
       dialects:
@@ -2586,6 +2556,71 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: source
+  - name: planned_intensity
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: planned_intensity
+  - name: title_zh
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: title_zh
+  - name: target_distance_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_km
+  - name: target_distance_min_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_min_km
+  - name: target_distance_max_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: target_distance_max_km
+  - name: distance_basis
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: distance_basis
+- name: weekly_running_distance
+  source: fitness_demo.v_weekly_running_distance
+  description: Verified complete consecutive Monday-to-Sunday weeks of measured running, including hybrid run segments.
+    Source copies and superseded revisions are excluded in the warehouse view.
+  primary_key:
+  - athlete_id
+  - week_start
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: athlete_id
+  - name: week_start
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: week_start
+  - name: distance_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: distance_km
+  - name: prior_distance_km
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: prior_distance_km
+  - name: growth_ratio
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: growth_ratio
 - name: planned_action_segment
   description: Ordered warm-up, main-set and cool-down targets for a versioned planned action. Pace and heart-rate
     targets are estimates, not achieved measurements.

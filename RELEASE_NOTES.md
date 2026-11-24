@@ -1,6 +1,6 @@
 # Release notes
 
-## 2026-11-24 — Local coaching and training-plan update
+## Unreleased — [PR #2: Running plan and coaching dashboard](https://github.com/joannahe/AI-Runner-Tracker/pull/2)
 
 ### Running plan
 
@@ -19,20 +19,27 @@
 ### Semantic layer and warehouse
 
 - Added planned action distance fields, segment records, relationships, and weekly planned-distance metrics to both DuckDB and StarRocks model definitions. Updated the ontology mapping for planned segments and intensity.
-- Added `PlannedSegment` as an ontology concept linked to `PlannedAction`, with ordered warm-up, main-set, and cool-down targets. `PlannedAction` now exposes structured intensity, bilingual titles, and planned distance/range fields. Both ontology files embed the corresponding updated semantic model and concept mappings.
+- Added `PlannedSegment` as an ontology concept linked to `PlannedAction`, with ordered warm-up, main-set, and cool-down targets. `PlannedAction` now exposes structured intensity, bilingual titles, and planned distance/range fields. Both DOSI 0.2.2 projects carry these additions in separate semantic model, ontology, and mapping files.
 - Updated local DuckDB and StarRocks DDL templates. The repository does **not** migrate an existing remote StarRocks database.
 
 ### DOSI compatibility
 
-- Validated both DuckDB and StarRocks semantic-model/ontology pairs with **DOSI CLI 0.2.2**. The YAML model version remains `0.2.0.dev0`; this is the model format declaration, not the installed CLI version.
-- DOSI 0.2.2 accepts the embedded `ontology_mappings`, but reports that this legacy form is deprecated in favor of a separate mapping document. `ontology_bindings.yaml` is a project mapping audit, not that new DOSI mapping document. This release does not claim migration to the separate format.
+- Built on the standalone DOSI 0.2.2 mappings merged in PR #1. The YAML model version `0.2.0.dev0` is the format declaration, not the installed CLI version.
+- Validated the updated DuckDB and StarRocks three-file projects through their `fitness.mapping.yaml` entry points. `ontology_bindings.yaml` remains a human-readable audit, not the DOSI mapping file.
 
 ### Verification and limits
 
-- DOSI validated both model/ontology pairs without issues or compile errors; advisory warnings remain. Queries returned the saved personal threshold target and version 3 weekly planned mileage.
+- DOSI validated both mapped projects without issues or compile errors; advisory field warnings and intentional conceptual edges remain. Queries returned the saved personal threshold target and version 3 weekly planned mileage.
 - Rebuilt the fictional DuckDB fixture with a compatible DuckDB version; `warehouse/verify_duckdb.py` passed all fixture and DOSI metric checks.
 - Local dashboard rendering, bilingual tab switching, and reading changed DuckDB data on a new page render were checked. The local service returned HTTP 200.
 - Refreshing `/dashboard` does not fetch new COROS data. Import watch data into the local database first. The coaching rule catalog is evaluated by the dashboard and Agent workflow; DOSI does not automatically execute or approve coaching actions.
+
+## 2026-11-24 — [PR #1: DOSI 0.2.2 mapping upgrade](https://github.com/joannahe/AI-Runner-Tracker/pull/1) (merged)
+
+- Split each DuckDB and StarRocks project into separate Apache Ossie semantic model, ontology, and `fitness.mapping.yaml` files; added schema checks and switched validation and query commands to the mapping entry point.
+- Added queryable `derived_by` ontology subtypes for high and low COROS load days, high-focus run activities, and high weekly mileage growth. The weekly growth path uses measured standalone and hybrid run segments plus independently verified import coverage.
+- Added the warehouse weekly-distance view and coverage table. Refreshed the lineage and ontology views, fixture builder, and English/Chinese setup instructions.
+- Confirmed both mapped projects and fixture metrics with DOSI 0.2.2. This merge did not migrate a live StarRocks database. Other coaching guidance in `ai_context.x_coaching_knowledge` remains separate from DOSI's executable subtype filters.
 
 ## 2026-11-18–19 — Coaching rule and alert updates already on `main`
 

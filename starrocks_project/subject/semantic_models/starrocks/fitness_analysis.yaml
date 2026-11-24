@@ -1,0 +1,3466 @@
+version: 0.2.0.dev0
+name: fitness_analysis
+description: Synthetic running and fitness analytics example. No real athlete data is included.
+ai_context:
+  instructions: Use only fictional demo athletes. Deduplicate workout copies; separate measured and rule-reference
+    pace, official and watch time, and team and individual outcomes. Do not expose names, exact birth dates, or
+    body measurements.
+datasets:
+- description: Fictional athlete identifier, recorded gender, and time zone. No names or birth dates are required.
+  fields:
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+    label: Athlete id
+    name: athlete_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: gender_code
+    label: Gender code
+    name: gender_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: timezone_name
+    label: Timezone name
+    name: timezone_name
+  name: athlete
+  primary_key:
+  - athlete_id
+  source: fitness_demo.athlete
+- custom_extensions:
+  - data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"event_date"}'
+    vendor_name: DATUS
+  description: One real workout after cross-platform deduplication, including race classification and the active
+    analysis revision.
+  fields:
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+    name: athlete_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_event_id
+    label: Workout event id
+    name: workout_event_id
+  - dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_date
+    label: Event date
+    name: event_date
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: started_at_local
+    label: Started at local
+    name: started_at_local
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+    label: Sport code
+    name: sport_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: session_intent
+    label: Session intent
+    name: session_intent
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: is_official_race
+    label: Is official race
+    name: is_official_race
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_name
+    label: Event name
+    name: event_name
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: race_format_code
+    label: Race format code
+    name: race_format_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: division_code
+    label: Division code
+    name: division_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: participation_mode
+    label: Participation mode
+    name: participation_mode
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: partner_ref
+    label: Partner ref
+    name: partner_ref
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: watch_elapsed_s
+    label: Watch elapsed seconds
+    name: watch_elapsed_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: official_finish_s
+    label: Official finish seconds
+    name: official_finish_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: official_penalty_s
+    label: Official penalty seconds
+    name: official_penalty_s
+  name: workout_event
+  primary_key:
+  - athlete_id
+  - workout_event_id
+  source: fitness_demo.workout_event
+- name: activity
+  source: fitness_demo.activity
+  description: A source-platform activity. Multiple copies may refer to the same workout; use the preferred record.
+  primary_key:
+  - athlete_id
+  - activity_id
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"activity_date"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: activity_id
+    label: Activity id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: activity_id
+  - name: activity_date
+    label: Activity date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: activity_date
+  - name: sport_code
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+  - name: workout_event_id
+    label: Workout event id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_event_id
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: source_activity_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_activity_id
+  - name: workout_duration_s
+    label: Workout duration seconds
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_duration_s
+  - name: elapsed_duration_s
+    label: Elapsed duration seconds
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: elapsed_duration_s
+  - name: distance_m
+    label: Distance meters
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: distance_m
+  - name: avg_hr_bpm
+    label: Average heart rate beats per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_hr_bpm
+  - name: avg_cadence_spm
+    label: Average cadence steps per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_cadence_spm
+  - name: avg_power_w
+    label: Average power watts
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_power_w
+  - name: training_load
+    label: Training load
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: training_load
+  - name: training_focus
+    label: COROS primary training focus
+    description: Provider label for the activity's primary training effect; one label per workout, not time in intensity
+      zones.
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: training_focus
+  - name: calories_kcal
+    label: Calories kcal
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: calories_kcal
+  - name: dedup_status
+    label: Dedup status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: dedup_status
+- custom_extensions:
+  - data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"event_date"}'
+    vendor_name: DATUS
+  description: Standalone and hybrid running observations. Preserve heart rate and cadence when measured pace is
+    unavailable.
+  fields:
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+    name: athlete_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_event_id
+    name: workout_event_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: analysis_revision
+    name: analysis_revision
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_ordinal
+    name: segment_ordinal
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: run_index
+    label: Run index
+    name: run_index
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: station_index
+    label: Station index
+    name: station_index
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_kind
+    label: Segment kind
+    name: segment_kind
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: exercise_code
+    label: Exercise code
+    name: exercise_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: run_context
+    label: Run context
+    name: run_context
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: phase_kind
+    label: Phase kind
+    name: phase_kind
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: run_environment
+    label: Run environment
+    name: run_environment
+  - dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_date
+    label: Event date
+    name: event_date
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observation_date
+    label: Observation date
+    name: observation_date
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: duration_basis
+    label: Duration basis
+    name: duration_basis
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: distance_status
+    label: Distance status
+    name: distance_status
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: pace_basis
+    label: Pace basis
+    name: pace_basis
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: duration_s
+    label: Duration seconds
+    name: duration_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: measured_distance_m
+    label: Measured distance meters
+    name: measured_distance_m
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: planned_distance_m
+    label: Planned distance meters
+    name: planned_distance_m
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: reported_pace_s_per_km
+    label: Reported pace seconds per kilometers
+    name: reported_pace_s_per_km
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: measured_pace_s_per_km
+    label: Measured pace seconds per kilometers
+    name: measured_pace_s_per_km
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: pace_time_s
+    label: Pace time seconds
+    name: pace_time_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: pace_distance_m
+    label: Pace distance meters
+    name: pace_distance_m
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_hr_bpm
+    label: Average heart rate beats per minute
+    name: avg_hr_bpm
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hr_weighted_sum_bpm_s
+    label: Heart rate weighted sum beats per minute seconds
+    name: hr_weighted_sum_bpm_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hr_weight_s
+    label: Heart rate weight seconds
+    name: hr_weight_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hr_sample_coverage_s
+    label: Heart rate sample coverage seconds
+    name: hr_sample_coverage_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_cadence_spm
+    label: Average cadence steps per minute
+    name: avg_cadence_spm
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: cadence_weighted_sum_spm_s
+    label: Cadence weighted sum steps per minute seconds
+    name: cadence_weighted_sum_spm_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: cadence_weight_s
+    label: Cadence weight seconds
+    name: cadence_weight_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: cadence_sample_coverage_s
+    label: Cadence sample coverage seconds
+    name: cadence_sample_coverage_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+    name: sport_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: session_intent
+    name: session_intent
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: is_official_race
+    name: is_official_race
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_name
+    name: event_name
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: race_format_code
+    name: race_format_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: division_code
+    name: division_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: participation_mode
+    name: participation_mode
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: partner_ref
+    name: partner_ref
+  name: running_observation
+  source: fitness_demo.v_running_observation
+- custom_extensions:
+  - data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"event_date"}'
+    vendor_name: DATUS
+  description: Identified stations in official HYROX races, with team watch times. Compare only matching race conditions.
+  fields:
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+    name: athlete_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_event_id
+    name: workout_event_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: analysis_revision
+    name: analysis_revision
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_ordinal
+    name: segment_ordinal
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: run_index
+    label: Run index
+    name: run_index
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: station_index
+    label: Station index
+    name: station_index
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_kind
+    label: Segment kind
+    name: segment_kind
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: exercise_code
+    label: Exercise code
+    name: exercise_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: exercise_name_zh
+    label: Exercise name zh
+    name: exercise_name_zh
+  - dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_date
+    label: Event date
+    name: event_date
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: duration_s
+    label: Duration seconds
+    name: duration_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: watch_station_time_s
+    label: Watch station time seconds
+    name: watch_station_time_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: official_station_finish_s
+    label: Official station finish seconds
+    name: official_station_finish_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: official_penalty_s
+    label: Official penalty seconds
+    name: official_penalty_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: comparison_conditions_verified
+    label: Comparison conditions verified
+    name: comparison_conditions_verified
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: comparison_group_key
+    label: Comparison group key
+    name: comparison_group_key
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: repetitions
+    label: Repetitions
+    name: repetitions
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: prescribed_repetitions
+    label: Prescribed repetitions
+    name: prescribed_repetitions
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: load_total_kg
+    label: Load total kg
+    name: load_total_kg
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: load_per_hand_kg
+    label: Load per hand kg
+    name: load_per_hand_kg
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+    name: sport_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: session_intent
+    name: session_intent
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: is_official_race
+    name: is_official_race
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_name
+    name: event_name
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: race_format_code
+    name: race_format_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: division_code
+    name: division_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: participation_mode
+    name: participation_mode
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: partner_ref
+    name: partner_ref
+  name: hyrox_station
+  source: fitness_demo.v_hyrox_race_station
+- custom_extensions:
+  - data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"event_date"}'
+    vendor_name: DATUS
+  description: Rule-reference legs for official doubles races. Keep nominal distance and pace separate from measured
+    values.
+  fields:
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+    name: athlete_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_event_id
+    name: workout_event_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: analysis_revision
+    name: analysis_revision
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_ordinal
+    name: segment_ordinal
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: run_index
+    label: Run index
+    name: run_index
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_kind
+    label: Segment kind
+    name: segment_kind
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: exercise_code
+    label: Exercise code
+    name: exercise_code
+  - dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_date
+    label: Event date
+    name: event_date
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: duration_s
+    label: Duration seconds
+    name: duration_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: reference_distance_m
+    label: Reference distance meters
+    name: reference_distance_m
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: reference_distance_basis
+    label: Reference distance basis
+    name: reference_distance_basis
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_reference_pace_s_per_km
+    label: Rule reference pace seconds per kilometers
+    name: rule_reference_pace_s_per_km
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_id
+    label: Rule id
+    name: rule_id
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_match_status
+    label: Rule match status
+    name: rule_match_status
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_rule_season_verified
+    label: Event rule season verified
+    name: event_rule_season_verified
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: measured_pace_s_per_km
+    label: Measured pace seconds per kilometers
+    name: measured_pace_s_per_km
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_hr_bpm
+    label: Average heart rate beats per minute
+    name: avg_hr_bpm
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hr_weighted_sum_bpm_s
+    name: hr_weighted_sum_bpm_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hr_weight_s
+    name: hr_weight_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_cadence_spm
+    label: Average cadence steps per minute
+    name: avg_cadence_spm
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: cadence_weighted_sum_spm_s
+    name: cadence_weighted_sum_spm_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: cadence_weight_s
+    name: cadence_weight_s
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_name
+    name: event_name
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: race_format_code
+    name: race_format_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: participation_mode
+    name: participation_mode
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: division_code
+    name: division_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: partner_ref
+    name: partner_ref
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: is_official_race
+    name: is_official_race
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+    name: sport_code
+  - expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: session_intent
+    name: session_intent
+  name: running_rule_reference
+  source: fitness_demo.v_running_rule_reference
+- name: daily_training_load
+  source: fitness_demo.athlete_daily_training_load
+  description: COROS daily short-term and long-term training load, at athlete/source/local-date grain; do not add
+    daily values across activities.
+  primary_key:
+  - athlete_id
+  - source
+  - local_date
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"local_date"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: local_date
+    label: Local date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: local_date
+  - name: short_term_load
+    label: Short term load
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: short_term_load
+  - name: long_term_load
+    label: Long term load
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: long_term_load
+  - name: load_ratio
+    label: Load ratio
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: load_ratio
+  - name: provider_status
+    label: Provider status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: provider_status
+  - name: observed_at_utc
+    label: Observed at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_at_utc
+  - name: source_snapshot_id
+    label: Source snapshot id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_snapshot_id
+- name: daily_sleep
+  source: fitness_demo.athlete_daily_sleep
+  description: COROS daily sleep at athlete/source/wake-date grain. Align overnight sleep to wake date and keep
+    missing values null.
+  primary_key:
+  - athlete_id
+  - source
+  - wake_date
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"wake_date"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: wake_date
+    label: Wake date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: wake_date
+  - name: data_status
+    label: Data status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: data_status
+  - name: source_score_raw
+    label: Source score raw
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_score_raw
+  - name: sleep_score
+    label: Sleep score
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sleep_score
+  - name: daily_sleep_min
+    label: Daily sleep min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: daily_sleep_min
+  - name: main_sleep_min
+    label: Main sleep min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: main_sleep_min
+  - name: main_period_min
+    label: Main period min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: main_period_min
+  - name: nap_sleep_min
+    label: Nap sleep min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: nap_sleep_min
+  - name: deep_pct
+    label: Deep percent
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: deep_pct
+  - name: light_pct
+    label: Light percent
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: light_pct
+  - name: rem_pct
+    label: Rem percent
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rem_pct
+  - name: awake_pct
+    label: Awake percent
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: awake_pct
+  - name: awake_min
+    label: Awake min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: awake_min
+  - name: awake_count
+    label: Awake count
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: awake_count
+  - name: metrics_scope
+    label: Metrics scope
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metrics_scope
+  - name: main_start_local
+    label: Main start local
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: main_start_local
+  - name: main_end_local
+    label: Main end local
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: main_end_local
+  - name: observed_at_utc
+    label: Observed at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_at_utc
+  - name: source_snapshot_id
+    label: Source snapshot id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_snapshot_id
+- name: daily_hrv
+  source: fitness_demo.athlete_daily_hrv
+  description: COROS official overnight HRV assessment by athlete, source and wake date. Preserve the provider personal
+    normal range and evaluation; do not recalculate from raw points.
+  primary_key:
+  - athlete_id
+  - source
+  - wake_date
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"wake_date"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: wake_date
+    label: Wake date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: wake_date
+  - name: hrv_avg_ms
+    label: Official overnight HRV average (ms)
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hrv_avg_ms
+  - name: normal_low_ms
+    label: Personal normal range lower bound (ms)
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: normal_low_ms
+  - name: normal_high_ms
+    label: Personal normal range upper bound (ms)
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: normal_high_ms
+  - name: baseline_ms
+    label: COROS personal HRV baseline (ms)
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: baseline_ms
+  - name: provider_evaluation
+    label: COROS HRV evaluation
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: provider_evaluation
+  - name: data_status
+    label: Data status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: data_status
+  - name: observed_at_utc
+    label: Observed at UTC
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_at_utc
+  - name: source_snapshot_id
+    label: Source snapshot ID
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_snapshot_id
+- name: daily_resting_hr
+  source: fitness_demo.athlete_daily_resting_hr
+  description: COROS daily resting heart rate. No-data readings are null and excluded from averages.
+  primary_key:
+  - athlete_id
+  - source
+  - local_date
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"local_date"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: local_date
+    label: Local date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: local_date
+  - name: rhr_bpm
+    label: Resting heart rate beats per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rhr_bpm
+  - name: data_status
+    label: Data status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: data_status
+  - name: observed_at_utc
+    label: Observed at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_at_utc
+  - name: source_snapshot_id
+    label: Source snapshot id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_snapshot_id
+- name: recovery_observation
+  source: fitness_demo.athlete_recovery_observation
+  description: A recovery estimate at one capture time, not a historical daily series.
+  primary_key:
+  - athlete_id
+  - observation_id
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"observed_at_utc"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: observation_id
+    label: Observation id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observation_id
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: observed_at_utc
+    label: Observed at utc
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_at_utc
+  - name: recovery_pct
+    label: Recovery percent
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: recovery_pct
+  - name: recovery_level
+    label: Recovery level
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: recovery_level
+  - name: estimated_full_recovery_h
+    label: Estimated full recovery h
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: estimated_full_recovery_h
+  - name: source_snapshot_id
+    label: Source snapshot id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_snapshot_id
+- name: running_hr_zone
+  source: fitness_demo.athlete_hr_zone
+  description: Athlete-specific heart-rate training zone boundaries. Zone definitions do not measure time spent
+    in a zone; use effective dates when available.
+  primary_key:
+  - athlete_id
+  - zone_scheme_id
+  - zone_index
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"valid_from_utc"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: zone_scheme_id
+    label: Zone scheme id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: zone_scheme_id
+  - name: zone_index
+    label: Zone index
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: zone_index
+  - name: sport_code
+    label: Sport code
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+  - name: scheme_method
+    label: Scheme method
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: scheme_method
+  - name: valid_from_utc
+    label: Valid from utc
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: valid_from_utc
+  - name: valid_to_utc
+    label: Valid to utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: valid_to_utc
+  - name: lower_inclusive_bpm
+    label: Lower inclusive beats per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: lower_inclusive_bpm
+  - name: upper_exclusive_bpm
+    label: Upper exclusive beats per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: upper_exclusive_bpm
+- name: running_pace_zone
+  source: fitness_demo.athlete_pace_zone
+  description: Athlete-specific, versioned pace-zone boundaries. Fictional fixtures contain bounds; imported athletes
+    may have missing values. Compare the same zone and scheme method across dated profiles when reviewing running
+    capability.
+  primary_key:
+  - athlete_id
+  - zone_scheme_id
+  - zone_index
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"valid_from_utc"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: zone_scheme_id
+    label: Zone scheme id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: zone_scheme_id
+  - name: zone_index
+    label: Zone index
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: zone_index
+  - name: sport_code
+    label: Sport code
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sport_code
+  - name: scheme_method
+    label: Scheme method
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: scheme_method
+  - name: valid_from_utc
+    label: Valid from utc
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: valid_from_utc
+  - name: valid_to_utc
+    label: Valid to utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: valid_to_utc
+  - name: fast_boundary_s_per_km
+    label: Fast boundary seconds per kilometers
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: fast_boundary_s_per_km
+  - name: slow_boundary_s_per_km
+    label: Slow boundary seconds per kilometers
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: slow_boundary_s_per_km
+- name: latest_fitness_measurement
+  source: fitness_demo.v_latest_body_measurement
+  description: Most recently read fitness measures by athlete and metric code. The observation timestamp is the
+    retrieval time, not the device calculation time.
+  primary_key:
+  - athlete_id
+  - metric_code
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"observed_at_utc"}'
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: measurement_id
+    label: Measurement id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: measurement_id
+  - name: metric_code
+    label: Metric code
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_code
+  - name: metric_value
+    label: Metric value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_value
+  - name: unit
+    label: Unit
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: unit
+  - name: measured_at_utc
+    label: Measured at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: measured_at_utc
+  - name: effective_from_utc
+    label: Effective from utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: effective_from_utc
+  - name: observed_at_utc
+    label: Observed at utc
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_at_utc
+  - name: time_quality
+    label: Time quality
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: time_quality
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+- name: activity_segment
+  source: fitness_demo.activity_segment
+  description: Activity lap detail. Use only the canonical lap group for analysis; do not add multiple lap-group
+    types together.
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: activity_id
+    label: Activity id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: activity_id
+  - name: lap_ordinal
+    label: Lap ordinal
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: lap_ordinal
+    custom_extensions:
+    - vendor_name: DATUS
+      data: '{"v":"1.12","is_dimension":true}'
+  - name: segment_kind
+    label: Segment kind
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_kind
+  - name: is_canonical
+    label: Is canonical
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: is_canonical
+  - name: duration_s
+    label: Duration seconds
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: duration_s
+  - name: distance_m
+    label: Distance meters
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: distance_m
+  - name: avg_pace_s_per_km
+    label: Average pace seconds per kilometers
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_pace_s_per_km
+  - name: avg_hr_bpm
+    label: Average heart rate beats per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_hr_bpm
+  - name: avg_cadence_spm
+    label: Average cadence steps per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_cadence_spm
+  - name: avg_power_w
+    label: Average power watts
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_power_w
+- name: running_power_observation
+  source: SELECT workout_event_id, activity_date, avg_power_w FROM fitness_demo.activity WHERE sport_code = 'running'
+    AND avg_power_w IS NOT NULL
+  description: Standalone running activities with a recorded average power value, one row per activity.
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"requires":["time_dimension"],"source_type":"query","time_dimension":"activity_date","v":"1.12"}'
+  fields:
+  - name: workout_event_id
+    label: Workout event id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: workout_event_id
+  - name: activity_date
+    label: Activity date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: activity_date
+  - name: avg_power_w
+    label: Average power watts
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_power_w
+- name: running_lap
+  source: SELECT a.activity_id, a.activity_date AS event_date, s.lap_ordinal, s.avg_cadence_spm, s.avg_power_w,
+    s.avg_pace_s_per_km FROM fitness_demo.activity a JOIN fitness_demo.activity_segment s ON s.athlete_id = a.athlete_id
+    AND s.activity_id = a.activity_id WHERE a.sport_code = 'running' AND s.segment_kind = 'run' AND s.is_canonical
+    = 1
+  description: Canonical running laps from standalone runs, one row per lap.
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"requires":["time_dimension"],"source_type":"query","time_dimension":"event_date","v":"1.12"}'
+  fields:
+  - name: activity_id
+    label: Activity id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: activity_id
+  - name: event_date
+    label: Event date
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: event_date
+  - name: lap_ordinal
+    label: Lap ordinal
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: lap_ordinal
+    custom_extensions:
+    - vendor_name: DATUS
+      data: '{"v":"1.12","is_dimension":true}'
+  - name: avg_cadence_spm
+    label: Average cadence steps per minute
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_cadence_spm
+  - name: avg_power_w
+    label: Average power watts
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_power_w
+  - name: avg_pace_s_per_km
+    label: Average pace seconds per kilometers
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: avg_pace_s_per_km
+- name: athlete_goal
+  description: Versioned athlete-defined goals. One athlete may hold multiple concurrent goals; each goal revision
+    is a separate row. Target criteria are modeled separately.
+  source: fitness_demo.athlete_goal
+  primary_key:
+  - athlete_id
+  - goal_id
+  - goal_version
+  fields:
+  - name: athlete_id
+    label: Athlete ID
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: goal_id
+    label: Goal ID
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_id
+  - name: goal_version
+    label: Goal version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_version
+  - name: goal_type
+    label: Goal type
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_type
+  - name: title
+    label: Goal title
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: title
+  - name: status
+    label: Goal status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: status
+  - name: created_at_utc
+    label: Created at UTC
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: created_at_utc
+    dimension:
+      is_time: true
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"created_at_utc"}'
+- name: goal_criterion
+  description: One measurable target or milestone for a particular goal version. Null metric and numeric target
+    represent a milestone; keep its evidence policy explicit.
+  source: fitness_demo.goal_criterion
+  primary_key:
+  - athlete_id
+  - goal_id
+  - goal_version
+  - criterion_id
+  fields:
+  - name: athlete_id
+    label: Athlete id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: goal_id
+    label: Goal id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_id
+  - name: goal_version
+    label: Goal version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_version
+  - name: criterion_id
+    label: Criterion id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: criterion_id
+  - name: criterion_kind
+    label: Criterion kind
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: criterion_kind
+  - name: metric_name
+    label: Metric name
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_name
+  - name: comparison_operator
+    label: Comparison operator
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: comparison_operator
+  - name: target_value
+    label: Target value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_value
+  - name: target_unit
+    label: Target unit
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_unit
+  - name: aggregation_window
+    label: Aggregation window
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: aggregation_window
+  - name: target_date
+    label: Target date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_date
+  - name: evidence_policy
+    label: Evidence policy
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evidence_policy
+  - name: created_at_utc
+    label: Created at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: created_at_utc
+    dimension:
+      is_time: true
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"created_at_utc"}'
+- name: recovery_state
+  description: Saved daily recovery review. A provider recovery percentage remains separate; status is insufficient_evidence
+    when required personal baselines are missing.
+  source: fitness_demo.recovery_state
+  primary_key:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  fields:
+  - name: athlete_id
+    label: Athlete id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: assessment_id
+    label: Assessment id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_id
+  - name: assessment_version
+    label: Assessment version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_version
+  - name: review_date
+    label: Review date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: review_date
+    dimension:
+      is_time: true
+  - name: source
+    label: Source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: status
+    label: Status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: status
+  - name: method_version
+    label: Method version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: method_version
+  - name: evaluated_at_utc
+    label: Evaluated at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evaluated_at_utc
+  - name: sleep_valid_days_7
+    label: Sleep valid days 7
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sleep_valid_days_7
+  - name: rhr_valid_days_7
+    label: Rhr valid days 7
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rhr_valid_days_7
+  - name: sleep_valid_days_42
+    label: Sleep valid days 42
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sleep_valid_days_42
+  - name: load_source
+    label: Load source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: load_source
+  - name: load_date
+    label: Load date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: load_date
+  - name: sleep_source
+    label: Sleep source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sleep_source
+  - name: sleep_wake_date
+    label: Sleep wake date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: sleep_wake_date
+  - name: rhr_source
+    label: Rhr source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rhr_source
+  - name: rhr_date
+    label: Rhr date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rhr_date
+  - name: provider_observation_id
+    label: Provider observation id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: provider_observation_id
+  - name: hrv_source
+    label: HRV source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hrv_source
+  - name: hrv_wake_date
+    label: HRV wake date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: hrv_wake_date
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"review_date"}'
+- name: recovery_evidence
+  description: One cited observation and rule evaluation for a saved recovery review. Preserves source record and
+    baseline coverage without fabricating a fatigue score.
+  source: fitness_demo.recovery_evidence
+  primary_key:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  - evidence_id
+  fields:
+  - name: athlete_id
+    label: Athlete id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: assessment_id
+    label: Assessment id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_id
+  - name: assessment_version
+    label: Assessment version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_version
+  - name: evidence_id
+    label: Evidence id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evidence_id
+  - name: source_dataset
+    label: Source dataset
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_dataset
+  - name: source_record_id
+    label: Source record id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_record_id
+  - name: source_date
+    label: Source date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_date
+    dimension:
+      is_time: true
+  - name: metric_code
+    label: Metric code
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_code
+  - name: observed_value
+    label: Observed value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_value
+  - name: unit
+    label: Unit
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: unit
+  - name: rule_id
+    label: Rule id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_id
+  - name: evaluation_status
+    label: Evaluation status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evaluation_status
+  - name: valid_prior_days
+    label: Valid prior days
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: valid_prior_days
+  - name: baseline_days
+    label: Baseline days
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: baseline_days
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"source_date"}'
+- name: recovery_rule
+  description: Versioned public interpretation bands and user-configured review signals. Static knowledge, not an
+    automatically executed classifier.
+  source: fitness_demo.recovery_rule
+  primary_key:
+  - rule_id
+  fields:
+  - name: rule_id
+    label: Rule Id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_id
+  - name: rule_kind
+    label: Rule Kind
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_kind
+  - name: metric_code
+    label: Metric Code
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_code
+  - name: lower_bound
+    label: Lower Bound
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: lower_bound
+  - name: upper_bound
+    label: Upper Bound
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: upper_bound
+  - name: lower_inclusive
+    label: Lower Inclusive
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: lower_inclusive
+  - name: upper_inclusive
+    label: Upper Inclusive
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: upper_inclusive
+  - name: label
+    label: Label
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: label
+  - name: meaning
+    label: Meaning
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: meaning
+  - name: rule_origin
+    label: Rule Origin
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rule_origin
+  - name: source_url
+    label: Source Url
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_url
+  - name: baseline_days
+    label: Baseline Days
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: baseline_days
+  - name: min_valid_days
+    label: Min Valid Days
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: min_valid_days
+- name: capability_assessment
+  description: Dated, athlete-scoped review of one ability type. Stores evidence status and rationale, never a universal
+    ability score.
+  source: fitness_demo.capability_assessment
+  primary_key:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  fields:
+  - name: athlete_id
+    label: Athlete id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: assessment_id
+    label: Assessment id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_id
+  - name: assessment_version
+    label: Assessment version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_version
+  - name: capability_type
+    label: Capability type
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: capability_type
+  - name: review_date
+    label: Review date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: review_date
+    dimension:
+      is_time: true
+  - name: status
+    label: Status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: status
+  - name: confidence
+    label: Confidence
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: confidence
+  - name: method_version
+    label: Method version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: method_version
+  - name: rationale
+    label: Rationale
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rationale
+  - name: created_at_utc
+    label: Created at utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: created_at_utc
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"review_date"}'
+- name: capability_evidence
+  description: Cited provider estimate, observed run, official race, or versioned pace-zone boundary for a capability
+    review. A source pointer is retained; heterogeneous source records are not auto-joined.
+  source: fitness_demo.capability_evidence
+  primary_key:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  - evidence_id
+  fields:
+  - name: athlete_id
+    label: Athlete id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: assessment_id
+    label: Assessment id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_id
+  - name: assessment_version
+    label: Assessment version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_version
+  - name: evidence_id
+    label: Evidence id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evidence_id
+  - name: evidence_kind
+    label: Evidence kind
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evidence_kind
+  - name: metric_name
+    label: Metric name
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_name
+  - name: source_dataset
+    label: Source dataset
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_dataset
+  - name: source_record_id
+    label: Source record id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_record_id
+  - name: source_date
+    label: Source date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_date
+    dimension:
+      is_time: true
+  - name: observed_value
+    label: Observed value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_value
+  - name: unit
+    label: Unit
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: unit
+  - name: comparability_status
+    label: Comparability status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: comparability_status
+  - name: confidence
+    label: Confidence
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: confidence
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","requires":["time_dimension"],"time_dimension":"source_date"}'
+- name: goal_progress_assessment
+  description: One saved, versioned review of one goal criterion over a declared evidence window. Status and gap
+    are criterion-specific, never a universal readiness score.
+  source: fitness_demo.goal_progress_assessment
+  primary_key: &id002
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: assessment_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_id
+  - name: assessment_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_version
+  - name: goal_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_id
+  - name: goal_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_version
+  - name: criterion_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: criterion_id
+  - name: review_date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: review_date
+    label: Review date
+    dimension:
+      is_time: true
+  - name: window_start_date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: window_start_date
+    label: Evidence window start
+  - name: window_end_date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: window_end_date
+    label: Evidence window end
+  - name: status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: status
+    label: Review status
+  - name: observed_value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_value
+    label: Comparable observed value
+  - name: difference_value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: difference_value
+    label: Observed minus target
+  - name: difference_unit
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: difference_unit
+    label: Difference unit
+  - name: comparison_basis
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: comparison_basis
+    label: Comparison basis
+  - name: method_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: method_version
+    label: Review method version
+  - name: rationale
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: rationale
+    label: Rationale
+  - name: evaluated_at_utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evaluated_at_utc
+    label: Evaluated at UTC
+    dimension:
+      is_time: true
+- name: goal_progress_evidence
+  description: A cited source observation for one saved criterion review. Source pointers remain explicit because
+    inputs have different grains.
+  source: fitness_demo.goal_progress_evidence
+  primary_key:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  - evidence_id
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: assessment_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_id
+  - name: assessment_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: assessment_version
+  - name: evidence_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: evidence_id
+  - name: source_dataset
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_dataset
+    label: Source dataset
+  - name: source_record_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_record_id
+    label: Source record id
+  - name: source_date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source_date
+    label: Source date
+  - name: metric_name
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: metric_name
+    label: Semantic metric name
+  - name: observed_value
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: observed_value
+    label: Source value
+  - name: unit
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: unit
+    label: Source unit
+  - name: quality_status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: quality_status
+    label: Evidence quality
+  - name: comparison_basis
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: comparison_basis
+    label: Evidence basis
+- name: action_plan
+  description: A versioned goal-specific plan direction, including its human approval state. Individual scheduled
+    actions are stored separately.
+  source: fitness_demo.action_plan
+  primary_key:
+  - athlete_id
+  - plan_id
+  - plan_version
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: plan_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_id
+  - name: plan_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_version
+  - name: goal_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_id
+  - name: goal_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: goal_version
+  - name: title
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: title
+  - name: plan_summary
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_summary
+  - name: status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: status
+  - name: approval_status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: approval_status
+  - name: created_at_utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: created_at_utc
+    dimension:
+      is_time: true
+  - name: approved_at_utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: approved_at_utc
+    dimension:
+      is_time: true
+  - name: revision_reason
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: revision_reason
+- name: planned_action
+  description: One scheduled or proposed run, rest day or sleep routine in a specific plan version. Candidate matches
+    are distinct from manually verified completion.
+  source: fitness_demo.planned_action
+  primary_key:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: plan_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_id
+  - name: plan_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_version
+  - name: action_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: action_id
+  - name: scheduled_date
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: scheduled_date
+    dimension:
+      is_time: true
+  - name: action_kind
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: action_kind
+  - name: title
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: title
+  - name: target_duration_min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_duration_min
+  - name: planning_status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: planning_status
+  - name: completion_status
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: completion_status
+  - name: candidate_event_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: candidate_event_id
+  - name: verified_event_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: verified_event_id
+  - name: match_method
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: match_method
+  - name: match_reviewed_at_utc
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: match_reviewed_at_utc
+    dimension:
+      is_time: true
+  - name: source
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: source
+  - name: planned_intensity
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: planned_intensity
+  - name: title_zh
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: title_zh
+  - name: target_distance_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_distance_km
+  - name: target_distance_min_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_distance_min_km
+  - name: target_distance_max_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_distance_max_km
+  - name: distance_basis
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: distance_basis
+- name: weekly_running_distance
+  source: fitness_demo.v_weekly_running_distance
+  description: Verified complete consecutive Monday-to-Sunday weeks of measured running, including hybrid run segments.
+    Source copies and superseded revisions are excluded in the warehouse view.
+  primary_key:
+  - athlete_id
+  - week_start
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: week_start
+    dimension:
+      is_time: true
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: week_start
+  - name: distance_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: distance_km
+  - name: prior_distance_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: prior_distance_km
+  - name: growth_ratio
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: growth_ratio
+- name: planned_action_segment
+  description: Ordered warm-up, main-set and cool-down targets for a versioned planned action. Pace and heart-rate
+    targets are estimates, not achieved measurements.
+  source: fitness_demo.planned_action_segment
+  primary_key:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+  - segment_ordinal
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: athlete_id
+  - name: plan_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_id
+  - name: plan_version
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: plan_version
+  - name: action_id
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: action_id
+  - name: segment_ordinal
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_ordinal
+  - name: segment_type
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: segment_type
+  - name: title_en
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: title_en
+  - name: title_zh
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: title_zh
+  - name: target_duration_min
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_duration_min
+  - name: target_distance_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_distance_km
+  - name: target_pace_fast_s_per_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_pace_fast_s_per_km
+  - name: target_pace_slow_s_per_km
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_pace_slow_s_per_km
+  - name: target_hr_low_bpm
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_hr_low_bpm
+  - name: target_hr_high_bpm
+    expression:
+      dialects:
+      - dialect: STARROCKS
+        expression: target_hr_high_bpm
+relationships:
+- name: workout_event_to_athlete
+  from: workout_event
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: activity_to_athlete
+  from: activity
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: activity_to_workout_event
+  from: activity
+  to: workout_event
+  from_columns:
+  - athlete_id
+  - workout_event_id
+  to_columns:
+  - athlete_id
+  - workout_event_id
+- name: daily_training_load_to_athlete
+  from: daily_training_load
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: daily_sleep_to_athlete
+  from: daily_sleep
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: daily_hrv_to_athlete
+  from: daily_hrv
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: daily_resting_hr_to_athlete
+  from: daily_resting_hr
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: recovery_observation_to_athlete
+  from: recovery_observation
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: running_hr_zone_to_athlete
+  from: running_hr_zone
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: running_pace_zone_to_athlete
+  from: running_pace_zone
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: latest_fitness_measurement_to_athlete
+  from: latest_fitness_measurement
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: activity_segment_to_activity
+  from: activity_segment
+  to: activity
+  from_columns:
+  - athlete_id
+  - activity_id
+  to_columns:
+  - athlete_id
+  - activity_id
+- name: athlete_goal_to_athlete
+  from: athlete_goal
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: goal_criterion_to_goal
+  from: goal_criterion
+  to: athlete_goal
+  from_columns:
+  - athlete_id
+  - goal_id
+  - goal_version
+  to_columns:
+  - athlete_id
+  - goal_id
+  - goal_version
+- name: recovery_state_to_athlete
+  from: recovery_state
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: recovery_state_to_load
+  from: recovery_state
+  to: daily_training_load
+  from_columns:
+  - athlete_id
+  - load_source
+  - load_date
+  to_columns:
+  - athlete_id
+  - source
+  - local_date
+- name: recovery_state_to_sleep
+  from: recovery_state
+  to: daily_sleep
+  from_columns:
+  - athlete_id
+  - sleep_source
+  - sleep_wake_date
+  to_columns:
+  - athlete_id
+  - source
+  - wake_date
+- name: recovery_state_to_hrv
+  from: recovery_state
+  to: daily_hrv
+  from_columns:
+  - athlete_id
+  - hrv_source
+  - hrv_wake_date
+  to_columns:
+  - athlete_id
+  - source
+  - wake_date
+- name: recovery_state_to_rhr
+  from: recovery_state
+  to: daily_resting_hr
+  from_columns:
+  - athlete_id
+  - rhr_source
+  - rhr_date
+  to_columns:
+  - athlete_id
+  - source
+  - local_date
+- name: recovery_state_to_provider
+  from: recovery_state
+  to: recovery_observation
+  from_columns:
+  - athlete_id
+  - provider_observation_id
+  to_columns:
+  - athlete_id
+  - observation_id
+- name: recovery_evidence_to_state
+  from: recovery_evidence
+  to: recovery_state
+  from_columns:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  to_columns:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+- name: recovery_evidence_to_rule
+  from: recovery_evidence
+  to: recovery_rule
+  from_columns:
+  - rule_id
+  to_columns:
+  - rule_id
+- name: capability_assessment_to_athlete
+  from: capability_assessment
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: capability_evidence_to_assessment
+  from: capability_evidence
+  to: capability_assessment
+  from_columns:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+  to_columns:
+  - athlete_id
+  - assessment_id
+  - assessment_version
+- name: capability_evidence_to_athlete
+  from: capability_evidence
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: goal_progress_to_criterion
+  from: goal_progress_assessment
+  to: goal_criterion
+  from_columns: &id001
+  - athlete_id
+  - goal_id
+  - goal_version
+  - criterion_id
+  to_columns: *id001
+- name: goal_progress_to_athlete
+  from: goal_progress_assessment
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: goal_progress_evidence_to_assessment
+  from: goal_progress_evidence
+  to: goal_progress_assessment
+  from_columns: *id002
+  to_columns: *id002
+- name: action_plan_to_goal
+  from: action_plan
+  to: athlete_goal
+  from_columns:
+  - athlete_id
+  - goal_id
+  - goal_version
+  to_columns:
+  - athlete_id
+  - goal_id
+  - goal_version
+- name: action_plan_to_athlete
+  from: action_plan
+  to: athlete
+  from_columns:
+  - athlete_id
+  to_columns:
+  - athlete_id
+- name: planned_action_to_plan
+  from: planned_action
+  to: action_plan
+  from_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  to_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+- name: planned_action_to_verified_session
+  from: planned_action
+  to: workout_event
+  from_columns:
+  - athlete_id
+  - verified_event_id
+  to_columns:
+  - athlete_id
+  - workout_event_id
+- name: planned_action_segment_to_action
+  from: planned_action_segment
+  to: planned_action
+  from_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+  to_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+metrics:
+- name: measured_pace_s_per_km
+  description: 'Measured pace: 1000 × total pace time / total measured pace distance.'
+  ai_context:
+    instructions: Include positive measured distances with consistent timing; never average segment paces directly.
+      Return null for a zero denominator.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: 1000.0 * SUM(running_observation.pace_time_s) / NULLIF(SUM(running_observation.pace_distance_m),
+        0)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","pace"],"unit":"s/km"}'
+- name: avg_speed_kmh
+  description: 'Average speed: 3.6 × total measured distance / total pace time.'
+  ai_context:
+    instructions: Use the same observations as measured pace. Faster speed and lower pace are the same evidence,
+      not independent improvements.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: 3.6 * SUM(running_observation.pace_distance_m) / NULLIF(SUM(running_observation.pace_time_s),
+        0)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","speed"],"unit":"km/h"}'
+- name: weighted_avg_hr_bpm
+  description: 'Duration-weighted running heart rate: sum of weighted heart-rate values divided by valid seconds.'
+  ai_context:
+    instructions: Filter pace, heart rate, and cadence independently; a mean heart rate is not time spent in a zone.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_observation.hr_weighted_sum_bpm_s) / NULLIF(SUM(running_observation.hr_weight_s),
+        0)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","heart_rate"],"unit":"bpm"}'
+- name: weighted_avg_cadence_spm
+  description: Duration-weighted running cadence in bilateral steps per minute.
+  ai_context:
+    instructions: Exclude missing or zero running cadence and non-running stroke rates. Higher cadence is not necessarily
+      better.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_observation.cadence_weighted_sum_spm_s) / NULLIF(SUM(running_observation.cadence_weight_s),
+        0)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","cadence"],"unit":"spm"}'
+- name: measured_run_distance_km
+  description: Measured running distance in kilometers, excluding nominal rule-reference distance.
+  ai_context:
+    instructions: Missing hybrid distance can undercount volume; keep reference distance separate.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_observation.measured_distance_m) / 1000.0
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","volume"],"unit":"km"}'
+- name: identified_run_time_s
+  description: Total identified running-segment duration in seconds.
+  ai_context:
+    instructions: Separate standalone and hybrid runs; unknown hybrid segments may contain additional running.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_observation.duration_s)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","duration"],"unit":"s"}'
+- name: run_session_count
+  description: Count of distinct workout events containing a running observation.
+  ai_context:
+    instructions: Eight running legs in one hybrid workout still count as one session; two workouts on one day count
+      twice.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: COUNT(DISTINCT running_observation.workout_event_id)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","frequency"],"unit":"count"}'
+- name: run_day_count
+  description: Count of distinct calendar days containing a running observation.
+  ai_context:
+    instructions: Two workouts on the same day count as one running day.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: COUNT(DISTINCT running_observation.event_date)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","frequency"],"unit":"days"}'
+- name: coros_training_load
+  description: Sum of COROS training-load scores on synchronized running and hybrid activities.
+  ai_context:
+    instructions: Deduplicate source activities. Do not add scores from different brands or present this as all-sport
+      load.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(CASE WHEN activity.source = 'coros' AND activity.dedup_status = 'canonical' THEN activity.training_load
+        END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","load"],"unit":"points"}'
+- name: hyrox_run_time_sum_s
+  description: Sum of eight rule-reference running-leg durations for an official HYROX race.
+  ai_context:
+    instructions: Group by race and check all eight legs are present; do not derive this from activity average pace.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_rule_reference.duration_s)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","hyrox","run"],"unit":"s"}'
+- name: hyrox_rule_reference_pace_s_per_km
+  description: Rule-reference running pace from summed leg time and nominal distance.
+  ai_context:
+    instructions: Nominal one-kilometer legs are not measured distances. Keep reference and measured pace separate.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_rule_reference.duration_s) * 1000.0 / NULLIF(SUM(running_rule_reference.reference_distance_m),
+        0)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","hyrox","pace"],"unit":"s/km"}'
+- name: hyrox_run_pace_cv_pct
+  description: Coefficient of variation of nominally equal-distance HYROX running-leg times.
+  ai_context:
+    instructions: Group by race; a lower value means more even nominal legs, not necessarily lower true speed variation.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: 100.0 * STDDEV_POP(running_rule_reference.duration_s) / NULLIF(AVG(running_rule_reference.duration_s),
+        0)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","hyrox","uniformity"],"unit":"%"}'
+- name: hyrox_second_half_pace_change_s_per_km
+  description: Average duration of legs five to eight minus legs one to four at nominal one-kilometer grain.
+  ai_context:
+    instructions: Require all eight legs. Positive means a slower second half; venue and segment boundaries affect
+      comparison.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(CASE WHEN running_rule_reference.run_index BETWEEN 5 AND 8 THEN running_rule_reference.duration_s
+        ELSE 0 END) / 4.0 - SUM(CASE WHEN running_rule_reference.run_index BETWEEN 1 AND 4 THEN running_rule_reference.duration_s
+        ELSE 0 END) / 4.0
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","hyrox","pace"],"unit":"s/km"}'
+- name: hyrox_station_time_s
+  description: Team watch time at each identified HYROX station.
+  ai_context:
+    instructions: Compare matching conditions only. Team times with different partners cannot establish individual
+      improvement.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(hyrox_station.watch_station_time_s)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","hyrox","station"],"unit":"s"}'
+- name: avg_short_term_load
+  description: Mean COROS short-term load across days with data.
+  ai_context:
+    instructions: Do not sum this with activity-level training load or fill missing days with zero.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_training_load.short_term_load)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training_load","short_term"]}'
+- name: avg_long_term_load
+  description: Mean COROS long-term load across days with data.
+  ai_context:
+    instructions: A one-day query returns the source value; exclude missing days.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_training_load.long_term_load)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training_load","long_term"]}'
+- name: avg_load_ratio
+  description: Mean of COROS-provided daily short-to-long load ratios.
+  ai_context:
+    instructions: Average the daily ratio values; do not substitute a ratio of two averages.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_training_load.load_ratio)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training_load","ratio"]}'
+- name: excessive_load_days
+  description: Count of days labeled Excessive by COROS.
+  ai_context:
+    instructions: Count recorded provider labels only; this is not a medical assessment.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: COUNT(DISTINCT CASE WHEN daily_training_load.provider_status = 'Excessive' THEN daily_training_load.local_date
+        END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training_load","excessive_days"],"unit":"days"}'
+- name: avg_main_sleep_minutes
+  description: Mean main-sleep minutes on days with a main sleep record.
+  ai_context:
+    instructions: Align by wake date; exclude nap-only and missing main-sleep days.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_sleep.main_sleep_min)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","sleep","main_minutes"],"unit":"min"}'
+- name: avg_daily_sleep_minutes
+  description: Mean total daily sleep minutes on days with data.
+  ai_context:
+    instructions: Exclude missing values; do not infer an absent main sleep period.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_sleep.daily_sleep_min)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","sleep","daily_minutes"],"unit":"min"}'
+- name: avg_sleep_score
+  description: Mean valid sleep score.
+  ai_context:
+    instructions: Exclude nulls; source placeholders 0 and -1 have already been mapped to null.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_sleep.sleep_score)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","sleep","score"]}'
+- name: sleep_days_with_main
+  description: Count of wake dates with a recorded main sleep period.
+  ai_context:
+    instructions: Show the number of calendar days in the requested period when reporting coverage.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: COUNT(DISTINCT CASE WHEN daily_sleep.main_sleep_min IS NOT NULL THEN daily_sleep.wake_date END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","sleep","days_with_main"],"unit":"days"}'
+- name: avg_resting_hr_bpm
+  description: Mean resting heart rate over days with a recorded value.
+  ai_context:
+    instructions: Keep missing values null and compare using the same device convention.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_resting_hr.rhr_bpm)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","resting_hr","avg"],"unit":"bpm"}'
+- name: rhr_observed_days
+  description: Number of dates with a valid resting-heart-rate record.
+  ai_context:
+    instructions: Count distinct local dates with a non-null value.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: COUNT(DISTINCT CASE WHEN daily_resting_hr.rhr_bpm IS NOT NULL THEN daily_resting_hr.local_date
+        END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","resting_hr","observed_days"],"unit":"days"}'
+- name: current_recovery_pct
+  description: Latest captured COROS recovery percentage; a point estimate, not a daily history.
+  ai_context:
+    instructions: Report the observation time. Do not treat the highest percentage as the latest reading.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(recovery_observation.recovery_pct)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","window":{"value":{"function":"first_value","order":{"by":"time","direction":"desc"},"partition":{"mode":"none"}}},"subject_path":["fitness","recovery","current"],"unit":"%"}'
+- name: latest_vo2max_running
+  description: Latest observed COROS running VO2max estimate.
+  ai_context:
+    instructions: Read the running VO2max metric code; do not equate a device estimate with laboratory measurement.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(CASE WHEN latest_fitness_measurement.metric_code = 'vo2max_running' THEN latest_fitness_measurement.metric_value
+        END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","fitness_measurement","vo2max"],"unit":"mL/kg/min"}'
+- name: latest_threshold_pace_s_per_km
+  description: Latest observed threshold pace in seconds per kilometer.
+  ai_context:
+    instructions: Read the threshold-pace metric code and display as minutes and seconds per kilometer.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(CASE WHEN latest_fitness_measurement.metric_code = 'threshold_pace_s_per_km' THEN latest_fitness_measurement.metric_value
+        END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","fitness_measurement","threshold_pace"],"unit":"s/km"}'
+- name: latest_threshold_hr_bpm
+  description: Latest observed threshold heart rate in beats per minute.
+  ai_context:
+    instructions: The device calculation date is unknown; report the retrieval timestamp.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(CASE WHEN latest_fitness_measurement.metric_code = 'threshold_hr_bpm' THEN latest_fitness_measurement.metric_value
+        END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","fitness_measurement","threshold_hr"],"unit":"bpm"}'
+- name: official_10k_net_time_s
+  description: Best official net time from a 10-kilometer race.
+  ai_context:
+    instructions: Use only official 10km events and the official finish time.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: MIN(CASE WHEN workout_event.is_official_race = TRUE AND workout_event.race_format_code = '10km'
+        THEN workout_event.official_finish_s END)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","race","official_10k"],"unit":"s"}'
+- name: official_finish_time_s
+  description: Official chip finish time for a HYROX event, in seconds.
+  ai_context:
+    instructions: Keep official and watch times separate. Group by race; do not add or substitute these times.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: MIN(workout_event.official_finish_s)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","race","official_finish"],"unit":"s"}'
+- name: watch_elapsed_time_s
+  description: Watch elapsed time for a HYROX event, in seconds.
+  ai_context:
+    instructions: Keep watch and official times separate. Group by race; do not add or substitute these times.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: MIN(workout_event.watch_elapsed_s)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","race","watch_elapsed"],"unit":"s"}'
+- name: run_volume_change_pct
+  description: Percentage change in measured running volume between adjacent complete calendar months.
+  ai_context:
+    instructions: Group by month. Return null when there is no previous month or its volume is zero; exclude partial
+      months.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: (SUM(running_observation.measured_distance_m) / 1000.0) * 100
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","derive":{"type":"compose","expr":"run_volume_change_ratio * 100"},"subject_path":["fitness","training","volume_change"],"unit":"%"}'
+- name: run_volume_change_ratio
+  description: Intermediate fractional month-over-month change in measured running volume.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_observation.measured_distance_m)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","window":{"base":"measured_run_distance_m_raw","offset":{"count":1,"granularity":"month","direction":"back"},"calculation":"percent_change"}}'
+- name: avg_power_w
+  description: Per-activity average running power in watts for standalone runs with data.
+  ai_context:
+    instructions: Group by workout event and date. Do not aggregate across runs or compare unlike device algorithms
+      directly.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(running_power_observation.avg_power_w)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","power"],"unit":"W"}'
+- name: lap_avg_cadence_spm
+  description: Raw average cadence of one canonical running lap.
+  ai_context:
+    instructions: Group by activity and lap ordinal; do not add or average across laps.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(running_lap.avg_cadence_spm)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","lap_cadence"],"unit":"spm"}'
+- name: lap_avg_power_w
+  description: Raw average power of one canonical running lap.
+  ai_context:
+    instructions: Group by activity and lap ordinal. Zero may be a missing-power outlier; do not aggregate across
+      laps.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(running_lap.avg_power_w)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","lap_power"],"unit":"W"}'
+- name: lap_avg_pace_s_per_km
+  description: Raw average pace of one canonical running lap.
+  ai_context:
+    instructions: Group by activity and lap ordinal; do not average lap paces across laps.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(running_lap.avg_pace_s_per_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","running","lap_pace"],"unit":"s/km"}'
+- name: measured_run_distance_m_raw
+  description: Raw measured running distance in meters; helper for month-over-month change.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(running_observation.measured_distance_m)
+- name: avg_overnight_hrv_ms
+  description: Mean of COROS official daily overnight HRV averages over valid wake dates; not a mean of raw HRV
+    samples.
+  ai_context:
+    instructions: Use the provider normal range and date-specific evaluation to assess a day. Do not infer a universal
+      low-HRV threshold from this average.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: AVG(daily_hrv.hrv_avg_ms)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","recovery","overnight_hrv"],"unit":"ms"}'
+- name: planned_running_distance_km
+  description: Sum of target_distance_km for a selected plan version; includes running warm-up and cool-down. Filter
+    athlete, plan_id, plan_version and approval status. Team-race distance is a range.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(planned_action.target_distance_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","plan"],"unit":"km"}'
+- name: planned_running_distance_min_km
+  description: Sum of target_distance_min_km for a selected plan version; includes running warm-up and cool-down.
+    Filter athlete, plan_id, plan_version and approval status. Team-race distance is a range.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(planned_action.target_distance_min_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","plan"],"unit":"km"}'
+- name: planned_running_distance_max_km
+  description: Sum of target_distance_max_km for a selected plan version; includes running warm-up and cool-down.
+    Filter athlete, plan_id, plan_version and approval status. Team-race distance is a range.
+  expression:
+    dialects:
+    - dialect: STARROCKS
+      expression: SUM(planned_action.target_distance_max_km)
+  custom_extensions:
+  - vendor_name: DATUS
+    data: '{"v":"1.12","subject_path":["fitness","training","plan"],"unit":"km"}'

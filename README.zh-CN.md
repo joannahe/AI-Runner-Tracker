@@ -58,18 +58,18 @@ python3 -m venv .venv
 
 ### 可选：试用 DOSI 语义模型
 
-如需验证或查询语义模型，请安装 [DOSI CLI](https://dosi.datus.ai/)。本项目使用 `dosi 0.2.2` 验证。构建上述虚构数据库后执行以下命令。内嵌式本体映射仍可被 0.2.2 读取，但会提示已弃用；参见 [release notes](RELEASE_NOTES.md#dosi-compatibility)：
+如需验证或查询语义模型，请安装 [DOSI CLI 0.2.2](https://dosi.datus.ai/install/)。DuckDB 本体、语义模型和映射分别存放在 `subject/` 下；可选的 StarRocks 版本位于独立项目目录。构建上述虚构数据库后：
 
 ```sh
 dosi --version
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
+dosi validate --mapping subject/ontology/fitness.mapping.yaml
 .venv/bin/python warehouse/verify_duckdb.py
 ```
 
 生成一条 DOSI 查询：
 
 ```sh
-dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_run_distance_km --dialect duckdb
 ```
 
 该命令会打印生成的 SQL。若要在本地测试库执行，追加 `--execute --db warehouse/running_demo.duckdb`。不加筛选时，指标覆盖三位虚构运动员；`warehouse/verify_duckdb.py` 会核对预期结果。
@@ -127,7 +127,7 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 这是一条可选的技术导览：**仓库表 → DOSI 数据集和指标 → 本体概念与映射 → Agent 复核 → 看板证据**。如果只想分析跑步数据，也可以直接使用导入器和看板。
 
 1. 打开 [DuckDB 语义模型](fitness_analysis.yaml)，查看 `running_observation` 与 `measured_run_distance_km`：后者按一致口径汇总实测跑量。[StarRocks 对应模型](fitness_analysis.starrocks.yaml)也在仓库中。
-2. 打开[本体](fitness_ontology.yaml)及其[映射核查表](ontology_bindings.yaml)，沿 `Athlete → TrainingSession → SourceActivity` 和 `RecoveryState → OvernightHRV` 查看概念如何关联数据集与证据。`dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession` 可检查一个已映射概念。
+2. 打开[本体](subject/ontology/fitness.ontology.yaml)、[DOSI 映射文件](subject/ontology/fitness.mapping.yaml)及[映射核查表](ontology_bindings.yaml)，沿 `Athlete → TrainingSession → SourceActivity` 和 `RecoveryState → OvernightHRV` 查看概念如何关联数据集与证据。`dosi describe TrainingSession --mapping subject/ontology/fitness.mapping.yaml` 可检查一个已映射概念。
 3. 阅读[规则目录](fitness_ontology.yaml)和[教练工作约定](TRAINING_COACH_AGENT.md)。它们指导 Agent 如何解释指标和检查证据；DOSI **不会**自动执行这些教练规则或修改已批准的计划。
 4. 打开[虚构数据看板](dashboard/index.html)或[作者个人预览](dashboard/personal-preview.html)。「关注点」会默认打开。作者个人 DuckDB 中已生效的是第 3 版详细训练计划；第 1 版保留为旧版，第 2 版已撤回。单独的 HTML 是离线导出；本地服务每次刷新都会重新读取 DuckDB。
 
@@ -150,7 +150,7 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 
 ### 在本地确认建议行动
 
-量化规则及其 `recommendation_options` 现在统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `x_coaching_knowledge` 中；StarRocks 本体包含相同目录。生成看板时会从该扩展读取告警阈值和强度标签分类。DOSI 会验证本体概念和映射，但**不会**自动执行此项目扩展中的训练规则。
+量化规则及其 `recommendation_options` 统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `ai_context.x_coaching_knowledge` 中；StarRocks 本体包含相同目录。两套本体／模型／映射文件均已按与 DOSI 0.2.2 的 `osi spec 0.2.0.dev0` 对应的 [Apache Ossie 0.2 schema](https://github.com/apache/ossie/tree/5ebe400b393b837b3a8c8b2f22738b5e30eb05e5/ontology) 校验。DOSI 会执行 `HighLoadDay`、`LowLoadDay` 和 `CorosHighFocusRunActivity` 的本体 `derived_by` 筛选；详见[查询步骤](ONTOLOGY_ARCHITECTURE.md#queryable-derived-concepts)。看板从 AI 上下文读取更广泛的告警复核规则；DOSI 不会自动执行这些跨记录教练规则。
 
 安装 `warehouse/requirements.txt` 后，启动仅监听本机的行动服务，才可使用告警按钮：
 
@@ -160,7 +160,7 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 
 打开 `http://127.0.0.1:8768/dashboard` 查看实时读取本地数据的个人看板，或打开 `/demo` 查看虚构数据的离线示例。展开触发的告警，确认一项本体中定义的建议行动。服务会把**已批准的请求**写入 Git 忽略的 `dashboard/private_data/approved_actions.jsonl`；它不会私自修改已批准的计划，也不会调用尚未运行的 Agent。将 [Agent 指南](agent.md)交给本地 Agent，请它处理待办请求。Agent 须重新核对数据与目标计划，在 `dashboard/private_data/` 中创建带版本的**草案**，再通过 `dashboard/agent_actions.py` 回写结果。页面在此之前显示“等待中”。如缺少目标或具体训练安排，Agent 应记录缺失项，不得声称已修改计划。
 
-每次打开或刷新本地服务的 `/dashboard` 页面，服务都会重新读取个人 DuckDB 和 `fitness_ontology.yaml` 中的 `x_coaching_knowledge` 规则目录，再由页面重新计算关注点。单独打开 HTML 文件或 `/demo` 时仍使用离线快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
+每次打开或刷新本地服务的 `/dashboard` 页面，服务都会重新读取个人 DuckDB 和 `fitness_ontology.yaml` 中的 `ai_context.x_coaching_knowledge` 规则目录，再由页面重新计算关注点。单独打开 HTML 文件或 `/demo` 时仍使用离线快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
 
 个人数据的“关注点”页可按周查看已生效的第 3 版详细计划：每次训练含热身、主训练、放松，以及估算跑量、配速和心率；周跑量含热身与放松。DEKA FIT 双人赛在分工确认前显示个人跑量范围。告警依据第 3 版计划检查训练强度间隔、赛后安排及恢复信号。第 3 版将阈值训练目标更新为 5:30–5:55/公里、155–165 bpm；这是一条个人训练目标，不会覆盖 COROS 给出的阈值配速估计。
 
@@ -172,7 +172,7 @@ dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --di
 
 ```sh
 .venv/bin/python warehouse/build_personal_overlay.py
-dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb
 ```
 
 打开 `dashboard/personal-preview.html` 查看现成看板。它内嵌个人观察数据。重新生成时使用 `warehouse/requirements.txt` 指定的读取器；随仓库的快照采用兼容 DuckDB 1.5 的存储格式。`node dashboard/rebuild_from_snapshot.mjs` 仍可从随仓库的导出数据刷新 HTML。
@@ -184,7 +184,8 @@ dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-
 ## 主要文件
 
 - `fitness_analysis.yaml` 与 `fitness_ontology.yaml`：默认的 **DuckDB 模型与本体**。本体内嵌 DuckDB 语义模型，包含带版本的 `athlete_goal`、`action_plan`，与版本关联的 `planned_action`、`goal_criterion`，逐条件的 `goal_progress_assessment` / `goal_progress_evidence`，每日 `recovery_state` / `recovery_evidence`，按日期的 `capability_assessment` / `capability_evidence`，以及静态 `recovery_rule` 知识表。已有指标公式未改动。
-- `fitness_analysis.starrocks.yaml` 与 `fitness_ontology.starrocks.yaml`：用于单独配置的 StarRocks 数据仓库，与 DuckDB 版本采用相同概念和虚构测试数据。
+- `subject/ontology/fitness.mapping.yaml`：默认 **DuckDB** 映射；其本体和语义模型分别在 `subject/` 对应目录。
+- `starrocks_project/subject/ontology/fitness.mapping.yaml`：独立项目目录中的可选 **StarRocks** 映射，使用相同概念和虚构测试数据。
 - `ONTOLOGY_ARCHITECTURE.md`、`ontology_bindings.yaml`、`fitness_ontology.yaml`、`RECOVERY_RULES.md`：三层概念图、逐概念映射审查及恢复规则。规则目录用于指导 Agent，并非可执行的 SWRL / OWL 推理器。
 - `QUESTION_CATALOG_AND_ONBOARDING.md`：中英文通用问题、对应的本体与证据路径、回答边界，以及首次使用所需的信息。
 - `TRAINING_COACH_AGENT.md`：拟议的 Agent 定期复核流程、规则触发提醒的约定、证据与重复提醒处理、人工批准边界，以及启用主动教练前仍需完成的工作。
@@ -196,7 +197,7 @@ dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-
 - `personal_duckdb/joanna_fitness.duckdb`：截至 2026-11-23 的作者运动数据本地分析快照，位于 `fitness_demo` schema，含 22 张基础表和 7 份物化视图结果，包含 171 条 COROS 夜间 HRV 评估；本地另存已批准的个人训练计划。此文件中的视图结果是静态的。
 - `personal_starrocks/schema.sql`、`seed.sql`、`verify.sql`、`manifest.json`：从同一快照生成的 StarRocks 本地重建包，目标是空的 `joanna_fitness` 数据库；`personal_starrocks.zip` 包含相同文件。StarRocks 版本使用实时视图。详见[个人数据说明](personal_starrocks/README.md)。
 - `warehouse/build_personal_overlay.py`：合并虚构数据与受追踪的个人快照，生成与默认 DuckDB DOSI 模型和当前 DOSI 引擎兼容的 `warehouse/running_demo_personal.duckdb`。其中仍有虚构运动员，分析单人数据时应按运动员筛选；不会伪造个人 `RecoveryState` 计算结果。
-- `warehouse/build.py`：虚构行数据的唯一来源；生成两套匹配的 SQL 表结构和种子文件，同步两套 YAML 方言文件，并在本地建立 `warehouse/running_demo.duckdb`。
+- `warehouse/build.py`：虚构行数据的唯一来源；生成两套匹配的 SQL 表结构和种子文件，同步独立语义模型到项目目录，并在本地建立 DOSI 可读取的 `warehouse/running_demo.duckdb`。
 - `warehouse/starrocks_schema.sql` 与 `warehouse/starrocks_seed.sql`：StarRocks DDL 和虚构行。
 - `warehouse/export_personal_starrocks_seed.py` 与 `warehouse/starrocks_personal_seed.sql`：可复现地导出附加的个人行，写入同一 `fitness_demo` StarRocks schema。应在全新数据库中、虚构种子数据之后仅加载一次。文件含可识别的健康数据；这些附加数据尚未导入单独的本地 StarRocks 服务。
 - `warehouse/duckdb_schema.sql` 与 `warehouse/duckdb_seed.sql`：DuckDB DDL 和相同的虚构数据。
@@ -221,17 +222,22 @@ dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-
 ## DOSI 命令
 
 ```sh
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml validate
-dosi --model fitness_analysis.yaml --ontology fitness_ontology.yaml describe TrainingSession
-dosi --model fitness_analysis.yaml query --metrics measured_run_distance_km --dialect duckdb
-dosi --model fitness_analysis.starrocks.yaml --ontology fitness_ontology.starrocks.yaml validate
-dosi --model fitness_analysis.starrocks.yaml query --metrics run_session_count --dialect starrocks
+dosi validate --mapping subject/ontology/fitness.mapping.yaml
+dosi describe TrainingSession --mapping subject/ontology/fitness.mapping.yaml
+dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_run_distance_km --dialect duckdb
+dosi validate --mapping starrocks_project/subject/ontology/fitness.mapping.yaml
+dosi query --mapping starrocks_project/subject/ontology/fitness.mapping.yaml --metrics run_session_count --dialect starrocks
 ```
 
 在虚构数据上，所有运动员的 `measured_run_distance_km` 合计为 **41**，`run_session_count` 为 **5**，去除一条重复活动记录后的标准 `coros_training_load` 为 **868**，虚构的正式 10K 成绩为 **3190 秒**。虚构看板默认显示 `demo_01`（四次跑步共 33 公里）。`verify_duckdb.py` 会在 DuckDB 中执行 DOSI 生成的 SQL。虚构 StarRocks DDL 尚未在实时的本地 StarRocks 实例中执行。
 
 更新后的本地个人快照包含 88 条活动、115 条跑步观察，以及截至 2026-11-23 的 171 条夜间 HRV 评估。随仓库提供的个人 StarRocks 重建包生成时间较早，不含此后同步的运动记录及本地训练计划；使用前应重新导出并核对。再次发布个人文件前请检查内容；SQL 中的 Base64 编码**不是**隐私保护措施。
 
-默认的 `fitness_analysis*.yaml` 模型面向 `fitness_demo` 测试 schema，包含虚构目标和规则表。`warehouse/running_demo_personal.duckdb` 会把作者已映射的源记录加入该 schema，可供默认 DuckDB 模型查询。例如：`dosi --model fitness_analysis.yaml query --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`。个人 StarRocks 重建包使用原始 `joanna_fitness` 数据库，并不包含这些虚构表；若用 DOSI 查询它，需要匹配的个人模型，不能只替换数据库名。
+默认的 `fitness_analysis*.yaml` 模型面向 `fitness_demo` 测试 schema，包含虚构目标和规则表。`warehouse/running_demo_personal.duckdb` 会把作者已映射的源记录加入该 schema，可供默认 DuckDB 映射查询。例如：`dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics avg_overnight_hrv_ms --group-by daily_hrv.athlete_id --execute --db warehouse/running_demo_personal.duckdb`。个人 StarRocks 重建包使用原始 `joanna_fitness` 数据库，并不包含这些虚构表；若用 DOSI 查询它，需要匹配的个人模型，不能只替换数据库名。
 
 本地 [COROS / Garmin 导入器](coros_import/README.md)会把用户同意导入的数据写入单独的私有 DuckDB，使用相同的 `fitness_demo` schema；不会把个人记录加入公开的虚构测试数据。
+# 周跑量核验
+
+周跑量包含独立跑及混合训练中有实测距离的跑段，不把 HYROX 规则参考距离当作实测。看板只有在连续两个完整自然周的运动导入日期均经过核验后才给出增幅判断。可用 `python3 dashboard/build.py --personal --coverage-file path/to/coverage.json` 提供 JSON 文件：键是看板中的运动员 ID，值是已经独立核验完整导入的 `YYYY-MM-DD` 日期数组。没有覆盖证据时只显示已记录距离和“数据不足”，不生成减量判断；有训练记录不代表当天数据已完整导入。
+
+DOSI 还可查询 Apache Ossie 标准 `derived_by` 定义的 `HighMileageGrowthWeek`，执行默认超过 10% 的周跑量复核。底层 `v_weekly_running_distance` 视图计算连续完整周；两个周的每一天都要在 `activity_import_coverage` 中标记为 `verified_complete` 才会返回。虚构示例已提供两周核验数据，个人 DuckDB 的覆盖表默认留空。运行 `python scripts/validate_ossie.py` 可校验所有本体、映射及语义模型 YAML。

@@ -37,6 +37,8 @@ concepts:
   metric_refs:
   - coros_training_load
   fields:
+  - activity.source
+  - activity.sport_code
   - activity.training_focus
   note: Deduplicate before aggregating activity records. COROS training_focus is a provider-generated primary label for one activity; it is mapped as a SourceActivity property and linked to TrainingSession through records, not a measured time-in-zone value.
 - concept: RunningObservation
@@ -51,7 +53,7 @@ concepts:
   - identified_run_time_s
   - run_session_count
   - run_day_count
-  note: Filter standalone runs for the running-only goal; mixed workout legs are separate context.
+  note: Running-only goal criteria may filter standalone runs. Weekly mileage growth includes all measured run observations, including hybrid run segments, while excluding missing or rule-reference distance.
 - concept: SleepObservation
   binding: direct
   datasets:
@@ -81,6 +83,31 @@ concepts:
   - excessive_load_days
   note: Device-estimated training stress is a proxy for exercise-related fatigue, not a direct fatigue
     measurement. Preserve provider short/long load and source ratio; do not declare a fixed ACWR formula.
+- concept: HighLoadDay
+  binding: derived_subtype
+  extends: DailyTrainingLoad
+  required_filter: source = coros AND load_ratio > 1.5
+  note: Queryable default threshold; check athlete-specific overrides separately. This is a review signal, not a diagnosis.
+- concept: LowLoadDay
+  binding: derived_subtype
+  extends: DailyTrainingLoad
+  required_filter: source = coros AND load_ratio < 0.8
+  note: Queryable default threshold; assess context before recommending more training.
+- concept: CorosHighFocusRunActivity
+  binding: derived_subtype
+  extends: SourceActivity
+  required_filter: source = coros AND sport_code = running AND training_focus IN (Threshold, VO2 Max, Anaerobic)
+  note: Queryable source-activity label; deduplicate completed workouts before applying the weekly intensity distribution rule.
+- concept: WeeklyRunningDistance
+  binding: direct
+  datasets: [weekly_running_distance]
+  key: [weekly_running_distance.athlete_id, weekly_running_distance.week_start]
+  note: Warehouse view of consecutive complete weeks with independently verified activity-import coverage; includes measured hybrid running segments and excludes rule-reference distance.
+- concept: HighMileageGrowthWeek
+  binding: derived_subtype
+  extends: WeeklyRunningDistance
+  required_filter: growth_ratio > 0.1
+  note: DOSI executes the default 10 percent classification. Athlete-specific thresholds filter the mapped parent value.
 - concept: OvernightHRV
   binding: direct
   datasets:
@@ -251,6 +278,20 @@ concepts:
     no scheduled COROS plan or completed activity is imported here.
     planned_intensity maps to planned_action.planned_intensity. The dashboard reviews dated plan spacing;
     the ontology itself does not automatically edit or approve a plan.
+    Planned distance and bilingual title fields map directly; detailed warm-up, main-set and cool-down
+    targets belong to PlannedSegment.
+- concept: PlannedSegment
+  binding: direct
+  datasets:
+  - planned_action_segment
+  key:
+  - planned_action_segment.athlete_id
+  - planned_action_segment.plan_id
+  - planned_action_segment.plan_version
+  - planned_action_segment.action_id
+  - planned_action_segment.segment_ordinal
+  note: Ordered planned targets link to one exact PlannedAction version. These are proposed or approved
+    training targets, not measured workout results.
 - concept: GoalReviewWorkflow
   binding: workflow_only
   note: Reusable Agent procedure defined in x_coaching_knowledge in this ontology. It reads Goal, GoalCriterion,
@@ -263,8 +304,7 @@ concepts:
     state or executable OWL/SWRL classification is present. Read the already saved GoalProgressAssessment
     and RecoveryState rather than creating duplicate conclusions; unsupported flags remain disabled.
     OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
-    while WeeklyMileageIncreaseReview compares two complete weeks of measured standalone running via
-    running_observation. PolarizedHighIntensityReview reads COROS activity.training_focus through
+    while WeeklyMileageIncreaseReview queries the executable HighMileageGrowthWeek subtype over a verified weekly view of measured running, including hybrid run segments. PolarizedHighIntensityReview reads COROS activity.training_focus through
     SourceActivity, deduplicates by TrainingSession, and compares high-focus run count to all classified
     runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
 - concept: Recommendation
