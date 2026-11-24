@@ -11,6 +11,7 @@
 
 ### Dashboard and alerts
 
+- Fixed the ontology rule API path after the DOSI 0.2.2 merge and clarified that the HTML template is source code; use the live `/dashboard` page or a generated offline preview.
 - Restored desktop tab navigation and fixed a rendering error in the Base tab. Verified all six tabs in English and Chinese.
 - The local `/dashboard` service now reads DuckDB and the ontology rule catalog on **every page request**. The browser recalculates Attention checks from that response. Standalone HTML and the fictional `/demo` page remain offline exports.
 - Improved Attention grouping by date and topic, combined checks from the same recovery signal, and added coach summaries with prominent key numbers and suggested actions.

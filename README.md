@@ -32,6 +32,8 @@ report any setup error rather than claiming success.
 
 The Agent can fetch the repository into a local folder if it is not present. The local service reads the bundled personal DuckDB and ontology on each page refresh. It needs no StarRocks server, COROS login, or DOSI CLI. [The standalone HTML preview](dashboard/personal-preview.html) is an offline snapshot.
 
+Open the running capability page through `/dashboard` or the generated `dashboard/personal-preview.html`. `dashboard/index.template.html` is source code for the page and does not contain usable data until the builder renders it.
+
 ### Manual alternative
 
 Download the repository, create a Python environment, and start the local dashboard:

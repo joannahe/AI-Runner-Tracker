@@ -24,7 +24,7 @@ DATA_DIR = ROOT / "dashboard" / "private_data"
 QUEUE = DATA_DIR / "approved_actions.jsonl"
 RESULTS = DATA_DIR / "agent_results.jsonl"
 def current_rules() -> dict:
-    return yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))["ai_context"]["ai_context"]["ai_context"]["x_coaching_knowledge"]
+    return yaml.safe_load((ROOT / "fitness_ontology.yaml").read_text(encoding="utf-8"))["ai_context"]["x_coaching_knowledge"]
 HOST = "127.0.0.1"
 PORT = 8768
 SESSION = secrets.token_urlsafe(32)

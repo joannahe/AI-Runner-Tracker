@@ -31,6 +31,8 @@
 
 如果本地还没有项目，Agent 可以自行获取仓库。首次展示由本地服务在每次刷新时读取个人 DuckDB 和本体规则；不需要 StarRocks 服务、COROS 登录或 DOSI 命令行。[单独的 HTML 预览](dashboard/personal-preview.html)是离线快照。
 
+请通过 `/dashboard` 或生成好的 `dashboard/personal-preview.html` 打开跑步能力页面。`dashboard/index.template.html` 是页面模板，尚未注入数据，不能直接打开使用。
+
 ### 手动启动（备选）
 
 下载仓库、创建 Python 环境并启动本地看板：
