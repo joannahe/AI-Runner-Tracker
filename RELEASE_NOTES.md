@@ -29,7 +29,7 @@
 
 ### Verification and limits
 
-- DOSI validated both mapped projects without issues or compile errors; advisory field warnings and intentional conceptual edges remain. Queries returned the saved personal threshold target and version 3 weekly planned mileage.
+- DOSI validated both mapped projects without issues or compile errors; advisory field warnings and intentional conceptual edges remain. All ten bundled semantic model, ontology, and mapping YAML files passed the pinned Apache Ossie 0.2 schema checks. Queries returned the saved personal threshold target and version 3 weekly planned mileage.
 - Rebuilt the fictional DuckDB fixture with a compatible DuckDB version; `warehouse/verify_duckdb.py` passed all fixture and DOSI metric checks.
 - Local dashboard rendering, bilingual tab switching, and reading changed DuckDB data on a new page render were checked. The local service returned HTTP 200.
 - Refreshing `/dashboard` does not fetch new COROS data. Import watch data into the local database first. The coaching rule catalog is evaluated by the dashboard and Agent workflow; DOSI does not automatically execute or approve coaching actions.

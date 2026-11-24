@@ -929,23 +929,33 @@ ontology:
   - name: title_zh
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedAction title_zh String.
   - name: target_distance_km
     roles:
     - concept: Decimal
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedAction target_distance_km Decimal.
   - name: target_distance_min_km
     roles:
     - concept: Decimal
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedAction target_distance_min_km Decimal.
   - name: target_distance_max_km
     roles:
     - concept: Decimal
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedAction target_distance_max_km Decimal.
   - name: distance_basis
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedAction distance_basis String.
   identify_by:
   - athlete_id
   - plan_id
@@ -1957,64 +1967,93 @@ ontology:
   - name: athlete_id
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment athlete_id String.
   - name: plan_id
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment plan_id String.
   - name: plan_version
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment plan_version Integer.
   - name: action_id
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment action_id String.
   - name: ordinal
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment ordinal Integer.
   - name: kind
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment kind String.
   - name: title_en
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment title_en String.
   - name: title_zh
     roles:
     - concept: String
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment title_zh String.
   - name: target_duration_min
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment target_duration_min Integer.
   - name: target_distance_km
     roles:
     - concept: Decimal
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment target_distance_km Decimal.
   - name: target_pace_fast_s_per_km
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment target_pace_fast_s_per_km Integer.
   - name: target_pace_slow_s_per_km
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment target_pace_slow_s_per_km Integer.
   - name: target_hr_low_bpm
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment target_hr_low_bpm Integer.
   - name: target_hr_high_bpm
     roles:
     - concept: Integer
-      multiplicity: ManyToOne
+    multiplicity: ManyToOne
+    verbalizes:
+    - PlannedSegment target_hr_high_bpm Integer.
   - name: in_action
     roles:
     - concept: PlannedAction
-      multiplicity: ManyToOne
     multiplicity: ManyToOne
+    verbalizes:
+    - A planned segment belongs to one planned action.
   identify_by:
   - athlete_id
   - plan_id
