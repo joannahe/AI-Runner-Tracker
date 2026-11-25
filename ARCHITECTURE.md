@@ -39,7 +39,7 @@ The [ontology](subject/ontology/fitness.ontology.yaml) defines concepts such as 
 | Running form | What do available gait measurements, such as cadence, show across comparable runs? |
 | Recovery and load | What do provider training load, sleep, resting heart rate, HRV, and recovery observations show when available? |
 | Long-term ability | How do dated fitness estimates and personal zone settings develop over a longer period? |
-| Alerts and attention | Which review rules have supporting evidence, and which cannot be evaluated because data is missing? These are prompts for review, not diagnoses or automatic plan changes. |
+| Alerts and attention | What did the saved coach review say for the previous completed week? Which current checks have supporting evidence? A missing weekly review appears as pending; checks do not approve plan changes. |
 
 ## Component map
 
@@ -48,7 +48,7 @@ The [ontology](subject/ontology/fitness.ontology.yaml) defines concepts such as 
 | Default fictional warehouse | `warehouse/build.py`, `warehouse/duckdb_*.sql` | Generates reproducible sample rows and a local DuckDB database. |
 | Watch importer | `coros_import/` | Runs locally; previews COROS MCP or Garmin key/CSV data before writing to an ignored private DuckDB database. |
 | Owner snapshot | `personal_duckdb/`, `personal_starrocks/` | Supplies an optional, identifiable real-data example under a separate data license. |
-| Dashboard | `dashboard/build.py`, `dashboard/index.html`, `dashboard/personal-preview.html` | Reads DuckDB directly and writes static English/Chinese HTML with an athlete selector. It does not call DOSI. |
+| Dashboard | `dashboard/build.py`, `dashboard/index.html`, `dashboard/personal-preview.html`, `dashboard/action_server.py` | Reads DuckDB directly for the athlete selector, current checks, and the saved previous-week coach review. `/dashboard` reloads on each request; HTML exports are snapshots. It does not call DOSI. |
 | Semantic model | `subject/semantic_models/duckdb/fitness_analysis.yaml`, `starrocks_project/subject/semantic_models/starrocks/fitness_analysis.yaml` | Defines datasets, relationships, and metrics for DuckDB or StarRocks. DOSI turns selected metric queries into SQL. |
 | Ontology and mapping | `subject/ontology/fitness.ontology.yaml`, `subject/ontology/fitness.mapping.yaml`, `starrocks_project/subject/ontology/`, `ontology_bindings.yaml` | Defines concepts separately from their dataset and field bindings for DOSI 0.2.2. |
 | Coaching guidance | `fitness_ontology.yaml`, `RECOVERY_RULES.md`, `TRAINING_COACH_AGENT.md` | Documents thresholds, evidence checks, and human-reviewed actions. No background coaching service or DOSI rule executor is included. |

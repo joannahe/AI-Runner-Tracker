@@ -103,10 +103,13 @@ def collect_database(path, personal=False):
             "plans": optional("action_plan", "SELECT athlete_id, plan_id, plan_version, goal_id, goal_version, title, status, approval_status FROM fitness_demo.action_plan ORDER BY plan_id, plan_version"),
             "planned_actions": optional("planned_action", f"SELECT athlete_id, plan_id, plan_version, action_id, CAST(scheduled_date AS VARCHAR) AS date, action_kind, {intensity_field}, title, target_duration_min, {detail_fields}, planning_status, completion_status FROM fitness_demo.planned_action ORDER BY scheduled_date, action_id"),
             "planned_segments": optional("planned_action_segment", "SELECT athlete_id, plan_id, plan_version, action_id, segment_ordinal, segment_type, title_en, title_zh, target_duration_min, target_distance_km, target_pace_fast_s_per_km, target_pace_slow_s_per_km, target_hr_low_bpm, target_hr_high_bpm FROM fitness_demo.planned_action_segment ORDER BY plan_id, plan_version, action_id, segment_ordinal"),
+            "coach_reviews": optional("coach_review", "SELECT athlete_id, review_id, goal_id, goal_version, plan_id, plan_version, CAST(review_date AS VARCHAR) AS review_date, CAST(window_start_date AS VARCHAR) AS window_start_date, CAST(window_end_date AS VARCHAR) AS window_end_date, CAST(data_watermark_date AS VARCHAR) AS data_watermark_date, rule_version, status, summary, CAST(created_at_utc AS VARCHAR) AS created_at_utc FROM fitness_demo.coach_review ORDER BY review_date, created_at_utc"),
+            "coach_review_findings": optional("coach_review_finding", "SELECT athlete_id, review_id, finding_id, rule_code, status, observed_value, baseline_value, unit, CAST(evidence_date AS VARCHAR) AS evidence_date, source_dataset, source_record_id, evidence_status, summary FROM fitness_demo.coach_review_finding ORDER BY review_id, finding_id"),
+            "coach_review_proposals": optional("coach_review_proposal", "SELECT athlete_id, review_id, proposal_id, plan_id, plan_version, action_id, proposed_change, decision_status FROM fitness_demo.coach_review_proposal ORDER BY review_id, proposal_id"),
         }
     return payload
 
-DATA_KEYS = ("athletes", "runs", "laps", "load", "sleep", "rhr", "hrv", "activity_focus", "recovery", "fitness", "hr_zones", "pace_zones", "import_coverage", "goals", "goal_criteria", "plans", "planned_actions", "planned_segments")
+DATA_KEYS = ("athletes", "runs", "laps", "load", "sleep", "rhr", "hrv", "activity_focus", "recovery", "fitness", "hr_zones", "pace_zones", "import_coverage", "goals", "goal_criteria", "plans", "planned_actions", "planned_segments", "coach_reviews", "coach_review_findings", "coach_review_proposals")
 
 
 def merge_databases(paths, personal=False):

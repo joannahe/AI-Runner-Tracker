@@ -1,11 +1,17 @@
 # Release notes
 
-## Unreleased — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3)
+## Unreleased — [PR #4: Saved weekly coach review in Attention](https://github.com/joannahe/AI-Runner-Tracker/pull/4)
+
+- Added a Monday–Sunday readiness check that requires verified activity coverage and sleep through the following Monday wake date. Synthetic tests cover complete, unverified, split-window, and missing-sleep cases. The gate does not launch an Agent.
+- The Attention page now reads the previous completed week's saved coach review, findings, and pending plan proposals from DuckDB. When no completed review exists for that week, it shows a pending message. Individual attention checks still recalculate from current observations and ontology guidance.
+- The local `/dashboard` service reads the saved review on each request; generated HTML previews remain snapshots. No automatic Agent review, scheduler, StarRocks migration, or plan approval is included.
+- Verification: saved-review, missing-week and athlete-isolation UI checks passed; weekly readiness fixture checks passed; DOSI validated both DuckDB and StarRocks mappings with existing advisory notes. The separate Ossie schema script could not run in this checkout because `jsonschema` is not installed.
+
+## 2026-11-25 — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3) (merged)
 
 - Marked workout start time and running observation date as time dimensions in both DuckDB and StarRocks models.
 - Recorded the original 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`; the race subtype and saved coach-review links reduce current unmapped edge notes to 12.
 - Added version-linked, dated coach reviews with individual findings, evidence status, and pending plan proposals to both warehouse schemas, semantic models, and ontology mappings. The reusable Agent review procedure remains in ontology context. Added a local DuckDB writer and a disposable fixture test; review storage never approves a plan.
-- Added a local weekly readiness check for verified Monday–Sunday activity coverage and sleep through the following Monday wake date. Synthetic tests cover complete, unverified, split-window, and missing-sleep cases. This gate does not launch an Agent; the importer still records saved responses as unverified.
 - Corrected outdated coaching notes: planned intensity is mapped, while race evidence and external plan evaluators remain incomplete.
 - Classified completed running races as a queryable `TrainingSession` subtype. Race coaching now accepts a known race-format or canonical watch distance instead of requiring a separate official result. The post-race plan review still needs an athlete setting and external evaluator.
 - Verification: pinned Apache Ossie schema checks passed for all ten bundled YAML files; DOSI 0.2.2 reported no issues or compile errors in either standalone mapping project. A mapped DOSI query reached the saved review and exact goal version. Fixture checks and a disposable writer test passed. Three new audit-field hints make the current warning count 87 per project.

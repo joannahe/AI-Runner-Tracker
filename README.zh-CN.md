@@ -164,6 +164,8 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 
 每次打开或刷新本地服务的 `/dashboard` 页面，服务都会重新读取个人 DuckDB 和 `fitness_ontology.yaml` 中的 `ai_context.x_coaching_knowledge` 规则目录，再由页面重新计算关注点。单独打开 HTML 文件或 `/demo` 时仍使用离线快照。看板用 JavaScript 计算复核信号；DOSI 本身不会执行这些教练规则。
 
+「关注点」顶部展示相对于所选结束日期的**上一个完整周**（周一至周日）的已保存教练复盘。文字、发现和待确认的计划建议直接读取 DuckDB 的 `coach_review`、`coach_review_finding`、`coach_review_proposal`；若该周没有已完成的复盘，就显示「最近一周的复盘尚未生成」。下面按日期排列的检查点仍用现有观测数据和本体指导动态计算。保存复盘后刷新 `/dashboard` 即可读取；单独的 HTML 预览需重新生成。目前周数据核验及保存复盘由本地命令执行，不会自动启动 Agent 或定时任务。
+
 个人数据的“关注点”页可按周查看已生效的第 3 版详细计划：每次训练含热身、主训练、放松，以及估算跑量、配速和心率；周跑量含热身与放松。DEKA FIT 双人赛在分工确认前显示个人跑量范围。告警依据第 3 版计划检查训练强度间隔、赛后安排及恢复信号。第 3 版将阈值训练目标更新为 5:30–5:55/公里、155–165 bpm；这是一条个人训练目标，不会覆盖 COROS 给出的阈值配速估计。
 
 以后调整这类目标范围，可执行 `.venv/bin/python dashboard/set_training_pace_target.py --fast 5:30 --slow 5:55 --effective-date 2026-11-24`，将速度和生效日期换成自己的数据。脚本会把新的个人目标作为有版本的 `running_pace_zone` 记录保存。然后请 Agent 查询当前目标、设备估计和近期跑步记录，生成新的待确认训练计划版本；已批准计划不会自动更改。
