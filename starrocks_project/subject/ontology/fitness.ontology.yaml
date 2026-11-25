@@ -325,25 +325,82 @@ ontology:
     multiplicity: ManyToOne
     verbalizes:
     - FitnessAssessment time_quality String.
-- concept: GoalReviewWorkflow
+- concept: GoalReview
   type: EntityType
-  description: Layer 3 Agent procedure for reviewing any athlete goal. It has no warehouse row or automatic execution;
-    its conceptual targets and uses_plan edges are explained in x_coaching_knowledge in this ontology.
+  description: One saved execution of the Agent goal-review procedure; retains the exact goal and plan versions,
+    evidence window, rule version, data watermark and outcome. The procedure itself remains in ai_context.
   relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview athlete_id String.
+  - name: id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview id String.
+  - name: review_date
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview review_date Date.
+  - name: status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview status String.
+  - name: summary
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview summary String.
   - name: targets
-    description: A goal review workflow targets a goal.
+    description: A saved goal review targets one exact goal version.
     roles:
     - concept: Goal
     multiplicity: ManyToOne
     verbalizes:
-    - A goal review workflow targets a goal.
+    - A saved goal review targets one exact goal version.
   - name: uses_plan
-    description: A goal review workflow uses a action plan.
+    description: A saved goal review uses one exact plan version.
     roles:
     - concept: ActionPlan
     multiplicity: ManyToOne
     verbalizes:
-    - A goal review workflow uses a action plan.
+    - A saved goal review uses one exact plan version.
+  - name: window_start
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview window_start Date.
+  - name: window_end
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview window_end Date.
+  - name: data_watermark
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview data_watermark Date.
+  - name: rule_version
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview rule_version String.
+  identify_by:
+  - athlete_id
+  - id
 - concept: WeeklyRunningDistance
   type: EntityType
   identify_by:
@@ -2030,6 +2087,175 @@ ontology:
   - plan_version
   - action_id
   - ordinal
+- concept: GoalReviewFinding
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - review_id
+  - id
+  description: One rule or goal-criterion finding with dated evidence, values and coverage.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding athlete_id String.
+  - name: review_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding review_id String.
+  - name: id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding id String.
+  - name: rule_code
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding rule_code String.
+  - name: status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding status String.
+  - name: summary
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding summary String.
+  - name: in_review
+    description: A finding belongs to one saved review.
+    roles:
+    - concept: GoalReview
+    multiplicity: ManyToOne
+    verbalizes:
+    - A finding belongs to one saved review.
+  - name: observed_value
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding observed_value Decimal.
+  - name: baseline_value
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding baseline_value Decimal.
+  - name: unit
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding unit String.
+  - name: evidence_date
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding evidence_date Date.
+  - name: source_dataset
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding source_dataset String.
+  - name: source_record_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding source_record_id String.
+  - name: evidence_status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding evidence_status String.
+- concept: GoalReviewProposal
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - review_id
+  - id
+  description: A suggested plan adjustment with an athlete decision; no plan mutation occurs until approved.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal athlete_id String.
+  - name: review_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal review_id String.
+  - name: id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal id String.
+  - name: decision_status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal decision_status String.
+  - name: proposed_change
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal proposed_change String.
+  - name: in_review
+    description: A proposal belongs to one saved review.
+    roles:
+    - concept: GoalReview
+    multiplicity: ManyToOne
+    verbalizes:
+    - A proposal belongs to one saved review.
+  - name: adjusts
+    description: A proposal refers to one scheduled action.
+    roles:
+    - concept: PlannedAction
+    multiplicity: ManyToOne
+    verbalizes:
+    - A proposal refers to one scheduled action.
+  - name: plan_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal plan_id String.
+  - name: plan_version
+    roles:
+    - concept: Integer
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal plan_version Integer.
+  - name: action_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal action_id String.
+  - name: decided_at
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal decided_at Date.
 ai_context:
   instructions: Use HighLoadDay, LowLoadDay and CorosHighFocusRunActivity for queryable default classifications.
     They inherit their parent records. Apply athlete-specific threshold overrides, multi-day comparisons, deduplication,
@@ -2137,8 +2363,8 @@ ai_context:
         only when their stated coverage gates pass.
       - Review each active GoalCriterion and the next seven dated PlannedActions; distinguish an approved action
         from a proposed or already completed one.
-      - Check configured race recovery windows and consecutive planned high-intensity sessions; require explicit intensity
-        and recovery evidence before a pass or trigger.
+      - Check configured race recovery windows and consecutive planned high-intensity sessions; require explicit
+        intensity and recovery evidence before a pass or trigger.
       - Create a review event with rule code, observation window, values, baseline or provider range, effective
         threshold, rule version, source IDs, evidence sufficiency, and any affected planned action.
       - Notify the athlete only for a new actionable review event; explain the evidence and ask for approval before
@@ -2214,9 +2440,10 @@ ai_context:
           empty day was rest or that a missing watch distance is zero.
         approval: Never edit an approved plan or external wearable schedule without athlete approval.
     goal_review_workflow:
-      concept: GoalReviewWorkflow
-      persistence: none
-      interpretation: Agent procedure, not a queryable warehouse entity or an automatically executed ontology rule.
+      concept: GoalReview
+      persistence: save_each_execution
+      interpretation: Agent procedure with saved review, findings and proposals; the ontology does not automatically
+        execute it or approve plan changes.
       steps:
       - name: resolve_goal
         read_concepts:
@@ -2946,7 +3173,7 @@ ai_context:
         contain no easy run or rest.
       action: Suggest moving or downgrading the later session in a new draft plan version; athlete approval required
         before changing an approved plan.
-      missing_model: planned_action.planned_intensity is mapped. A deterministic evaluator and reminder channel are
-        not implemented; missing plan entries still cannot be assumed to be rest.
+      missing_model: planned_action.planned_intensity is mapped. A deterministic evaluator and reminder channel
+        are not implemented; missing plan entries still cannot be assumed to be rest.
       sources:
       - https://worldathletics.org/personal-best/performance/speed-training-endurance-runners-benefits-limits

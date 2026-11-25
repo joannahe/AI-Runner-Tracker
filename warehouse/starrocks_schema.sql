@@ -486,6 +486,51 @@ CREATE TABLE IF NOT EXISTS planned_action_segment (
   target_hr_high_bpm BIGINT
 ) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
 
+CREATE TABLE IF NOT EXISTS coach_review (
+  athlete_id VARCHAR(255),
+  review_id VARCHAR(255),
+  goal_id VARCHAR(255),
+  goal_version BIGINT,
+  plan_id VARCHAR(255),
+  plan_version BIGINT,
+  review_date DATE,
+  window_start_date DATE,
+  window_end_date DATE,
+  data_watermark_date DATE,
+  rule_version VARCHAR(255),
+  status VARCHAR(255),
+  summary VARCHAR(2048),
+  created_at_utc DATETIME
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS coach_review_finding (
+  athlete_id VARCHAR(255),
+  review_id VARCHAR(255),
+  finding_id VARCHAR(255),
+  rule_code VARCHAR(255),
+  status VARCHAR(255),
+  observed_value DECIMAL(18,3),
+  baseline_value DECIMAL(18,3),
+  unit VARCHAR(255),
+  evidence_date DATE,
+  source_dataset VARCHAR(255),
+  source_record_id VARCHAR(255),
+  evidence_status VARCHAR(255),
+  summary VARCHAR(2048)
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
+CREATE TABLE IF NOT EXISTS coach_review_proposal (
+  athlete_id VARCHAR(255),
+  review_id VARCHAR(255),
+  proposal_id VARCHAR(255),
+  plan_id VARCHAR(255),
+  plan_version BIGINT,
+  action_id VARCHAR(255),
+  proposed_change VARCHAR(2048),
+  decision_status VARCHAR(255),
+  decided_at_utc DATETIME
+) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
+
 CREATE TABLE IF NOT EXISTS activity_import_coverage (athlete_id VARCHAR(255), local_date DATE, status VARCHAR(32)) ENGINE=OLAP DUPLICATE KEY(athlete_id, local_date) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
 
 CREATE VIEW v_weekly_running_distance AS

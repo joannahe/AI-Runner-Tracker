@@ -24,6 +24,12 @@ def model_metric(name):
 
 checks = {
     "athletes": ("SELECT COUNT(*) FROM fitness_demo.athlete", 3),
+    "saved_coach_reviews": ("SELECT COUNT(*) FROM fitness_demo.coach_review", 1),
+    "coach_review_findings": ("SELECT COUNT(*) FROM fitness_demo.coach_review_finding", 2),
+    "coach_review_proposals_pending": ("SELECT COUNT(*) FROM fitness_demo.coach_review_proposal WHERE decision_status='pending'", 1),
+    "coach_review_goal_version": ("SELECT COUNT(*) FROM fitness_demo.coach_review r JOIN fitness_demo.athlete_goal g ON r.athlete_id=g.athlete_id AND r.goal_id=g.goal_id AND r.goal_version=g.goal_version", 1),
+    "coach_review_plan_version": ("SELECT COUNT(*) FROM fitness_demo.coach_review r JOIN fitness_demo.action_plan p ON r.athlete_id=p.athlete_id AND r.plan_id=p.plan_id AND r.plan_version=p.plan_version AND r.goal_id=p.goal_id AND r.goal_version=p.goal_version", 1),
+    "coach_finding_evidence": ("SELECT COUNT(*) FROM fitness_demo.coach_review_finding WHERE finding_id='run_days' AND observed_value=2 AND baseline_value=3 AND evidence_status='sufficient'", 1),
     "goal_versions": ("SELECT COUNT(*) FROM fitness_demo.athlete_goal", 4),
     "saved_action_plan_versions": ("SELECT COUNT(*) FROM fitness_demo.action_plan", 4),
     "action_plans_match_goal_versions": ("SELECT COUNT(*) FROM fitness_demo.action_plan p LEFT JOIN fitness_demo.athlete_goal g ON p.athlete_id=g.athlete_id AND p.goal_id=g.goal_id AND p.goal_version=g.goal_version WHERE g.goal_id IS NULL", 0),
