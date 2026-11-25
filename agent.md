@@ -62,6 +62,8 @@ The dashboard builder runs its **own direct SQL** against DuckDB; it does not ca
 
 For each completed review, save one review, its dated findings with evidence status, and any pending proposals against the exact goal and plan versions. Prepare a private JSON payload with `review`, `findings`, and `proposals`, following the fictional rows in `warehouse/build.py`. Run `.venv/bin/python dashboard/save_coach_review.py --db PATH_TO_PRIVATE_DUCKDB --input REVIEW.json`. The writer rejects duplicate review IDs and never changes an approved plan. The workflow is on demand; no background coach or reminder is started.
 
+Before a weekly Agent review, run `.venv/bin/python dashboard/weekly_review_readiness.py --db PATH_TO_PRIVATE_DUCKDB --athlete ATHLETE_ID`. A `ready_for_agent` result requires verified activity coverage for the full Monday–Sunday week, verified sleep coverage through the following Monday wake date, and the Sunday-night sleep reading itself. `saved_unverified` import rows do not pass. The gate only checks readiness; it does not start this Agent, generate coaching language, or save a review. Open-source users must connect their chosen Agent runtime to the gate and writer. DOSI is the semantic query engine, not an LLM Agent.
+
 ### Help the user test the ontology
 
 Offer a few plain-language questions from [the README](README.md#questions-to-try-with-an-agent) or [the full bilingual catalog](QUESTION_CATALOG_AND_ONBOARDING.md#reusable-question-catalog). The user need not know a metric name. For each question:
