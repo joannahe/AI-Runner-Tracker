@@ -501,6 +501,10 @@ CREATE TABLE IF NOT EXISTS coach_review (
   status VARCHAR(255),
   summary VARCHAR(2048),
   next_step_text VARCHAR(2048),
+  summary_en VARCHAR(2048),
+  summary_zh VARCHAR(2048),
+  next_step_text_en VARCHAR(2048),
+  next_step_text_zh VARCHAR(2048),
   created_at_utc TIMESTAMP
 );
 
