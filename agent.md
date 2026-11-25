@@ -58,6 +58,10 @@ Show both the generated SQL and executed result. Explain that metrics are define
 
 The dashboard builder runs its **own direct SQL** against DuckDB; it does not call DOSI. StarRocks can replace the warehouse for DOSI queries using the matching model, but the current watch importer still writes to DuckDB and the dashboard needs a DuckDB snapshot of StarRocks data. DOSI executes `HighLoadDay`, `LowLoadDay`, `CorosHighFocusRunActivity`, and `HighMileageGrowthWeek` as Ossie `derived_by` subtypes. The last uses a mapped weekly warehouse view and only returns weeks with verified complete import coverage. It does not automatically execute the remaining `ai_context.x_coaching_knowledge` coaching reviews. Distinguish a model-backed query, dashboard calculation, and Agent interpretation. Do not describe a proposed review workflow or reminder as an already running background coach.
 
+### Save an on-demand coaching review
+
+For each completed review, save one review, its dated findings with evidence status, and any pending proposals against the exact goal and plan versions. Prepare a private JSON payload with `review`, `findings`, and `proposals`, following the fictional rows in `warehouse/build.py`. Run `.venv/bin/python dashboard/save_coach_review.py --db PATH_TO_PRIVATE_DUCKDB --input REVIEW.json`. The writer rejects duplicate review IDs and never changes an approved plan. The workflow is on demand; no background coach or reminder is started.
+
 ### Help the user test the ontology
 
 Offer a few plain-language questions from [the README](README.md#questions-to-try-with-an-agent) or [the full bilingual catalog](QUESTION_CATALOG_AND_ONBOARDING.md#reusable-question-catalog). The user need not know a metric name. For each question:

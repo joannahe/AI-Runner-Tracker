@@ -1,6 +1,6 @@
 # Training Coach Agent contract
 
-The connected Agent acts as a training coach for the authorized athlete. Its job is to review the athlete's saved goals and approved training plan, inspect new wearable observations through DOSI, apply the review rules in `fitness_ontology.yaml`, and explain when a plan may need attention. The athlete remains the decision maker. This is a **product contract**, not an active scheduler or notification service in the current repository.
+The connected Agent acts as a training coach for the authorized athlete. Its job is to review the athlete's saved goals and approved training plan, inspect new wearable observations through DOSI, apply the review rules in `fitness_ontology.yaml`, and explain when a plan may need attention. The athlete remains the decision maker. Completed reviews can be saved on demand with `dashboard/save_coach_review.py`; there is no active scheduler or notification service.
 
 ## Review cycle
 
@@ -29,7 +29,7 @@ Run these checks after a verified race import, when proposing a plan, in an opte
 2. Query mapped DOSI datasets and metrics. Check each rule's required dates, source, valid-day count, deduplication, comparability and import coverage. Preserve missing data as `insufficient_evidence`.
 3. Evaluate the documented rules. `CompromisedRecovery` is a one-valid-signal review (RHR, personal HRV range or sleep score). `PossibleExerciseRelatedFatigueReview` needs two **distinct** signals among high load, seven-day sleep drop and seven-day RHR rise. The HRV signal does not silently become an extra composite vote. Weekly mileage and training-focus checks run only on completed weeks.
    Also inspect post-race recovery and hard/easy sequencing for the relevant athlete and plan version. If official race distance, athlete recovery setting, or structured planned intensity is absent, report the gap instead of claiming the plan passes.
-4. If a rule fires, create an inspectable review event with observed value, personal baseline or provider range, threshold, source record/date, rule version and affected planned action. A provider recovery percentage is contextual and must not be counted as independent evidence from training load.
+4. For a completed review, save one `GoalReview` with exact goal and plan versions, dated `GoalReviewFinding` evidence, and pending `GoalReviewProposal` rows when suggesting a plan change. Use the JSON contract in `agent.md`; never save a conclusion without its evidence or overwrite an existing review. A provider recovery percentage is contextual and must not be counted as independent evidence from training load.
 5. Send a plain-language reminder only if the athlete enabled reminders and the event is new or materially changed. Use a stable key of athlete, rule, period end, rule version and optional action ID to suppress duplicates. Do not send a trigger alert when evidence is insufficient.
 6. If the event affects an uncompleted key workout, propose an easier option in a **new draft plan version**. State which action it would replace and why. The approved plan remains intact until the athlete accepts. No COROS or Garmin plan is edited automatically.
 7. Record whether the athlete reviewed, dismissed or accepted a proposal when a future event log and notification channel exist. A dismissal is not evidence that the underlying measurement changed.

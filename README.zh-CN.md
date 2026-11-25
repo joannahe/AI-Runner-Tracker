@@ -152,7 +152,7 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 
 ### 在本地确认建议行动
 
-量化规则及其 `recommendation_options` 统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `ai_context.x_coaching_knowledge` 中；StarRocks 本体包含相同目录。两套本体／模型／映射文件均已按与 DOSI 0.2.2 的 `osi spec 0.2.0.dev0` 对应的 [Apache Ossie 0.2 schema](https://github.com/apache/ossie/tree/5ebe400b393b837b3a8c8b2f22738b5e30eb05e5/ontology) 校验。DOSI 会执行 `HighLoadDay`、`LowLoadDay` 和 `CorosHighFocusRunActivity` 的本体 `derived_by` 筛选；详见[查询步骤](ONTOLOGY_ARCHITECTURE.md#queryable-derived-concepts)。看板从 AI 上下文读取更广泛的告警复核规则；DOSI 不会自动执行这些跨记录教练规则。
+量化规则及其 `recommendation_options` 统一写在 [DuckDB 本体](fitness_ontology.yaml)的 `ai_context.x_coaching_knowledge` 中；StarRocks 本体包含相同目录。两套本体／模型／映射文件均已按与 DOSI 0.2.2 的 `osi spec 0.2.0.dev0` 对应的 [Apache Ossie 0.2 schema](https://github.com/apache/ossie/tree/5ebe400b393b837b3a8c8b2f22738b5e30eb05e5/ontology) 校验。DOSI 会执行 `HighLoadDay`、`LowLoadDay` 和 `CorosHighFocusRunActivity` 的本体 `derived_by` 筛选；详见[查询步骤](ONTOLOGY_ARCHITECTURE.md#queryable-derived-concepts)。看板从 AI 上下文读取更广泛的告警复核规则；DOSI 不会自动执行这些跨记录教练规则。[模型质量核对](MODEL_QUALITY_AUDIT.md)记录了概念箭头与字段用途的后续处理。
 
 安装 `warehouse/requirements.txt` 后，启动仅监听本机的行动服务，才可使用告警按钮：
 

@@ -21,12 +21,13 @@ concepts:
   - watch_elapsed_time_s
   note: Includes running, race and other completed workouts; a rest day is planned, not completed.
 - concept: RaceEvent
-  binding: derived_filter_not_yet_mapped
+  binding: derived_subtype
+  extends: TrainingSession
   datasets: [workout_event]
-  required_filter: is_official_race = true, with verified completion and official course distance
-  note: Conceptually links a completed road race to TrainingSession. workout_event has an official-race flag
-    and race format, but no verified course-distance field. Watch distance cannot substitute for course distance;
-    HYROX is outside the road-race recovery policy. DOSI does not yet materialize this filtered concept.
+  required_filter: is_official_race = true AND sport_code = running
+  note: Inherits TrainingSession identity and properties; DOSI executes this subtype filter. For a recovery
+    review, use the known race-format distance or one canonical watch activity linked to the session.
+    HYROX is excluded. No separate official result or course-distance field is required.
 - concept: SourceActivity
   binding: direct
   datasets:
@@ -292,12 +293,21 @@ concepts:
   - planned_action_segment.segment_ordinal
   note: Ordered planned targets link to one exact PlannedAction version. These are proposed or approved
     training targets, not measured workout results.
-- concept: GoalReviewWorkflow
-  binding: workflow_only
-  note: Reusable Agent procedure defined in x_coaching_knowledge in this ontology. It reads Goal, GoalCriterion,
-    GoalProgressAssessment with cited evidence, Capability and RecoveryState as context, then ActionPlan
-    and PlannedAction. The ontology's targets and uses_plan links explain the procedure; they are not
-    realized dataset joins or a queryable workflow execution record.
+- concept: GoalReview
+  binding: direct
+  datasets: [coach_review]
+  key: [coach_review.athlete_id, coach_review.review_id]
+  note: One dated review links to exact Goal and ActionPlan versions. The reusable Agent procedure remains in x_coaching_knowledge.goal_review_workflow.
+- concept: GoalReviewFinding
+  binding: direct
+  datasets: [coach_review_finding]
+  key: [coach_review_finding.athlete_id, coach_review_finding.review_id, coach_review_finding.finding_id]
+  note: Dated evidence and missing-data status for one saved review.
+- concept: GoalReviewProposal
+  binding: direct
+  datasets: [coach_review_proposal]
+  key: [coach_review_proposal.athlete_id, coach_review_proposal.review_id, coach_review_proposal.proposal_id]
+  note: One pending, human-reviewed plan suggestion; saving it does not mutate the plan.
 - concept: InferredState
   binding: rule_catalog_only
   note: Keep as an Agent review-flag catalog with evidence gates in x_coaching_knowledge in this ontology. No persisted
@@ -306,7 +316,7 @@ concepts:
     OvertrainingRisk reads a dated COROS daily_training_load.load_ratio against its configured threshold,
     while WeeklyMileageIncreaseReview queries the executable HighMileageGrowthWeek subtype over a verified weekly view of measured running, including hybrid run segments. PolarizedHighIntensityReview reads COROS activity.training_focus through
     SourceActivity, deduplicates by TrainingSession, and compares high-focus run count to all classified
-    runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview links a verified RaceEvent to dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Both still need structured plan intensity and an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
+    runs in a completed week. CompromisedRecovery reviews RestingHeartRate and SleepObservation, with COROS overnight HRV mapped to daily_hrv, then proposes a draft adjustment to a scheduled key PlannedAction. PostRaceRecoveryReview reads a completed running RaceEvent and dated PlannedActions; HardEasySequenceReview checks consecutive planned intensities. Planned intensity is mapped; the race review still needs a selected watch or race-format distance and an athlete setting, and both reviews need an external evaluator. These are conceptual review signals, not persisted state or engine-executed rules.
 - concept: Recommendation
   binding: rule_catalog_only
   note: Agent suggestion rules remain in x_coaching_knowledge in this ontology, without a persisted recommendation or

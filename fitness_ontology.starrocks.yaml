@@ -75,43 +75,13 @@ ontology:
     - An athlete performs a training session.
 - concept: RaceEvent
   type: EntityType
-  identify_by:
-  - athlete_id
-  - id
-  description: A completed, verified race identified from an official TrainingSession. Race course distance must
-    be verified separately; watch distance and HYROX format are not road-race distance.
-  relationships:
-  - name: athlete_id
-    roles:
-    - concept: String
-    multiplicity: OneToOne
-    verbalizes:
-    - RaceEvent athlete_id String.
-  - name: id
-    roles:
-    - concept: String
-    multiplicity: OneToOne
-    verbalizes:
-    - RaceEvent id String.
-  - name: completed_on
-    roles:
-    - concept: Date
-    multiplicity: ManyToOne
-    verbalizes:
-    - RaceEvent completed_on Date.
-  - name: course_distance_km
-    roles:
-    - concept: Decimal
-    multiplicity: ManyToOne
-    verbalizes:
-    - RaceEvent course_distance_km Decimal.
-  - name: completed_as
-    description: A verified race is a completed training session.
-    roles:
-    - concept: TrainingSession
-    multiplicity: ManyToOne
-    verbalizes:
-    - A verified race is a completed training session.
+  extends:
+  - TrainingSession
+  description: A completed running race in the workout log. Training-date and race-format properties are inherited
+    from TrainingSession. For coaching review, use the canonical watch activity distance and time; do not require
+    a separate official result. Exclude HYROX and report missing or uncertain watch distance.
+  derived_by:
+  - TrainingSession.is_official_race == true AND TrainingSession.sport == 'running'
 - concept: SourceActivity
   type: EntityType
   identify_by:
@@ -355,25 +325,82 @@ ontology:
     multiplicity: ManyToOne
     verbalizes:
     - FitnessAssessment time_quality String.
-- concept: GoalReviewWorkflow
+- concept: GoalReview
   type: EntityType
-  description: Layer 3 Agent procedure for reviewing any athlete goal. It has no warehouse row or automatic execution;
-    its conceptual targets and uses_plan edges are explained in x_coaching_knowledge in this ontology.
+  description: One saved execution of the Agent goal-review procedure; retains the exact goal and plan versions,
+    evidence window, rule version, data watermark and outcome. The procedure itself remains in ai_context.
   relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview athlete_id String.
+  - name: id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview id String.
+  - name: review_date
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview review_date Date.
+  - name: status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview status String.
+  - name: summary
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview summary String.
   - name: targets
-    description: A goal review workflow targets a goal.
+    description: A saved goal review targets one exact goal version.
     roles:
     - concept: Goal
     multiplicity: ManyToOne
     verbalizes:
-    - A goal review workflow targets a goal.
+    - A saved goal review targets one exact goal version.
   - name: uses_plan
-    description: A goal review workflow uses a action plan.
+    description: A saved goal review uses one exact plan version.
     roles:
     - concept: ActionPlan
     multiplicity: ManyToOne
     verbalizes:
-    - A goal review workflow uses a action plan.
+    - A saved goal review uses one exact plan version.
+  - name: window_start
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview window_start Date.
+  - name: window_end
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview window_end Date.
+  - name: data_watermark
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview data_watermark Date.
+  - name: rule_version
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview rule_version String.
+  identify_by:
+  - athlete_id
+  - id
 - concept: WeeklyRunningDistance
   type: EntityType
   identify_by:
@@ -2060,6 +2087,175 @@ ontology:
   - plan_version
   - action_id
   - ordinal
+- concept: GoalReviewFinding
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - review_id
+  - id
+  description: One rule or goal-criterion finding with dated evidence, values and coverage.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding athlete_id String.
+  - name: review_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding review_id String.
+  - name: id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding id String.
+  - name: rule_code
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding rule_code String.
+  - name: status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding status String.
+  - name: summary
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding summary String.
+  - name: in_review
+    description: A finding belongs to one saved review.
+    roles:
+    - concept: GoalReview
+    multiplicity: ManyToOne
+    verbalizes:
+    - A finding belongs to one saved review.
+  - name: observed_value
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding observed_value Decimal.
+  - name: baseline_value
+    roles:
+    - concept: Decimal
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding baseline_value Decimal.
+  - name: unit
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding unit String.
+  - name: evidence_date
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding evidence_date Date.
+  - name: source_dataset
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding source_dataset String.
+  - name: source_record_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding source_record_id String.
+  - name: evidence_status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewFinding evidence_status String.
+- concept: GoalReviewProposal
+  type: EntityType
+  identify_by:
+  - athlete_id
+  - review_id
+  - id
+  description: A suggested plan adjustment with an athlete decision; no plan mutation occurs until approved.
+  relationships:
+  - name: athlete_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal athlete_id String.
+  - name: review_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal review_id String.
+  - name: id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal id String.
+  - name: decision_status
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal decision_status String.
+  - name: proposed_change
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal proposed_change String.
+  - name: in_review
+    description: A proposal belongs to one saved review.
+    roles:
+    - concept: GoalReview
+    multiplicity: ManyToOne
+    verbalizes:
+    - A proposal belongs to one saved review.
+  - name: adjusts
+    description: A proposal refers to one scheduled action.
+    roles:
+    - concept: PlannedAction
+    multiplicity: ManyToOne
+    verbalizes:
+    - A proposal refers to one scheduled action.
+  - name: plan_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal plan_id String.
+  - name: plan_version
+    roles:
+    - concept: Integer
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal plan_version Integer.
+  - name: action_id
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal action_id String.
+  - name: decided_at
+    roles:
+    - concept: Date
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReviewProposal decided_at Date.
 ai_context:
   instructions: Use HighLoadDay, LowLoadDay and CorosHighFocusRunActivity for queryable default classifications.
     They inherit their parent records. Apply athlete-specific threshold overrides, multi-day comparisons, deduplication,
@@ -2125,7 +2321,7 @@ ai_context:
       - PlannedAction
       - InferredState
       - Recommendation
-      availability: needs_verified_course_distance_athlete_policy_and_structured_plan_intensity
+      availability: needs_canonical_watch_distance_athlete_policy_and_external_evaluator
     - code: HardEasySequenceReview
       concept_path:
       - Athlete
@@ -2153,7 +2349,7 @@ ai_context:
       - at_athlete_configured_morning_review_time
       - after_each_completed_local_monday_to_sunday_week
       - whenever_the_athlete_requests_a_plan_review
-      - after_a_verified_race_result_is_imported
+      - after_a_completed_running_race_is_imported
       cadence_note: A future scheduler and notification channel must be configured per athlete; this catalog does
         not create a recurring job.
       ordered_steps:
@@ -2167,8 +2363,8 @@ ai_context:
         only when their stated coverage gates pass.
       - Review each active GoalCriterion and the next seven dated PlannedActions; distinguish an approved action
         from a proposed or already completed one.
-      - Check verified race recovery windows and consecutive planned high-intensity sessions; require explicit intensity
-        and recovery evidence before a pass or trigger.
+      - Check configured race recovery windows and consecutive planned high-intensity sessions; require explicit
+        intensity and recovery evidence before a pass or trigger.
       - Create a review event with rule code, observation window, values, baseline or provider range, effective
         threshold, rule version, source IDs, evidence sufficiency, and any affected planned action.
       - Notify the athlete only for a new actionable review event; explain the evidence and ask for approval before
@@ -2211,7 +2407,7 @@ ai_context:
         - evidence_limit
       required_plan_checks:
         when:
-        - after_a_verified_race_result_is_imported
+        - after_a_completed_running_race_is_imported
         - before_presenting_a_new_plan_version
         - during_an_approved_plan_review
         - when_asked_about_training_spacing_or_post_race_readiness
@@ -2224,8 +2420,8 @@ ai_context:
         - PostRaceRecoveryReview
         - HardEasySequenceReview
         race_evidence:
-        - verified_completion
-        - official_course_distance_km
+        - completed_running_race
+        - canonical_watch_distance_km_or_known_race_format
         - effective_athlete_recovery_setting
         sequencing_evidence:
         - structured_planned_intensity
@@ -2241,12 +2437,13 @@ ai_context:
         - source_ids
         - proposed_draft_if_triggered
         missing_input: Return insufficient_evidence or unknown with the specific missing item; do not assume an
-          empty day was rest or a watch distance was the course distance.
+          empty day was rest or that a missing watch distance is zero.
         approval: Never edit an approved plan or external wearable schedule without athlete approval.
     goal_review_workflow:
-      concept: GoalReviewWorkflow
-      persistence: none
-      interpretation: Agent procedure, not a queryable warehouse entity or an automatically executed ontology rule.
+      concept: GoalReview
+      persistence: save_each_execution
+      interpretation: Agent procedure with saved review, findings and proposals; the ontology does not automatically
+        execute it or approve plan changes.
       steps:
       - name: resolve_goal
         read_concepts:
@@ -2503,10 +2700,10 @@ ai_context:
       rule: Requires continuous, valid heart-rate and speed samples from a steady run; activity averages do not
         establish drift.
     - code: PostRaceRecoveryReview
-      status: review_only_requires_verified_race_distance_and_athlete_policy
+      status: review_only_requires_watch_distance_and_athlete_policy
       evidence:
-      - verified_completed_race
-      - course_distance_km
+      - completed_running_race
+      - canonical_watch_distance_km_or_known_race_format
       - approved_plan
       - planned_intensity
       - rule_version
@@ -2934,24 +3131,25 @@ ai_context:
       - InferredState
       - Recommendation
       source: workout_event
-      race_gate: is_official_race must be true; confirm completion and official road-race course distance. Exclude
-        HYROX and unverified watch distance.
+      race_gate: Use a completed running TrainingSession marked as a race. Exclude HYROX. Resolve one canonical
+        watch activity for its distance; if distance is absent, a known race format may supply nominal distance.
       distance_policy:
         unit: km
         athlete_setting: easy_or_rest_days_per_km
         default: null
         optional_example: One easy/rest day per mile raced equals approximately 0.6214 days per km; illustrative
           only, not a validated universal recovery prescription.
-        calculation: ceiling(verified_course_distance_km * configured_easy_or_rest_days_per_km)
+        calculation: ceiling(selected_race_distance_km * configured_easy_or_rest_days_per_km)
         missing_setting: request athlete or coach input; do not calculate an automatic restricted window.
-        versioning: Record setting value, effective date, rule version and verified race-distance source.
+        versioning: Record setting value, effective date, rule version, distance source and whether it is measured
+          by the watch or inferred from a known race format.
       evaluation: For each uncompleted planned high-intensity action dated after the race and inside the configured
         window, raise a review flag.
       action: Propose an easier or rest action in a new draft plan version. Ask the athlete to approve. For an existing
         approved plan, flag the conflict and leave that plan intact.
-      missing_model: RaceEvent is a filtered conceptual view of TrainingSession, not yet a DOSI-mapped table. The
-        warehouse has no verified course-distance field; PlannedAction has no structured planned_intensity field.
-        No automated evaluator or schedule block exists.
+      missing_model: RaceEvent is a queryable TrainingSession subtype. A canonical SourceActivity lookup and athlete-specific
+        recovery setting are still needed for a distance-based review. PlannedAction.planned_intensity is mapped,
+        but no automated evaluator or schedule block exists.
       sources:
       - https://worldathletics.org/personal-best/performance/recovery-after-road-races-marathon
       - https://stillmed.olympics.com/media/Documents/Athletes/Medical-Scientific/Consensus-Statements/2016_How-much-is-too-much-load-sport-risk-illness-part-2.pdf
@@ -2975,7 +3173,7 @@ ai_context:
         contain no easy run or rest.
       action: Suggest moving or downgrading the later session in a new draft plan version; athlete approval required
         before changing an approved plan.
-      missing_model: planned_action has no structured planned_intensity field; the ontology property is conceptual
-        and unmapped. A deterministic evaluator and reminder channel are not implemented.
+      missing_model: planned_action.planned_intensity is mapped. A deterministic evaluator and reminder channel
+        are not implemented; missing plan entries still cannot be assumed to be rest.
       sources:
       - https://worldathletics.org/personal-best/performance/speed-training-endurance-runners-benefits-limits

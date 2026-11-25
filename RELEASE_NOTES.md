@@ -1,6 +1,16 @@
 # Release notes
 
-## Unreleased — [PR #2: Running plan and coaching dashboard](https://github.com/joannahe/AI-Runner-Tracker/pull/2)
+## Unreleased — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3)
+
+- Marked workout start time and running observation date as time dimensions in both DuckDB and StarRocks models.
+- Recorded the original 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`; the race subtype and saved coach-review links reduce current unmapped edge notes to 12.
+- Added version-linked, dated coach reviews with individual findings, evidence status, and pending plan proposals to both warehouse schemas, semantic models, and ontology mappings. The reusable Agent review procedure remains in ontology context. Added a local DuckDB writer and a disposable fixture test; review storage never approves a plan.
+- Corrected outdated coaching notes: planned intensity is mapped, while race evidence and external plan evaluators remain incomplete.
+- Classified completed running races as a queryable `TrainingSession` subtype. Race coaching now accepts a known race-format or canonical watch distance instead of requiring a separate official result. The post-race plan review still needs an athlete setting and external evaluator.
+- Verification: pinned Apache Ossie schema checks passed for all ten bundled YAML files; DOSI 0.2.2 reported no issues or compile errors in either standalone mapping project. A mapped DOSI query reached the saved review and exact goal version. Fixture checks and a disposable writer test passed. Three new audit-field hints make the current warning count 87 per project.
+- Limit: other field hints and deliberately conceptual edges remain for separate review. Saving a coach review is on demand; there is no scheduler or automatic plan approval. Existing remote StarRocks tables are not migrated by this PR.
+
+## 2026-11-24 — [PR #2: Running plan and coaching dashboard](https://github.com/joannahe/AI-Runner-Tracker/pull/2) (merged)
 
 ### Running plan
 

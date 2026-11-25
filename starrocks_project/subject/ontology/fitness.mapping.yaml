@@ -1511,3 +1511,212 @@ concept_mappings:
           expression: planned_action_segment.plan_version
         - relationship: id
           expression: planned_action_segment.action_id
+- concept: GoalReview
+  object_mappings:
+  - referent_mappings: &id010
+    - relationship: athlete_id
+      expression: coach_review.athlete_id
+    - relationship: id
+      expression: coach_review.review_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *id010
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: coach_review.athlete_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: coach_review.review_id
+    - relationship: review_date
+      object_mapping:
+        concept: Date
+        expression: coach_review.review_date
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: coach_review.status
+    - relationship: summary
+      object_mapping:
+        concept: String
+        expression: coach_review.summary
+    - relationship: targets
+      object_mapping:
+        concept: Goal
+        referent_mappings:
+        - relationship: athlete_id
+          expression: coach_review.athlete_id
+        - relationship: id
+          expression: coach_review.goal_id
+        - relationship: version
+          expression: coach_review.goal_version
+    - relationship: uses_plan
+      object_mapping:
+        concept: ActionPlan
+        referent_mappings:
+        - relationship: athlete_id
+          expression: coach_review.athlete_id
+        - relationship: id
+          expression: coach_review.plan_id
+        - relationship: version
+          expression: coach_review.plan_version
+    - relationship: window_start
+      object_mapping:
+        concept: Date
+        expression: coach_review.window_start_date
+    - relationship: window_end
+      object_mapping:
+        concept: Date
+        expression: coach_review.window_end_date
+    - relationship: data_watermark
+      object_mapping:
+        concept: Date
+        expression: coach_review.data_watermark_date
+    - relationship: rule_version
+      object_mapping:
+        concept: String
+        expression: coach_review.rule_version
+- concept: GoalReviewFinding
+  object_mappings:
+  - referent_mappings: &id011
+    - relationship: athlete_id
+      expression: coach_review_finding.athlete_id
+    - relationship: review_id
+      expression: coach_review_finding.review_id
+    - relationship: id
+      expression: coach_review_finding.finding_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *id011
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.athlete_id
+    - relationship: review_id
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.review_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.finding_id
+    - relationship: rule_code
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.rule_code
+    - relationship: status
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.status
+    - relationship: summary
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.summary
+    - relationship: in_review
+      object_mapping:
+        concept: GoalReview
+        referent_mappings:
+        - relationship: athlete_id
+          expression: coach_review_finding.athlete_id
+        - relationship: id
+          expression: coach_review_finding.review_id
+    - relationship: observed_value
+      object_mapping:
+        concept: Decimal
+        expression: coach_review_finding.observed_value
+    - relationship: baseline_value
+      object_mapping:
+        concept: Decimal
+        expression: coach_review_finding.baseline_value
+    - relationship: unit
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.unit
+    - relationship: evidence_date
+      object_mapping:
+        concept: Date
+        expression: coach_review_finding.evidence_date
+    - relationship: source_dataset
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.source_dataset
+    - relationship: source_record_id
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.source_record_id
+    - relationship: evidence_status
+      object_mapping:
+        concept: String
+        expression: coach_review_finding.evidence_status
+- concept: GoalReviewProposal
+  object_mappings:
+  - referent_mappings: &id012
+    - relationship: athlete_id
+      expression: coach_review_proposal.athlete_id
+    - relationship: review_id
+      expression: coach_review_proposal.review_id
+    - relationship: id
+      expression: coach_review_proposal.proposal_id
+  link_mappings:
+  - object_mapping:
+      referent_mappings: *id012
+    children:
+    - relationship: athlete_id
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.athlete_id
+    - relationship: review_id
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.review_id
+    - relationship: id
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.proposal_id
+    - relationship: decision_status
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.decision_status
+    - relationship: proposed_change
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.proposed_change
+    - relationship: in_review
+      object_mapping:
+        concept: GoalReview
+        referent_mappings:
+        - relationship: athlete_id
+          expression: coach_review_proposal.athlete_id
+        - relationship: id
+          expression: coach_review_proposal.review_id
+    - relationship: adjusts
+      object_mapping:
+        concept: PlannedAction
+        referent_mappings:
+        - relationship: athlete_id
+          expression: coach_review_proposal.athlete_id
+        - relationship: plan_id
+          expression: coach_review_proposal.plan_id
+        - relationship: plan_version
+          expression: coach_review_proposal.plan_version
+        - relationship: id
+          expression: coach_review_proposal.action_id
+    - relationship: plan_id
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.plan_id
+    - relationship: plan_version
+      object_mapping:
+        concept: Integer
+        expression: coach_review_proposal.plan_version
+    - relationship: action_id
+      object_mapping:
+        concept: String
+        expression: coach_review_proposal.action_id
+    - relationship: decided_at
+      object_mapping:
+        concept: Date
+        expression: coach_review_proposal.decided_at_utc

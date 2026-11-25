@@ -61,6 +61,8 @@ datasets:
         expression: started_at_local
     label: Started at local
     name: started_at_local
+    dimension:
+      is_time: true
   - expression:
       dialects:
       - dialect: DUCKDB
@@ -327,6 +329,8 @@ datasets:
         expression: observation_date
     label: Observation date
     name: observation_date
+    dimension:
+      is_time: true
   - expression:
       dialects:
       - dialect: DUCKDB
@@ -2702,6 +2706,211 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: target_hr_high_bpm
+- name: coach_review
+  source: fitness_demo.coach_review
+  description: One saved goal review; exact goal and plan versions and data watermark preserve its historical context.
+  primary_key:
+  - athlete_id
+  - review_id
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: athlete_id
+  - name: review_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: review_id
+  - name: goal_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: goal_id
+  - name: goal_version
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: goal_version
+  - name: plan_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: plan_id
+  - name: plan_version
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: plan_version
+  - name: review_date
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: review_date
+    dimension:
+      is_time: true
+  - name: window_start_date
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: window_start_date
+  - name: window_end_date
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: window_end_date
+  - name: data_watermark_date
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: data_watermark_date
+  - name: rule_version
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: rule_version
+  - name: status
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: status
+  - name: summary
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: summary
+  - name: created_at_utc
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: created_at_utc
+- name: coach_review_finding
+  source: fitness_demo.coach_review_finding
+  description: One dated finding in a saved review, including rule, values, source and evidence sufficiency.
+  primary_key:
+  - athlete_id
+  - review_id
+  - finding_id
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: athlete_id
+  - name: review_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: review_id
+  - name: finding_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: finding_id
+  - name: rule_code
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: rule_code
+  - name: status
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: status
+  - name: observed_value
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: observed_value
+  - name: baseline_value
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: baseline_value
+  - name: unit
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: unit
+  - name: evidence_date
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: evidence_date
+  - name: source_dataset
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: source_dataset
+  - name: source_record_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: source_record_id
+  - name: evidence_status
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: evidence_status
+  - name: summary
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: summary
+- name: coach_review_proposal
+  source: fitness_demo.coach_review_proposal
+  description: One proposed plan adjustment and the athlete decision; a proposal does not change an approved plan.
+  primary_key:
+  - athlete_id
+  - review_id
+  - proposal_id
+  fields:
+  - name: athlete_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: athlete_id
+  - name: review_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: review_id
+  - name: proposal_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: proposal_id
+  - name: plan_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: plan_id
+  - name: plan_version
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: plan_version
+  - name: action_id
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: action_id
+  - name: proposed_change
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: proposed_change
+  - name: decision_status
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: decision_status
+  - name: decided_at_utc
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: decided_at_utc
 relationships:
 - name: workout_event_to_athlete
   from: workout_event
@@ -2973,6 +3182,59 @@ relationships:
   - workout_event_id
 - name: planned_action_segment_to_action
   from: planned_action_segment
+  to: planned_action
+  from_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+  to_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  - action_id
+- name: coach_review_to_goal
+  from: coach_review
+  to: athlete_goal
+  from_columns:
+  - athlete_id
+  - goal_id
+  - goal_version
+  to_columns:
+  - athlete_id
+  - goal_id
+  - goal_version
+- name: coach_review_to_plan
+  from: coach_review
+  to: action_plan
+  from_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+  to_columns:
+  - athlete_id
+  - plan_id
+  - plan_version
+- name: coach_review_finding_to_review
+  from: coach_review_finding
+  to: coach_review
+  from_columns:
+  - athlete_id
+  - review_id
+  to_columns:
+  - athlete_id
+  - review_id
+- name: coach_review_proposal_to_review
+  from: coach_review_proposal
+  to: coach_review
+  from_columns:
+  - athlete_id
+  - review_id
+  to_columns:
+  - athlete_id
+  - review_id
+- name: coach_review_proposal_to_action
+  from: coach_review_proposal
   to: planned_action
   from_columns:
   - athlete_id

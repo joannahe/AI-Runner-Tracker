@@ -209,4 +209,14 @@ INSERT INTO planned_action (athlete_id, plan_id, plan_version, action_id, schedu
   ('demo_01', 'synthetic_sleep_plan', 1, 'sleep_20260420', '2026-04-20', 'sleep_routine', 'Proposed consistent bedtime', NULL, 'proposed', 'not_assessed', NULL, NULL, NULL, NULL, 'fictional_manual_plan'),
   ('demo_02', 'synthetic_race_plan', 1, 'run_20260422', '2026-04-22', 'run', 'Proposed easy 10K preparation run', 30, 'proposed', 'not_assessed', NULL, NULL, NULL, NULL, 'fictional_manual_plan');
 
+INSERT INTO coach_review (athlete_id, review_id, goal_id, goal_version, plan_id, plan_version, review_date, window_start_date, window_end_date, data_watermark_date, rule_version, status, summary, created_at_utc) VALUES
+  ('demo_01', 'review_20260421', 'synthetic_run_consistency', 2, 'synthetic_running_plan', 2, '2026-04-21', '2026-04-13', '2026-04-19', '2026-04-20', 'coach_v1', 'completed', 'Review the updated three-day running goal against the available week; keep plan changes pending human approval.', '2026-04-21 09:00:00');
+
+INSERT INTO coach_review_finding (athlete_id, review_id, finding_id, rule_code, status, observed_value, baseline_value, unit, evidence_date, source_dataset, source_record_id, evidence_status, summary) VALUES
+  ('demo_01', 'review_20260421', 'run_days', 'GoalProgressReview', 'below_target', 2, 3, 'days/week', '2026-04-19', 'goal_progress_assessment', 'synthetic_run_consistency_v2_weekly_run_days_2026-04-21', 'sufficient', 'Two recorded run days against a three-day weekly target.'),
+  ('demo_01', 'review_20260421', 'sleep_context', 'CompromisedRecovery', 'insufficient_evidence', NULL, NULL, NULL, '2026-04-21', 'recovery_state', NULL, 'insufficient_baseline', 'Sleep and recovery history is too short for a reliable baseline.');
+
+INSERT INTO coach_review_proposal (athlete_id, review_id, proposal_id, plan_id, plan_version, action_id, proposed_change, decision_status, decided_at_utc) VALUES
+  ('demo_01', 'review_20260421', 'easy_run_review', 'synthetic_running_plan', 2, 'run_20260419', 'Review the next easy-run duration before approving the revised plan.', 'pending', NULL);
+
 INSERT INTO activity_import_coverage (athlete_id, local_date, status) VALUES ('demo_01', '2026-04-06', 'verified_complete'), ('demo_01', '2026-04-07', 'verified_complete'), ('demo_01', '2026-04-08', 'verified_complete'), ('demo_01', '2026-04-09', 'verified_complete'), ('demo_01', '2026-04-10', 'verified_complete'), ('demo_01', '2026-04-11', 'verified_complete'), ('demo_01', '2026-04-12', 'verified_complete'), ('demo_01', '2026-04-13', 'verified_complete'), ('demo_01', '2026-04-14', 'verified_complete'), ('demo_01', '2026-04-15', 'verified_complete'), ('demo_01', '2026-04-16', 'verified_complete'), ('demo_01', '2026-04-17', 'verified_complete'), ('demo_01', '2026-04-18', 'verified_complete'), ('demo_01', '2026-04-19', 'verified_complete');
