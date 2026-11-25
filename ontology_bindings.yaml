@@ -297,7 +297,7 @@ concepts:
   binding: direct
   datasets: [coach_review]
   key: [coach_review.athlete_id, coach_review.review_id]
-  note: One dated review links to exact Goal and ActionPlan versions. The reusable Agent procedure remains in x_coaching_knowledge.goal_review_workflow.
+  note: One dated review links to exact Goal and ActionPlan versions and stores the coach's next_step_text separately from plan-change proposals. The reusable Agent procedure remains in x_coaching_knowledge.goal_review_workflow.
 - concept: GoalReviewFinding
   binding: direct
   datasets: [coach_review_finding]

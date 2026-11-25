@@ -500,6 +500,7 @@ CREATE TABLE IF NOT EXISTS coach_review (
   rule_version VARCHAR(255),
   status VARCHAR(255),
   summary VARCHAR(2048),
+  next_step_text VARCHAR(2048),
   created_at_utc DATETIME
 ) ENGINE=OLAP DUPLICATE KEY(athlete_id) DISTRIBUTED BY HASH(athlete_id) BUCKETS 1 PROPERTIES ('replication_num'='1');
 

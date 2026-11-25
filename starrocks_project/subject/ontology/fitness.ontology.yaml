@@ -360,6 +360,12 @@ ontology:
     multiplicity: ManyToOne
     verbalizes:
     - GoalReview summary String.
+  - name: next_step_text
+    roles:
+    - concept: String
+    multiplicity: ManyToOne
+    verbalizes:
+    - GoalReview next_step_text String.
   - name: targets
     description: A saved goal review targets one exact goal version.
     roles:
@@ -2480,7 +2486,9 @@ ai_context:
         - InferredState
         - Recommendation
         check: Cite the review and supporting observations; require human review before changing a plan or treating
-          a candidate as completed.
+          a candidate as completed. Save a separate next_step_text for the athlete. When no plan change is warranted,
+          connect a specific observed positive to the goal and say what to keep doing and what to monitor next.
+          When coverage is incomplete, state the gap and avoid claiming the athlete is fully recovered or on track.
     capability_evidence:
     - capability: running_pace_capacity
       concept_refs:

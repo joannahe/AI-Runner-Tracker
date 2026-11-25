@@ -171,6 +171,8 @@ The top of **Attention** shows the saved coach review for the previous completed
 
 An on-demand review with unverified import coverage can be saved as `provisional` with dated findings and no plan proposal. Attention labels it as a partial review and prefers a later `completed` review for the same week. A provisional review does not establish a full-week rule verdict. The owner snapshot includes a provisional review for 2026-11-16–22 based on the records available on 2026-11-25.
 
+The coach's **next step** is saved separately as `coach_review.next_step_text` and shown even when no plan change is proposed. Give your Agent the [weekly coach prompt](TRAINING_COACH_AGENT.md#prompt-for-a-natural-weekly-coach-review) so it connects a real observation to the runner's goal, acknowledges a stable week when evidence supports it, and names what to keep doing or watch next. The dashboard displays this saved prose; it does not generate it.
+
 The personal Attention tab compares the latest two completed weeks and shows the approved detailed version 3 plan; version 1 is superseded and version 2 is a withdrawn draft. Each week shows estimated running mileage, including warm-up and cool-down. DEKA FIT doubles has a personal mileage range until the partner split is agreed. Planned segments and distance ranges are mapped into the semantic model and ontology.
 
 ### Review an Agent-proposed training plan

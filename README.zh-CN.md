@@ -168,6 +168,8 @@ dosi query --mapping subject/ontology/fitness.mapping.yaml --metrics measured_ru
 
 导入覆盖尚未核验时，可以保存带日期和证据状态、且**不包含计划调整建议**的 `provisional` 初步复盘；看板会明确标注数据未核验。同一周后来保存正式 `completed` 复盘时，优先显示正式版本。作者数据快照已包含依据 2026 年 11 月 25 日已有记录生成的 11 月 16–22 日初步复盘；它不构成完整周规则判定。
 
+教练的「下一步建议」单独保存在 `coach_review.next_step_text`，即使没有计划调整建议也会显示。让 Agent 参考[周复盘教练提示词](TRAINING_COACH_AGENT.md#prompt-for-a-natural-weekly-coach-review)，结合真实证据、目标和下一次训练，用自然语言说明应该保持什么、接下来观察什么。看板只展示已保存的教练文字，不自行生成。
+
 个人数据的“关注点”页可按周查看已生效的第 3 版详细计划：每次训练含热身、主训练、放松，以及估算跑量、配速和心率；周跑量含热身与放松。DEKA FIT 双人赛在分工确认前显示个人跑量范围。告警依据第 3 版计划检查训练强度间隔、赛后安排及恢复信号。第 3 版将阈值训练目标更新为 5:30–5:55/公里、155–165 bpm；这是一条个人训练目标，不会覆盖 COROS 给出的阈值配速估计。
 
 以后调整这类目标范围，可执行 `.venv/bin/python dashboard/set_training_pace_target.py --fast 5:30 --slow 5:55 --effective-date 2026-11-24`，将速度和生效日期换成自己的数据。脚本会把新的个人目标作为有版本的 `running_pace_zone` 记录保存。然后请 Agent 查询当前目标、设备估计和近期跑步记录，生成新的待确认训练计划版本；已批准计划不会自动更改。

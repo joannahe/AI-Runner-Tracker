@@ -2780,6 +2780,11 @@ datasets:
       dialects:
       - dialect: DUCKDB
         expression: summary
+  - name: next_step_text
+    expression:
+      dialects:
+      - dialect: DUCKDB
+        expression: next_step_text
   - name: created_at_utc
     expression:
       dialects:
