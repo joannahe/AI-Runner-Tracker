@@ -3,9 +3,10 @@
 ## Unreleased — [PR #4: Saved weekly coach review in Attention](https://github.com/joannahe/AI-Runner-Tracker/pull/4)
 
 - Added a Monday–Sunday readiness check that requires verified activity coverage and sleep through the following Monday wake date. Synthetic tests cover complete, unverified, split-window, and missing-sleep cases. The gate does not launch an Agent.
-- The Attention page now reads the previous completed week's saved coach review, findings, and pending plan proposals from DuckDB. When no completed review exists for that week, it shows a pending message. Individual attention checks still recalculate from current observations and ontology guidance.
+- The Attention page now reads the previous completed week's saved coach review, findings, and pending plan proposals from DuckDB. When no saved review exists for that week, it shows a pending message. Individual attention checks still recalculate from current observations and ontology guidance.
+- Added explicit provisional reviews for incomplete import coverage, with evidence status and no plan proposal. The owner snapshot now includes a 2026-11-16–22 partial review; a later completed review takes display priority.
 - The local `/dashboard` service reads the saved review on each request; generated HTML previews remain snapshots. No automatic Agent review, scheduler, StarRocks migration, or plan approval is included.
-- Verification: saved-review, missing-week and athlete-isolation UI checks passed; weekly readiness fixture checks passed; DOSI validated both DuckDB and StarRocks mappings with existing advisory notes. The separate Ossie schema script could not run in this checkout because `jsonschema` is not installed.
+- Verification: saved-review, provisional-review, missing-week and athlete-isolation UI checks passed; weekly readiness fixture checks passed; the live dashboard rendered the persisted partial review. DOSI validated both DuckDB and StarRocks mappings with existing advisory notes. The separate Ossie schema script could not run in this checkout because `jsonschema` is not installed.
 
 ## 2026-11-25 — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3) (merged)
 

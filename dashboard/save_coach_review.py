@@ -18,10 +18,11 @@ def main():
     args=parser.parse_args()
     payload=json.loads(args.input.read_text())
     review=payload['review']; findings=payload['findings']; proposals=payload['proposals']
-    assert review['status']=='completed' and review['rule_version'] and review['data_watermark_date']
+    assert review['status'] in ('completed', 'provisional') and review['rule_version'] and review['data_watermark_date']
     assert review['window_start_date']<=review['window_end_date']<=review['review_date']
     assert all(len(str(row.get('summary','')))<2048 for row in [review,*findings])
     assert all(p['decision_status']=='pending' and p.get('decided_at_utc') is None for p in proposals)
+    assert review['status'] != 'provisional' or (findings and not proposals)
     assert all(f['evidence_status'] for f in findings)
     assert len({f['finding_id'] for f in findings})==len(findings)
     assert len({p['proposal_id'] for p in proposals})==len(proposals)
