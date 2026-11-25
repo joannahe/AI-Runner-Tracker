@@ -16,17 +16,17 @@ Do not suppress all warnings mechanically. The pinned Ossie `Field` schema does 
 
 ## Unmapped concept edges
 
-DOSI also reports 15 ontology edges without a link mapping. They fall into these groups:
+DOSI initially reported 15 ontology edges without a link mapping. The race edge is now represented by a queryable subtype, leaving 14 conceptual or reverse edges:
 
 | Group | Count | Current decision |
 | --- | ---: | --- |
 | Workflow and suggestion concepts (`GoalReviewWorkflow`, `InferredState`, `Recommendation`) | 7 | Conceptual only; no execution records exist. |
 | Recovery and provider context edges | 5 | Map only if a dated, explicit record key exists; the provider's private recovery formula is not a join. |
 | Reverse arrows (`Goal.has_criterion`, `GoalProgressAssessment.supported_by`) | 2 | Query from the mapped child concept and its `belongs_to` or `supports` link. |
-| `RaceEvent.completed_as` | 1 | Defer until verified official course distance and race identity are available. |
+| `RaceEvent.completed_as` | 1 resolved | `RaceEvent` now extends `TrainingSession` and DOSI executes its race filter. |
 
 The planned intensity field is already mapped. Post-race and hard/easy plan reviews still require their stated evidence and an external evaluator; the ontology does not schedule or approve changes.
 
 ## Next decisions
 
-Review the remaining 84 field hints in small batches. For each field, decide whether it is a user-facing dimension, a real measure needing a semantic metric, a queryable evidence attribute, or internal provenance. Preserve Ossie schema compliance and existing metric/ontology queries after every change. Review `RaceEvent` separately when verified race-distance data is available. Intentionally conceptual edges do not need fabricated mappings.
+Review the remaining 84 field hints in small batches. For each field, decide whether it is a user-facing dimension, a real measure needing a semantic metric, a queryable evidence attribute, or internal provenance. Preserve Ossie schema compliance and existing metric/ontology queries after every change. For race coaching, select a known race-format distance or a canonical watch distance; report missing distance rather than inventing it. Intentionally conceptual edges do not need fabricated mappings.

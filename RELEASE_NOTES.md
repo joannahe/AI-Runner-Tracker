@@ -3,8 +3,9 @@
 ## Unreleased — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3)
 
 - Marked workout start time and running observation date as time dimensions in both DuckDB and StarRocks models.
-- Recorded the 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`.
+- Recorded the original 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`; the race subtype reduces current unmapped edge notes to 14.
 - Corrected outdated coaching notes: planned intensity is mapped, while race evidence and external plan evaluators remain incomplete.
+- Classified completed running races as a queryable `TrainingSession` subtype. Race coaching now accepts a known race-format or canonical watch distance instead of requiring a separate official result. The post-race plan review still needs an athlete setting and external evaluator.
 - Verification: pinned Apache Ossie schema checks passed for all ten bundled YAML files; DOSI 0.2.2 reported no issues or compile errors in either standalone mapping project. Field hints fell from 86 to 84 per project.
 - Limit: other field hints and deliberately conceptual edges remain for separate review.
 
