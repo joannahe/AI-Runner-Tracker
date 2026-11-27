@@ -1,4 +1,4 @@
-"""Save one completed coaching review without changing an approved training plan."""
+"""Save a completed or provisional coaching review without changing an approved plan."""
 import argparse
 import json
 import re
@@ -7,7 +7,7 @@ import duckdb
 
 ROOT = Path(__file__).resolve().parent.parent
 TABLES = {
-    'coach_review': ['athlete_id','review_id','goal_id','goal_version','plan_id','plan_version','review_date','window_start_date','window_end_date','data_watermark_date','rule_version','status','summary','created_at_utc'],
+    'coach_review': ['athlete_id','review_id','goal_id','goal_version','plan_id','plan_version','review_date','window_start_date','window_end_date','data_watermark_date','rule_version','status','summary','next_step_text','summary_en','summary_zh','next_step_text_en','next_step_text_zh','created_at_utc'],
     'coach_review_finding': ['athlete_id','review_id','finding_id','rule_code','status','observed_value','baseline_value','unit','evidence_date','source_dataset','source_record_id','evidence_status','summary'],
     'coach_review_proposal': ['athlete_id','review_id','proposal_id','plan_id','plan_version','action_id','proposed_change','decision_status','decided_at_utc'],
 }
@@ -18,10 +18,13 @@ def main():
     args=parser.parse_args()
     payload=json.loads(args.input.read_text())
     review=payload['review']; findings=payload['findings']; proposals=payload['proposals']
-    assert review['status']=='completed' and review['rule_version'] and review['data_watermark_date']
+    assert review['status'] in ('completed', 'provisional') and review['rule_version'] and review['data_watermark_date']
     assert review['window_start_date']<=review['window_end_date']<=review['review_date']
     assert all(len(str(row.get('summary','')))<2048 for row in [review,*findings])
+    assert isinstance(review.get('next_step_text'),str) and 0 < len(review['next_step_text'].strip()) < 2048
+    assert all(not review.get(name) or (isinstance(review[name],str) and len(review[name])<2048) for name in ('summary_en','summary_zh','next_step_text_en','next_step_text_zh'))
     assert all(p['decision_status']=='pending' and p.get('decided_at_utc') is None for p in proposals)
+    assert review['status'] != 'provisional' or (findings and not proposals)
     assert all(f['evidence_status'] for f in findings)
     assert len({f['finding_id'] for f in findings})==len(findings)
     assert len({p['proposal_id'] for p in proposals})==len(proposals)
@@ -38,6 +41,11 @@ def main():
             if not match: raise ValueError(f'missing DDL for {table}')
             conn.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
             conn.execute(match.group().replace('CREATE TABLE IF NOT EXISTS '+table,'CREATE TABLE IF NOT EXISTS '+schema+'.'+table,1))
+        # Add optional localized prose to earlier snapshots without changing saved reviews.
+        columns={name for (name,) in conn.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=? AND table_name='coach_review'",[schema]).fetchall()}
+        for name in ('next_step_text','summary_en','summary_zh','next_step_text_en','next_step_text_zh'):
+            if name not in columns:
+                conn.execute(f'ALTER TABLE {schema}.coach_review ADD COLUMN {name} VARCHAR(2048)')
         key=(review['athlete_id'],review['review_id'])
         if conn.execute(f'SELECT COUNT(*) FROM {schema}.coach_review WHERE athlete_id=? AND review_id=?',key).fetchone()[0]:
             raise ValueError('review_id already saved; create a new review instead of overwriting history')

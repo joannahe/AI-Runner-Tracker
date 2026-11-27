@@ -1,6 +1,16 @@
 # Release notes
 
-## Unreleased — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3)
+## Unreleased — [PR #4: Saved weekly coach review in Attention](https://github.com/joannahe/AI-Runner-Tracker/pull/4)
+
+- Added a Monday–Sunday readiness check that requires verified activity coverage and sleep through the following Monday wake date. Synthetic tests cover complete, unverified, split-window, and missing-sleep cases. The gate does not launch an Agent.
+- The Attention page now reads the previous completed week's saved coach review, findings, and pending plan proposals from DuckDB. When no saved review exists for that week, it shows a pending message. Individual attention checks still recalculate from current observations and ontology guidance.
+- Added explicit provisional reviews for incomplete import coverage, with evidence status and no plan proposal. The owner snapshot now includes a 2026-11-16–22 partial review; a later completed review takes display priority.
+- Stored an Agent-written `next_step_text` separately from plan-change proposals and displayed it in the coach panel, including when the recommendation is to continue the current plan. Added a grounded weekly coaching prompt and a revised, versioned owner review. DuckDB review writes add the field to older local snapshots; the StarRocks creation schema and fictional seed include it, while existing remote tables still need migration.
+- Simplified the weekly review card to a highlighted focus and one coach next step, with review date and data watermark retained. Findings stay stored for evidence but no longer appear as a metric list in the card. Added optional English and Chinese coach prose fields to local review writes, both semantic models, the fixture, and the personal snapshot; existing StarRocks tables need migration before those fields can be stored remotely.
+- The local `/dashboard` service reads the saved review on each request; generated HTML previews remain snapshots. No automatic Agent review, scheduler, StarRocks migration, or plan approval is included.
+- Verification: saved-review, provisional-review with a coach message, missing-week and athlete-isolation UI checks passed; weekly readiness and DuckDB fixture checks passed. The live dashboard rendered the persisted coach message after restart. DOSI validated both DuckDB and StarRocks mappings with existing advisory notes. All ten bundled YAML files passed the pinned Apache Ossie schema check using temporary validation dependencies.
+
+## 2026-11-25 — [PR #3: Semantic field roles and ontology audit](https://github.com/joannahe/AI-Runner-Tracker/pull/3) (merged)
 
 - Marked workout start time and running observation date as time dimensions in both DuckDB and StarRocks models.
 - Recorded the original 15 conceptual/unmapped ontology edges and classified the remaining field authoring hints in `MODEL_QUALITY_AUDIT.md`; the race subtype and saved coach-review links reduce current unmapped edge notes to 12.

@@ -1542,6 +1542,10 @@ concept_mappings:
       object_mapping:
         concept: String
         expression: coach_review.summary
+    - relationship: next_step_text
+      object_mapping:
+        concept: String
+        expression: coach_review.next_step_text
     - relationship: targets
       object_mapping:
         concept: Goal
